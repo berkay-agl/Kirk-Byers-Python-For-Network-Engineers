@@ -15,7 +15,7 @@ Bu repodaki notlar ve kodlar, **Twin Bridges Technology** kurucusu ve **Netmiko*
 
 *   **Hedef Kitle:** Temel programlama mantığına aşina, Python öğrenmek isteyen Network Mühendisleri.
 *   **Ortam:** Herhangi bir network cihazına (switch/router) bağlanma zorunluluğu yoktur; dersler Python temelleri üzerine kuruludur.
-*   **Orijinal Kayıt:** Kursun orijinaline ve güncel İngilizce materyallerine [buradan](https://pynet.twb-tech.com/) kayıt olabilirsiniz.
+*   **Orijinal Kayıt:** Kursun orijinaline ve güncel İngilizce materyallerine [buradan](https://pynet.twb-tech.com/free-python-course.html) kayıt olabilirsiniz.
 
 ## Ders Programı ve İlerleme Durumu
 
