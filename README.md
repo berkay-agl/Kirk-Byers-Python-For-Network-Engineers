@@ -17,6 +17,22 @@ Bu repodaki notlar ve kodlar, **Twin Bridges Technology** kurucusu ve **Netmiko*
 *   **Ortam:** Herhangi bir network cihazına (switch/router) bağlanma zorunluluğu yoktur; dersler Python temelleri üzerine kuruludur.
 *   **Orijinal Kayıt:** Kursun orijinaline ve güncel İngilizce materyallerine [buradan](https://pynet.twb-tech.com/free-python-course.html) kayıt olabilirsiniz.
 
+GitHub reponun `README.md` dosyasına, "Kurs Hakkında" kısmının hemen altına veya uygun bir yere ekleyebileceğin profesyonel ve şeffaf çalışma metodolojisi bölümü:
+
+### Çalışma Metodolojisi ve İçerik Üretim Süreci
+
+Bu depodaki içerikler, İngilizce bilmeyen veya teknik detayları Türkçe olarak eksiksiz kavramak isteyen networkçüler için şu şekilde hazırlıyorum:
+
+* **Video ve Transkript Analizi:** Kirk Byers'ın e-posta ile paylaştığı ders videoları (Vimeo linkleri.) baştan sona izlenmekte, ardından altyazı ve transkript dökümleri çıkarılmaktadır.
+  
+* **Türkçeleştirme ve Formatlama:** Videolarda anlatılan tüm teorik mantık, Claude yapay zeka desteğiyle adım adım Türkçeye çevrilmekte, hiçbir kritik detay atlanmadan `weekX.md` formatında okunabilir ve yapılandırılmış ders notlarına dönüştürülmektedir.
+  
+* **Uygulamalı Kod ve Egzersizler:** Videolardaki kod örnekleri ve hafta sonu egzersizleri otomatik çeviriye bırakılmadan, **bizzat tarafımdan baştan sona test edilerek çalıştırılmakta** ve çözümleri doğrulanmış kod blokları halinde repoya eklenmektedir.
+
+> Böylece ingilizce seviyeniz ne olursa olsun, kursun orijinal içeriğinden hiçbir şey kaçırmadan doğrudan Türkçe dökümanlar ve çalışan kod örnekleri üzerinden ilerleyebilirsiniz.
+
+---
+
 ## Ders Programı ve İlerleme Durumu
 
 Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklayarak ilgili dersin Türkçe notlarına ve kodlarına ulaşabileceksiniz:
