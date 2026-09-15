@@ -481,3 +481,38 @@ Python bu kuralları default olarak zorunlu kılmaz; ancak genel kabul görmüş
 > * *naming convention* → dil tarafından zorlanmayan, geliştirici topluluğu tarafından kabul görmüş isimlendirme standartları.
 > * *constants* → program akışı boyunca değerinin değişmemesi beklenen sabitler.
 > * *geçici / atılabilir variable* → kod içinde atanıp sonrasında okunmayacak, önemsiz geçici variable.
+
+---
+
+## 7. Print ve Input
+
+### 7.1 Printing Standard Output
+
+Python'da **standard output**'a bir veri yazdırmak oldukça basittir; bunun için `print` kullanılır. Ekrana bir string basabileceğimiz gibi, aynı şekilde integer değerleri de yazdırabiliriz.
+
+```python
+In [1]: print("Hello World!")
+Hello World!
+
+In [2]: print(22)
+22
+```
+---
+
+### 7.2 Reading Standard Input
+
+Kullanıcıdan girdi almak için Python'un **built-in** gelen `input` fonksiyonu kullanılır.
+
+`input()` içerisine yazılan metin kullanıcıya gösterilir ve kullanıcıdan bir değer girmesi beklenir. Girilen değer bir variable'a assign edildiğinde, bu değerin **string** tipinde geldiğine dikkat edilmelidir.
+
+```python
+In [3]: my_var = input("Bir IP Adresi gir: ")
+Bir IP Adresi gir: 192.168.1.1
+
+In [4]: my_var
+Out[4]: '192.168.1.1'
+```
+
+> * *standard output (stdout)* → programın çıktılarını ekrana veya terminale yazdırdığı standart çıkış kanalı.
+> * *standard input (stdin)* → programın kullanıcıdan klavye veya harici bir girdi yoluyla veri aldığı standart giriş kanalı.
+> * *built-in* → Python'un içinde harici bir kütüphane yüklemeye gerek kalmadan varsayılan olarak hazır gelen fonksiyonlar.
