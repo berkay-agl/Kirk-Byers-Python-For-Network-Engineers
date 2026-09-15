@@ -456,3 +456,28 @@ Bu tarz isimler (`__name__` gibi) Python'un kendi mekanizmalarına ait özel anl
 > * *assignment operator* → variable'lara değer atamak için kullanılan tek eşittir (`=`) operatörü. 
 > * *linter* → kodu convention ve syntax standartlarına göre denetleyen araç.
 > * *dunder* → başında ve sonunda çift underscore bulunan (`__name__`, `__init__` vb.) özel Python yapıları.
+
+---
+
+## 6. Python Naming Conventions
+
+Python topluluğunda kod yazarken takip edilen belirli **naming conventions** yani isimlendirme standartları vardır. 
+Python bu kuralları default olarak zorunlu kılmaz; ancak genel kabul görmüş bir convention olarak uygulanır.
+
+---
+
+### 6.1 Temel Naming Conventions Kuralları
+
+* **snake_case_lower:** Tamamen lowercase harflerden oluşur ve kelime ayırıcı olarak alt çizgi (`_`) kullanılır. **Variable names** ve **functions** için kullanılır. İçerisinde sayılar yer alabilir; ancak sayılar asla ismin başında bulunamaz.
+
+* **PascalCase:** Kelimelerin büyük harfle ayrıldığı formatıdır. Her kelimenin ilk harfi büyük yazılır (örneğin Pascal'ın P'si ve Case'in C'si gibi) ve kelimeler arasında alt çizgi kullanılmaz. Kursun ilerleyen kısımlarında anlatılacak olan **class names** için kullanılır.
+
+* **SNAKE_CASE_UPPER:** Tamamen uppercase ve kelime ayırıcı olarak alt çizgi kullanılan formattır. **Constants** yani sabit değerler için kullanılır. Python'da default olarak bir şeyi zorla sabit yapacak yerleşik bir kural yoktur; bu tamamen "bu değer sabittir" mesajı veren bir convention olarak kullanılır.
+
+* **self:** Kursun ilerleyen bölümlerinde classes ve objects konularına gelindiğinde görülecektir; method'lar içerisinde objenin kendisine yapılan referansı ifade eder.
+
+* **_ (Tek alt çizgi):** Önceki derste de bahsedildiği gibi, kod içinde kullanılmayacak geçici variable'lar için bir **geçici / atılabilir variable** olarak kullanılır.
+
+> * *naming convention* → dil tarafından zorlanmayan, geliştirici topluluğu tarafından kabul görmüş isimlendirme standartları.
+> * *constants* → program akışı boyunca değerinin değişmemesi beklenen sabitler.
+> * *geçici / atılabilir variable* → kod içinde atanıp sonrasında okunmayacak, önemsiz geçici variable.
