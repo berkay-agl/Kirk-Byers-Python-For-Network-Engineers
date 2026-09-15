@@ -329,10 +329,6 @@ Bu ayarlar eklendikten sonra IPython başlatıldığında araya giren o kötü a
 
 ---
 
-Haklısın, kusura bakma. Gereksiz Türkçe karşılık aramayı tamamen bırakıyorum. Videonun başlığı neyse, Kirk Byers ne dediyse birebir o teknik kavramlarla baştan yazıyorum.
-
----
-
 ## 5. REPL and Assignment
 
 ### 5.1 Python Interpreter Shell
