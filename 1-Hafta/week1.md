@@ -158,3 +158,88 @@ Python 3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
 >>> quit()
 ```
+---
+
+## 3. PIP ve Dependencies Kurulumu
+
+### 3.1 Kurulu Paketleri Kontrol Etme
+
+Python ve sanal ortam kurulumundan sonra ilk yapılması gereken işlem, ortamda hangi paketlerin yüklü olduğunu kontrol etmektir. Bunun için doğrudan `pip list` komutu kullanılabilir.
+
+Ancak bazen kullandığınız Python sürümü ile sistemdeki `pip` aracı birbiriyle doğrudan eşleşmeyebilir; yani çalıştırdığınız `pip`, o anki Python ortamına ait olmayabilir. Bu durumun önüne geçmek ve en güvenli yoldan ilerlemek için komutu `python -m pip` şeklinde çalıştırmak gerekir:
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ python -m pip list
+Package Version
+------- -------
+pip     25.1.1
+```
+
+> Alternatif ve güvenli kullanım: `python -m pip list`. Yeni oluşturulan temiz bir sanal ortamda varsayılan olarak yalnızca `pip` ve `setuptools` paketleri yer alır. (Bende setuptools yoktu çıktıdaki gibi.)
+
+---
+
+### 3.2 PIP Aracını Güncelleme 
+
+`pip list` çalıştırdığınızda veya paket yüklemeye çalıştığınızda, pip sürümünüz eskiyse terminalde bir uyarı mesajı çıkabilir ve güncelleme yapmanızı isteyebilir.
+
+Pip'i güncellemek için uyarı mesajında belirtilen en güncel sürüm numarasıyla şu komut çalıştırılır:
+
+```bash
+[py311_venv] ktbyers@pydev2 ~/VENV
+$ pip install pip==22.3.1
+Collecting pip==22.3.1
+  Using cached pip-22.3.1-py3-none-any.whl (2.1 MB)
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 22.3
+    Uninstalling pip-22.3:
+    Successfully uninstalled pip-22.3
+Successfully installed pip-22.3.1
+```
+
+> Yine daha güvenli ve tavsiye edilen alternatif yöntem: `python -m pip install pip==22.3.1`. (Bu arada https://pypi.org/project/pip/ - pip 26.2.1 sürümü en son.)
+
+---
+
+### 3.3 Kurs Bağımlılıklarını (requirements.txt) Yükleme
+
+Eğitmenin videolarda gösterdiği kodları ve ortamı birebir uygulayabilmek için dersin ihtiyaç duyduğu bağımlılıkların yüklenmesi gerekir.
+
+Bunun için eğitmenin GitHub deposundaki `requirements.txt` dosyasını temin etmek gerekiyor (ister `git clone` ile tüm depoyu çekerek, ister doğrudan dosyanın içeriğini kopyalayarak):
+
+* **Kursun GitHub Deposu:** [github.com/twin-bridges/learning_python](https://github.com/twin-bridges/learning_python)
+
+Ben yine şuraya da eklemek istiyorum:
+
+```text
+ipython==8.6.0
+pylama==8.4.1
+black==23.3.0
+rich==13.3.3
+netmiko==4.2.0
+emoji==2.2.0
+```
+
+İsterseniz uğraşmayın **wget** ile çekin:
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ wget https://raw.githubusercontent.com/twin-bridges/learning_python/main/requirements.txt
+```
+
+Dosyayı aldıktan sonra projenin ana dizininde şu komut çalıştırılarak dosya içindeki tüm dependencies topluca kurulur:
+
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ python -m pip install -r requirements.txt 
+
+Collecting ipython==8.6.0 (from -r requirements.txt (line 1))
+  Downloading ipython-8.6.0-py3-none-any.whl.metadata (5.7 kB)
+Collecting pylama==8.4.1 (from -r requirements.txt (line 2))
+  Downloading pylama-8.4.1-py3-none-any.whl.metadata (15 kB)
+...
+```
+
+> * *pip* → Python'un resmi paket yönetim aracı; harici kütüphaneleri indirip kurmayı sağlar.
+> * *requirements.txt* → bir projenin ihtiyaç duyduğu tüm kütüphanelerin ve sürümlerinin listelendiği standart metin dosyası.
+> * *pip install -r* → parametre olarak verilen dosyadaki tüm bağımlılıkları sırayla okuyup kuran komut.
