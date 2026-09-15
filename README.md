@@ -23,7 +23,7 @@ Bu depodaki içerikler, İngilizce bilmeyen veya teknik detayları Türkçe olar
 
 * **Video ve Transkript Analizi:** Kirk Byers'ın e-posta ile paylaştığı ders videoları (Vimeo linkleri) baştan sona izlenmekte, ardından altyazı ve transkript dökümleri çıkarılmaktadır.
   
-* **Türkçeleştirme ve Formatlama:** Videolarda anlatılan tüm teorik mantık, Claude yapay zeka desteğiyle adım adım Türkçeye çevrilmekte, hiçbir kritik detay atlanmadan `weekX.md` formatında okunabilir ve yapılandırılmış ders notlarına dönüştürülmektedir.
+* **Türkçeleştirme ve Formatlama:** Videolarda anlatılan tüm teorik mantık, Claude/Gemini(öğrenci olduğum için Pro sürümünde genelde onu tercih ediyorum) yapay zeka desteğiyle adım adım Türkçeye çevrilmekte, hiçbir kritik detay atlanmadan `weekX.md` formatında okunabilir ve yapılandırılmış ders notlarına dönüştürülmektedir.
   
 * **Uygulamalı Kod ve Egzersizler:** Videolardaki kod örnekleri ve hafta sonu egzersizleri otomatik çeviriye bırakılmadan, **bizzat tarafımdan baştan sona test edilerek çalıştırılmakta** ve çözümleri doğrulanmış kod blokları halinde repoya eklenmektedir.
 
