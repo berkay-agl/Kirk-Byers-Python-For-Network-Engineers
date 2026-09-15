@@ -17,8 +17,6 @@ Bu repodaki notlar ve kodlar, **Twin Bridges Technology** kurucusu ve **Netmiko*
 *   **Ortam:** Herhangi bir network cihazına (switch/router) bağlanma zorunluluğu yoktur; dersler Python temelleri üzerine kuruludur.
 *   **Orijinal Kayıt:** Kursun orijinaline ve güncel İngilizce materyallerine [buradan](https://pynet.twb-tech.com/free-python-course.html) kayıt olabilirsiniz.
 
-GitHub reponun `README.md` dosyasına, "Kurs Hakkında" kısmının hemen altına veya uygun bir yere ekleyebileceğin profesyonel ve şeffaf çalışma metodolojisi bölümü:
-
 ### Çalışma Metodolojisi ve İçerik Üretim Süreci
 
 Bu depodaki içerikler, İngilizce bilmeyen veya teknik detayları Türkçe olarak eksiksiz kavramak isteyen networkçüler için şu şekilde hazırlıyorum:
