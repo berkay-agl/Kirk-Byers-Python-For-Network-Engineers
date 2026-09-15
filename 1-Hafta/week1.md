@@ -48,6 +48,8 @@ Bu da özellikle otomasyon script'leri yazan network mühendisleri için, öğre
 
 ### Not: 2. Yüklenen Videoda Vimeo Hakkında 1 Dakikalık Kısa Bir Açıklama Vardı, O yüzden 3. Yüklenen Videodan Devam Ediyorum.
 
+---
+
 ## 2. Python Ortamı ve Virtual Environment Kurulumu
 
 ### 2.1 Eğitmenin Kullandığı Ortam
@@ -133,6 +135,8 @@ Python 3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
 >>> quit()
 ```
+
+---
 
 **2) Sanal ortam oluşturma:**
 
@@ -322,3 +326,137 @@ c.TerminalInteractiveShell.autosuggestions_provider = None
 ```
 
 Bu ayarlar eklendikten sonra IPython başlatıldığında araya giren o kötü autocomplete davranışı tamamen kapatılmış olur.
+
+---
+
+Haklısın, kusura bakma. Gereksiz Türkçe karşılık aramayı tamamen bırakıyorum. Videonun başlığı neyse, Kirk Byers ne dediyse birebir o teknik kavramlarla baştan yazıyorum.
+
+---
+
+## 5. REPL and Assignment
+
+### 5.1 Python Interpreter Shell
+
+Python'da kodları doğrudan çalıştırmak, kod parçacıklarını denemek veya hızlıca testler yapmak için **interpreter shell** (REPL) kullanılır.
+
+Kirk Byers bu ortam için standart shell yerine **IPython** (ya da duruma göre `pdb` / `pdbr`) kullanmayı tercih ediyor. Windows, macOS ve Linux fark etmeksizin sanal ortam aktifken doğrudan `python -m IPython` yazılarak interpreter shell başlatılır.
+
+Interpreter shell, yazdığınız kodu anında evaluate eden yani değerlendiren bir ortamdır. 
+Burada variable assign edebilir, print statement'lar çalıştırabilir ya da for loop'lar kurabilirsiniz.
+
+Kendi ortamımızda IPython interpreter shell'i başlatma:
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ python -m IPython
+Python 3.13.5 (main, Aug 10 2026, 12:06:59) [GCC 14.2.0]
+Type 'copyright', 'credits' or 'license' for more information
+IPython 8.6.0 -- An enhanced Interactive Python. Type '?' for help.
+
+```
+
+---
+
+### 5.2 Assignment ve Variable Names
+
+Python'da bir variable'a değer atamak için tek eşittir (`=`) kullanılır; buna **assignment operator** denir.
+
+**1) Assignment işlemi ve type kontrolü:**
+
+```python
+In [1]: my_var = 10
+
+In [2]: my_var
+Out[2]: 10
+
+In [3]: type(my_var)
+Out[3]: int
+
+```
+
+> Atanan değerin türünü görmek için `type()` kullanılır; burada değer bir integer.
+
+**2) Variable isimlendirmede alphanumeric ve alt çizgi kuralı:**
+
+Python'da variable name belirlerken **alphanumeric** karakterler (harf ve sayılar) ile **alt çizgi** (`_`) kullanılabilir. Büyük harf kullanımı da geçerlidir:
+
+```python
+In [4]: my_var1 = "test"
+
+In [5]: _my_var2 = "test"
+
+In [6]: my_VAR3 = "test"
+
+```
+
+**3) Sayı ile başlama kuralı:**
+
+Variable name içinde sayı kullanılabilir ama **asla bir sayı ile başlayamaz**. Rakamla başlayan bir variable name girildiğinde Python syntax hatası verir:
+
+```python
+In [7]: 4my_var = "test"
+  Cell In [7], line 1
+    4my_var = "test"
+    ^
+SyntaxError: invalid decimal literal
+
+```
+
+**4) Convention:**
+
+Python'da genel kural olarak variable isimleri tamamen **lowercase** yazılır ve kelimeleri ayırmak için `_` kullanılır (snake_case). Python bunu zorunlu kılmaz ama topluluk standardı budur:
+
+```python
+In [10]: my_ip_addr = "192.168.88.7"
+
+In [11]: sf_dc_svr9 = "svr9a.lasthop.io"
+
+In [12]: global_delay_factor = 4
+
+```
+
+> `sf_dc_svr9` örneğinde görüldüğü gibi, ilk karakter olmadığı sürece variable name içerisinde sayı bulunması tamamen geçerlidir.
+
+---
+
+### 5.3 Özel Anlamı Olan Variable İsimleri
+
+Python'da alt çizgi kullanımı bazı durumlarda özel anlamlar taşır:
+
+**1) Tek başına alt çizgi (`_`):**
+
+Tek başına `_` tamamen valid yani geçerli bir variable name'dir:
+
+```python
+In [8]: _ = "geçerli variable"
+
+In [9]: _
+Out[9]: 'geçerli variable'
+
+```
+
+Convention olarak tek başına `_`, **ıvır zıvır** ya da **kullanılmayacak** variable'lar için kullanılır. 
+Bunun en büyük avantajı **linter** araçlarının hata vermesini engellemesidir. Normalde bir variable tanımlayıp hiç kullanmazsanız linter uyarır, ancak `_` kullanıldığında linter bunu otomatik olarak görmezden gelir.
+
+**2) Tek önde gelen alt çizgi (`_variable`):**
+
+Başında tek alt çizgi olan variable veya method'lar (`_private_var`), kütüphanelerde **private attribute** veya **private method** olduğunu belirtir. 
+Yani geliştirici, "ne yaptığını tam bilmiyorsan bunu dışarıdan kullanma" mesajı verir.
+
+**3) Başında çift alt çizgi (`__variable`):**
+
+Başında çift alt çizgi olan durumlar **name mangling** için kullanılır. Kirk Byers pratikte buna neredeyse hiç ihtiyaç duymadığını ve bundan uzak durduğunu belirtiyor.
+
+**4) Çift alt çizgi ile başlayıp bitenler (`__dunder__`):**
+
+Başında ve sonunda çift alt çizgi olan yapılar **Dunder methods** ya da **magic methods** olarak adlandırılır (Dunder = Double Underscore):
+
+```python
+In [10]: __name__
+Out[10]: '__main__'
+```
+
+Bu tarz isimler (`__name__` gibi) Python'un kendi mekanizmalarına ait özel anlamlar taşıdığı için, kendi yazdığınız kodlarda bu formatta variable name tanımlamaktan kaçınmanız gerekir.
+
+> * *assignment operator* → variable'lara değer atamak için kullanılan tek eşittir (`=`) operatörü. 
+> * *linter* → kodu convention ve syntax standartlarına göre denetleyen araç.
+> * *dunder* → başında ve sonunda çift underscore bulunan (`__name__`, `__init__` vb.) özel Python yapıları.
