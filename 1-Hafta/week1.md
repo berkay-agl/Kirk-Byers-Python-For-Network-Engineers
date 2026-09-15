@@ -243,3 +243,82 @@ Collecting pylama==8.4.1 (from -r requirements.txt (line 2))
 > * *pip* → Python'un resmi paket yönetim aracı; harici kütüphaneleri indirip kurmayı sağlar.
 > * *requirements.txt* → bir projenin ihtiyaç duyduğu tüm kütüphanelerin ve sürümlerinin listelendiği standart metin dosyası.
 > * *pip install -r* → parametre olarak verilen dosyadaki tüm bağımlılıkları sırayla okuyup kuran komut.
+
+---
+
+## 4. IPython AutoComplete Özelliğini Kapatma
+
+### 4.1 Neden Kapatıyoruz?
+
+Kursun ilerleyen kısımlarında **Python REPL** — yani **Python interpreter shell** olarak **IPython** kullanılacak.
+
+Ancak IPython'ın yeni sürümlerinde kod yazarken sürekli araya giren ve Kirk Byers'ın tabiriyle oldukça kullanışsız olan kötü bir **autocomplete** özelliği bulunuyor. 
+Kod yazarken sadece önümüze engel çıkardığı için bu davranışı devre dışı bırakıyoruz.
+
+Bunun için IPython'ın config dosyasına iki satırlık bir ayar eklemek gerekiyor.
+
+> * *IPython* → Python ile etkileşimli çalışmak için kullanılan gelişmiş interpreter shell.
+> * *REPL* → Read-Eval-Print Loop; girilen kodu anında çalıştırıp çıktısını veren interaktif ortam.
+> * *autocomplete* → kod yazarken otomatik tamamlama ve öneri getiren özellik.
+
+---
+
+### 4.2 MacOS ve Linux Ortamında Yapılandırma
+
+Linux ve macOS sistemlerde ilgili dosya kullanıcının home dizini altındaki `.ipython` klasöründe yer alır.
+
+Düzenlenecek dosya yolu: `~/.ipython/profile_default/ipython_config.py`
+
+Eğer yoksa şu adımları uygulayın:
+
+```bash
+berkay@berkay:~$ python -m pip install ipython --break-system-packages
+berkay@berkay:~$ ipython profile create
+```
+
+Bu dosyanın içerisine şu iki satırı ekliyoruz:
+
+```python
+c = get_config()
+c.TerminalInteractiveShell.autosuggestions_provider = None
+```
+
+Dosyaya eklemenin doğru yapıldığını terminalden `cat` komutuyla kontrol edebiliriz:
+
+```bash
+berkay@berkay:~$ cat .ipython/profile_default/ipython_config.py 
+```
+---
+
+### 4.3 Windows Ortamında Yapılandırma
+
+Windows tarafında eğer bu config dosyası varsayılan olarak henüz oluşturulmadıysa önce terminalden profili oluşturmak gerekiyor. (Bu kısım videodan.)
+
+**1) Default konfigürasyon profilini oluşturma:**
+
+Terminalde sanal ortam aktifken şu komut çalıştırılır:
+
+```cmd
+(py311_venv) C:\Users\Administrator\.ipython\profile_default>ipython profile create
+[ProfileCreate] Generating default config file: WindowsPath('C:/Users/Administrator/.ipython/profile_default/ipython_config.py')
+```
+
+**2) Dosyayı bulma ve düzenleme:**
+
+Oluşan dosya kullanıcının home dizini altındaki `.ipython\profile_default\` klasöründe yer alır. Klasör içeriği `dir` komutuyla kontrol edildiğinde dosya listelenir:
+
+```cmd
+(py311_venv) C:\Users\Administrator\.ipython\profile_default>dir
+...
+11/18/2022  12:31 AM            45,975 ipython_config.py
+...
+```
+
+Oluşan `ipython_config.py` dosyası bir metin düzenleyiciyle açılır ve Linux tarafında eklenen iki satırın aynısı bu dosyanın içerisine eklenir:
+
+```python
+c = get_config()
+c.TerminalInteractiveShell.autosuggestions_provider = None
+```
+
+Bu ayarlar eklendikten sonra IPython başlatıldığında araya giren o kötü autocomplete davranışı tamamen kapatılmış olur.
