@@ -94,6 +94,7 @@ berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ which py
 ```
 
 **2) `venv` modülü ile sanal ortam oluşturma:**
+
 Burada Python'un built-in olan `venv` modülü çağrılır ve ortama bir isim verilir:
 
 ```bash
@@ -102,6 +103,7 @@ berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ python3.
 ```
 
 **3) Sanal ortamı aktifleştirme:**
+
 Ortamı devreye almak için `bin` klasöründeki `activate` script'i çalıştırılır:
 
 ```bash
