@@ -497,6 +497,7 @@ Hello World!
 In [2]: print(22)
 22
 ```
+
 ---
 
 ### 7.2 Reading Standard Input
@@ -516,3 +517,39 @@ Out[4]: '192.168.1.1'
 > * *standard output (stdout)* → programın çıktılarını ekrana veya terminale yazdırdığı standart çıkış kanalı.
 > * *standard input (stdin)* → programın kullanıcıdan klavye veya harici bir girdi yoluyla veri aldığı standart giriş kanalı.
 > * *built-in* → Python'un içinde harici bir kütüphane yüklemeye gerek kalmadan varsayılan olarak hazır gelen fonksiyonlar.
+
+---
+
+## 8. Python Karakteristikleri
+
+### 8.1 Indentation Mantığı
+
+Python'da kod blokları süslü parantezler (`{}`) yerine doğrudan **indentation** yani girintileme ile belirlenir. 
+Bazı yazılımcılar süslü parantezleri çok sevdiği için Python'ın bu yapısından hoşlanmaz; ancak Python'da blok yapısını kurmanın tek yolu girintilemedir.
+
+Girintileme konusunda dikkat edilmesi gereken kurallar şunlardır:
+
+* **Spaces, not tabs:** Girintileme yaparken tab tuşu yerine mutlaka space kullanılmalıdır.
+
+* **Dört Boşluk Kuralı:** Her girintileme seviyesi için tam olarak **4 space** kullanılmalıdır.
+
+* **Takım Çalışması ve Araç Uyumluluğu:** Boşluk kullanmak, başkalarıyla ortak kod yazarken hayatı kolaylaştırır ve kodun düzgün formatlanıp formatlanmadığını denetleyen linter araçlarıyla sorunsuz çalışmayı sağlar.
+
+* **Editör Ayarı:** Kullandığınız metin editöründe Tab tuşuna basıldığında bunu otomatik olarak 4 space karakterine çevirecek ayarları yapabilirsiniz.
+
+---
+
+### 8.2 Python Standartları ve "Pythonic" Yaklaşım
+
+Python geliştiricileri belirli kurallara ve kodun belli bir biçimde yazılmasına oldukça önem verir.
+
+* **PEP 8:** Python programlarının nasıl stillendirilmesi ve yazılması gerektiğini belirten resmi stil kılavuzudur.
+
+* **Pythonic Code:** Python topluluğunda bir kodun sadece çalışması yeterli görülmez; kodun dile en uygun, sade, açık ve genel kabul görmüş standartlara göre yazılması istenir. Bu yazım tarzına ve felsefesine **pythonic** yaklaşım denir.
+
+> * *indentation* → kod bloklarını ve hiyerarşiyi belirlemek için satır başında bırakılan 4 boşlukluk girinti.
+> * *PEP 8* → Python kodunun biçimlendirme ve stil standartlarını tanımlayan resmi rehber.
+> * *pythonic* → Python'ın kendine has pratiklerine, temizlik ve okunabilirlik felsefesine uygun kod yazma tarzı.
+
+---
+
