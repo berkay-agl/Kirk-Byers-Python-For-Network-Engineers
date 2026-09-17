@@ -817,3 +817,72 @@ Kirk'ün de belirttiği gibi `strip` metodu, string'in başındaki ve sonundaki 
 
 ---
 
+## 11. String Basics
+
+### 11.1 Python Veri Tipleri ve String
+
+Python'da string, integer, float, boolean ve None type gibi temel veri tipleri bulunur. Kursun ilerleyen kısımlarında list, tuple, dictionary ve set gibi daha karmaşık veri tipleri de ele alınacaktır. Bu bölümde ilk temel veri tipi olan **string** incelenmektedir.
+
+Bir variable'ın veri tipini kontrol etmek için built-in `type()` fonksiyonu kullanılır.
+
+Kendi ortamımızda çalıştırma örneği:
+
+```python
+In [1]: my_var = "bir string"
+
+In [2]: type(my_var)
+Out[2]: str
+```
+
+---
+
+### 11.2 Tek ve Çift Tırnak Kullanımı
+
+Python'da string tanımlarken tek tırnak (`'`) veya çift tırnak (`"`) kullanılabilir. Python için ikisi arasında bir fark yoktur.
+
+Dikkat edilmesi gereken tek kural, **string hangi tırnakla başladıysa onunla bitirilmelidir**.
+
+```python
+In [3]: my_var = 'bir string'
+```
+
+Çift tırnak ile başlayıp tek tırnak ile bitirilmeye çalışılırsa Python `SyntaxError: unterminated string literal` hatası verir:
+
+```python
+In [3]: my_var3 = "Cannot do this'
+  Cell In [3], line 1
+    my_var3 = "Cannot do this'
+              ^
+SyntaxError: unterminated string literal (detected at line 1)
+```
+
+---
+
+### 11.3 Multi-line Strings 
+
+Birden fazla satıra yayılan stringler oluşturmak için **üç tırnak** kullanılır.
+
+Burada da kural aynıdır: üç çift tırnak (`"""`) ile başlandıysa üç çift tırnakla, üç tek tırnak (`'''`) ile başlandıysa üç tek tırnakla kapatılmalıdır.
+
+Kendi ortamımızda çalıştırma örneği:
+
+```python
+In [4]: m_string = """
+   ...: bu bir çoklu satır 
+   ...: 
+   ...: string yazısı
+   ...: 
+   ...: test
+   ...: 
+   ...: öylesine cümleler
+   ...: """
+```
+
+> **Önemli Detay:** Üç çift tırnak (`"""`) ile başlatılan bir multi-line string içerisinde tek tırnaklar veya üç tek tırnak (`'''`) yer alsa bile string sonlanmaz. String yalnızca başladığı tırnak türü olan `"""` ile karşılaşana kadar devam eder.
+
+> * *str* → Python'da metinsel verileri temsil eden temel string veri tipi. 
+> * *multi-line string* → üç tırnak (`"""` veya `'''`) kullanılarak birden fazla satıra yazılabilen string yapısı.
+> * *unterminated string literal* → açılan bir string tırnağının aynı tırnak türü ile düzgün kapatılmadığında alınan syntax hatası.
+
+---
+
