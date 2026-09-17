@@ -641,3 +641,179 @@ Enter an IP Address: 1.2.3.4
 > * *direct execution* → script'in başına program adını (`python`) yazmadan, doğrudan `./script.py` şeklinde çalıştırılması.
 
 ---
+
+## 10. Comments, Dir ve Help
+
+### 10.1 Comments
+
+Python'da koda yorum eklemek oldukça basittir; bunun için diyez (`#`) işareti kullanılır.
+
+Yorum satırları şu şekillerde kullanılabilir:
+
+* **Satır başında yorum:** Doğrudan satırın başına `#` konularak yazılır.
+
+* **Statement sonrasında yorum:** Kısa bir kod satırının hemen sonrasına `#` eklenerek yorum yazılabilir.
+
+* **Çok satırlı yorumlar:** Birden fazla satıra yayılan açıklamalarda Kirk Byers her satırın başına ayrı bir `#` eklenmesini tavsiye ediyor.
+
+* **Multi-line string ile yorum:** Teknik olarak üç tırnak (`"""`) kullanılarak çok satırlı metin bloğu ile de yorum yazılabilir. Ancak eğitmen bunun kod içinde normal bir string mi yoksa yorum mu olduğunu ayırt etmeyi zorlaştırdığı için bu yöntemi pek sevmediğini ve tavsiye etmediğini belirtiyor.
+
+Kirk'ün gösterdiği script örneği:
+
+```python
+# This is a comment
+my_ip_addr = input("Enter an IP address: ")
+
+# This line prints out the IP Addr entered above.
+print(my_ip_addr)
+
+print("Hello again")  # I can also comment after a statement
+
+# If you have a comment that spans multiple lines, then just use
+# a second comment line.
+print(my_ip_addr)
+
+"""
+This is a multiline comment
+that says something very important
+"""
+```
+
+---
+
+### 10.2 Dir Fonksiyonu
+
+Python interpreter shell içerisinde çalışırken elimizdeki nesnelerin neler yapabildiğini görmek için built-in gelen `dir()` fonksiyonu kullanılır.
+
+Belirli bir türdeki variable'a (örneğin bir string nesnesine) `dir()` uygulandığında, o veri türü için kullanılabilecek tüm metotların ve niteliklerin listesi döner.
+
+Kendi ortamımızda IPython üzerinde çalıştırma:
+
+```python
+In [1]: my_var = "string variable"
+
+In [2]: dir(my_var)
+Out[2]: 
+['__add__',
+ '__class__',
+ '__contains__',
+ '__delattr__',
+ '__dir__',
+ '__doc__',
+ '__eq__',
+ '__format__',
+ '__ge__',
+ '__getattribute__',
+ '__getitem__',
+ '__getnewargs__',
+ '__getstate__',
+ '__gt__',
+ '__hash__',
+ '__init__',
+ '__init_subclass__',
+ '__iter__',
+ '__le__',
+ '__len__',
+ '__lt__',
+ '__mod__',
+ '__mul__',
+ '__ne__',
+ '__new__',
+ '__reduce__',
+ '__reduce_ex__',
+ '__repr__',
+ '__rmod__',
+ '__rmul__',
+ '__setattr__',
+ '__sizeof__',
+ '__str__',
+ '__subclasshook__',
+ 'capitalize',
+ 'casefold',
+ 'center',
+ 'count',
+ 'encode',
+ 'endswith',
+ 'expandtabs',
+ 'find',
+ 'format',
+ 'format_map',
+ 'index',
+ 'isalnum',
+ 'isalpha',
+ 'isascii',
+ 'isdecimal',
+ 'isdigit',
+ 'isidentifier',
+ 'islower',
+ 'isnumeric',
+ 'isprintable',
+ 'isspace',
+ 'istitle',
+ 'isupper',
+ 'join',
+ 'ljust',
+ 'lower',
+ 'lstrip',
+ 'maketrans',
+ 'partition',
+ 'removeprefix',
+ 'removesuffix',
+ 'replace',
+ 'rfind',
+ 'rindex',
+ 'rjust',
+ 'rpartition',
+ 'rsplit',
+ 'rstrip',
+ 'split',
+ 'splitlines',
+ 'startswith',
+ 'strip',
+ 'swapcase',
+ 'title',
+ 'translate',
+ 'upper',
+ 'zfill']
+```
+
+Listenin çıktısında iki temel grup bulunur:
+
+1. **Dunder Methods:** Listenin başında yer alan ve çift alt çizgi ile başlayıp biten metotlardır (`__add__`, `__len__` vb.). Bunlar Python'un kendi içinde özel işler yapan mekanizmalarıdır; tam olarak ne yaptığınızı bilmiyorsanız doğrudan kullanmaktan kaçınmanız gerekir.
+
+2. **Standard Methods:** Dunder metotlardan sonra gelen normal string metotlarıdır (`capitalize`, `strip`, `split`, `upper` vb.). `dir()` sayesinde hangi metotların mevcut olduğunu görüp gerekirse internetten detaylarına bakabilirsiniz.
+
+---
+
+### 10.3 Help Fonksiyonu
+
+`dir()` ile gördüğümüz metotların ne işe yaradığını ve nasıl kullanıldığını öğrenmek için yine built-in gelen `help()` fonksiyonu kullanılır.
+
+Örneğin bir string metodunun detaylarını görmek için metot parantez açılmadan `help(my_var.strip)` şeklinde çağrılır:
+
+```python
+In [3]: help(my_var.strip)
+```
+
+Çıktı ekranı:
+
+```text
+Help on built-in function strip:
+
+strip(chars=None, /) method of builtins.str instance
+    Return a copy of the string with leading and trailing whitespace removed.
+
+    If chars is given and not None, remove characters in chars instead.
+(END)
+```
+
+Kirk'ün de belirttiği gibi `strip` metodu, string'in başındaki ve sonundaki boşlukları temizleyip kopyasını döndürür.
+
+> Shell ortamında `dir()` ve ardından `help()` kombinasyonunu kullanarak Python içerisindeki nesnelerin sunduğu özellikleri ve dokümantasyonları hızlıca inceleyebilirsiniz. Help ekranından çıkmak için klavyeden `q` tuşuna basılır.
+
+> * *comments* → kodun çalışmasını etkilemeyen, açıklama amaçlı `#` ile yazılan yorumlar.
+> * *dir()* → bir nesnenin sahip olduğu tüm attribute ve metotları listeleyen built-in fonksiyon.
+> * *help()* → bir nesnenin, fonksiyonun ya da metodun dahili dokümantasyonunu ekrana getiren built-in fonksiyon.
+
+---
+
