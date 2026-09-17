@@ -553,3 +553,91 @@ Python geliştiricileri belirli kurallara ve kodun belli bir biçimde yazılmas�
 
 ---
 
+## 9. İlk Python Script'ini Oluşturma ve Çalıştırma
+
+### 9.1 Script Oluşturma
+
+Python'da bir script dosyası oluşturup çalıştırmak oldukça basittir. 
+Kirk, `my_code.py` adında bir dosya oluşturarak kullanıcıdan IP adresi alan ve bunu ekrana yazdıran basit bir script yazıyor.
+
+`my_code.py` dosyasının içeriği:
+
+```python
+my_ip_addr = input("Enter an IP address: ")
+
+print(my_ip_addr)
+```
+
+---
+
+### 9.2 MacOS ve Linux Ortamında Çalıştırma
+
+Linux ve macOS üzerinde bir Python script'ini çalıştırmanın iki farklı yolu vardır:
+
+**1) `python` komutu ile çalıştırma:**
+
+Terminalde sanal ortam aktifken doğrudan dosya adı belirtilerek çalıştırılır:
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ python my_code.py 
+IP Adresi gir: 192.168.1.1
+192.168.1.1
+```
+
+**2) Shebang satırı ve direct execution:**
+
+Dosyanın başına `python` yazmadan doğrudan `./my_code.py` şeklinde çalıştırabilmek için iki işlem gerekir:
+
+* **Shebang satırı ekleme:** Dosyanın en üst satırına `#!/usr/bin/env python` satırı eklenir. Bu satır, sistemin `PATH` ortam değişkeninde o an aktif olan Python'ı (yani sistem Python'ı yerine aktif olan virtual environment Python'ını) bulup çalıştırmasını sağlar.
+
+```python
+#!/usr/bin/env python
+
+my_ip_addr = input("Enter an IP address: ")
+
+print(my_ip_addr)
+```
+
+* **Dosyaya çalıştırma yetkisi verme:** Linux/Unix sistemlerde dosyanın çalıştırılabilmesi için yetkilerinin değiştirilmesi gerekir. `chmod 755` komutu ile dosyaya çalıştırma yetkisi verilir:
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ ls -al my_code.py 
+-rw-rw-r-- 1 berkay berkay 80 Sep 17 15:02 my_code.py
+
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ chmod 755 my_code.py 
+
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ ls -al my_code.py 
+-rwxr-xr-x 1 berkay berkay 80 Sep 17 15:02 my_code.py
+
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ ./my_code.py 
+IP Adresi gir: 192.168.1.1
+192.168.1.1
+```
+
+---
+
+### 9.3 Windows Ortamında Çalıştırma
+
+Windows ortamında çalıştırmadan önce virtual environment'ın aktif olduğundan emin olunmalıdır. Windows komut satırında script iki şekilde çalıştırılabilir:
+
+**1) `python` komutu ile:**
+
+```cmd
+(py311_test) C:\Users\Administrator\CODE\Lesson1>python my_code.py
+Enter an IP Address: 1.2.3.4
+1.2.3.4
+```
+
+**2) Windows için `py` launcher ile:**
+
+```cmd
+(py311_test) C:\Users\Administrator\CODE\Lesson1>py my_code.py
+Enter an IP Address: 1.2.3.4
+1.2.3.4
+```
+
+> * *shebang (`#!`)* → Linux/Unix script'lerinin ilk satırında yer alan ve dosyanın hangi interpreter ile çalıştırılacağını belirten karakter dizisi.
+> * *chmod 755* → Linux ve Unix sistemlerde dosya sahibine okuma, yazma, çalıştırma; diğer kullanıcılara ise okuma ve çalıştırma yetkisi veren komut.
+> * *direct execution* → script'in başına program adını (`python`) yazmadan, doğrudan `./script.py` şeklinde çalıştırılması.
+
+---
