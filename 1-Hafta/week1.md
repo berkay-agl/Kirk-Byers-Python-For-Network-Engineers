@@ -886,3 +886,139 @@ In [4]: m_string = """
 
 ---
 
+## 12. String Metotları
+
+### 12.1 Metot Çağırma ve Orijinal String'in Değişmemesi
+
+Python'da string nesneleri üzerinde çağırabileceğimiz çeşitli metotlar bulunur. 
+Bir metodu çalıştırmak için nokta (`.`) karakteri kullanılır ve ardından çağrılmak istenen metot yazılır.
+
+Burada en kritik kural, metodun sonuna mutlaka parantez (`()`) eklenmesidir. 
+Eğer parantez koymazsanız metot invoke edilmez yani çalıştırılmaz; geriye sadece o metoda ait bir referans döner. Metodu gerçekten yürütmek için parantezleri kullanmak zorunludur.
+
+Metot çağrıldığında geriye yeni bir string döner; ancak **orijinal string kesinlikle modifiye edilmez**. 
+Orijinal string ne ile başladıysanız tam olarak o şekilde kalır. Eğer oluşan bu yeni değeri saklamak istiyorsak bunu yeni bir değişkene atamamız gerekir. 
+Python, assignment operatörünün (`=`) her iki tarafında aynı variable isminin kullanılmasına izin verir; yani eski variable'ın işlenmiş çıktısını alıp doğrudan kendisine yeniden assign edebilirsiniz:
+
+```python
+In [1]: my_var = "bir string"
+
+In [2]: my_var
+Out[2]: 'bir string'
+
+In [3]: my_var.upper()
+Out[3]: 'BIR STRING'
+
+In [4]: my_var
+Out[4]: 'bir string'
+
+In [5]: my_var = my_var.upper()
+
+In [6]: my_var
+Out[6]: 'BIR STRING'
+```
+
+---
+
+### 12.2 split Metodu
+
+`split()` metodu bir string'i parçalar ve geriye bir **list** döndürür (köşeli parantezler `[]` bir liste döndüğünü belirtir). 
+Bu liste içerisindeki her bir eleman, orijinal string'den gelen alt string parçalarıdır.
+
+`split()` içine hiçbir şey vermezseniz default separator yani ayırıcı olarak art arda gelen tüm boşlukları kullanır. 
+Kelimeler arasında birden fazla boşluk olsa dahi Python bunları tek bir boşluk gibi ele alarak aynı şekilde böler.
+
+İstersek `split()` metoduna özel bir separator karakter de verebiliriz. 
+Örneğin bir IP adresi string'inde nokta (`.`) karakterini ayırıcı olarak belirlediğimizde, geriye IP adresinin oktetlerini string elemanlar olarak barındıran bir list döner; separator olarak belirtilen tüm nokta karakterleri ise sonuçtan tamamen atılır:
+
+```python
+In [3]: ip_addr = "172.31.21.15"
+
+In [4]: ip_addr.split(".")
+Out[4]: ['172', '31', '21', '15']
+```
+
+---
+
+### 12.3 join Metodu
+
+`join()` metodu, `split()` işleminin tam tersini gerçekleştirir. Bir listenin içerisindeki string elemanları alır ve aralarına bir separator karakter yerleştirerek birleştirir.
+
+`join()` metodu bir string metodudur ve doğrudan **separator karakterin üzerinde** çağrılır; parametre olarak ise birleştirilecek olan list verilir.
+
+Python burada üretilen çıktının mantıksal olarak geçerli olup olmadığıyla ilgilenmez. Sadece belirtilen separator karakteri listenin her bir elemanının arasına ekler:
+
+```python
+In [7]: oktektler = ["192", "168", "1", "1"]
+
+In [8]: ".".join(oktektler)
+Out[8]: '192.168.1.1'
+
+In [9]: "---".join(oktektler)
+Out[9]: '192---168---1---1'
+```
+
+---
+
+### 12.4 strip, lstrip ve rstrip Metotları
+
+* **strip():** String'in hem başında hem de sonunda yer alan gereksiz boşlukları ve satır sonu karakterlerini (`\n`) temizler. Bu metot da orijinal değişkeni değiştirmez; temizlenmiş metni saklamak için yeni bir değişkene atamak veya aynı değişkene yeniden assign etmek gerekir.
+
+* **lstrip():** Yalnızca string'in sol tarafında (başında) bulunan boşluk ve karakterleri temizler.
+
+* **rstrip():** Yalnızca string'in sağ tarafında (sonunda) bulunan boşluk ve karakterleri temizler.
+
+Bu Kirk'den alıntı:
+
+```python
+In [9]: sentence = "  On occassion we will have leading and trailing whitespace.   \n\n"
+
+In [10]: sentence.strip()
+Out[10]: 'On occassion we will have leading and trailing whitespace.'
+
+In [11]: sentence.lstrip()
+Out[11]: 'On occassion we will have leading and trailing whitespace.   \n\n'
+
+In [13]: sentence.rstrip()
+Out[13]: '  On occassion we will have leading and trailing whitespace.'
+```
+
+---
+
+### 12.5 splitlines Metodu
+
+`splitlines()` metodu, çok satırlı bir metni new line yani aslında satır sonu karakterlerine göre bölerek geriye bir list döndürür. 
+Bu işlem, separator karakter olarak yeni satır karakterinin kullanıldığı bir `split()` işlemine benzer.
+
+Eğer metnin en başında doğrudan bir alt satıra geçiş varsa (yani ilk satırda hiçbir metin yoksa), listenin ilk elemanı olarak boş bir string (`''`) yerleştirilir ve ardından gelen satırlar sırayla listenin diğer elemanları olur:
+
+```python
+In [10]: paragraf = """
+    ...: bu bir 
+    ...: paragraf
+    ...: bir şeyler yazabilirsin
+    ...: test
+    ...: test
+    ...: test
+    ...: python
+    ...: """
+
+In [11]: paragraf.splitlines()
+Out[11]: 
+['',
+ 'bu bir ',
+ 'paragraf',
+ 'bir şeyler yazabilirsin',
+ 'test',
+ 'test',
+ 'test',
+ 'python']
+```
+
+> * *upper()* → string içerisindeki tüm harfleri büyük harfe çeviren metot. 
+> * *split()* → bir string'i belirlenen karaktere göre parçalayıp list döndüren metot. 
+> * *join()* → bir listenin elemanlarını aralarına belirlenen separator karakteri ekleyerek tek bir string halinde birleştiren metot.
+> * *strip()* → string'in başındaki ve sonundaki boşluk/yeni satır karakterlerini temizleyen metot.
+> * *splitlines()* → metni yeni satır karakterlerine (`\n`) göre ayırarak bir list haline getiren metot.
+
+---
