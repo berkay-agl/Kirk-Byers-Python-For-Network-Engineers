@@ -1022,3 +1022,113 @@ Out[11]:
 > * *splitlines()* → metni yeni satır karakterlerine (`\n`) göre ayırarak bir list haline getiren metot.
 
 ---
+
+## 13. String Metotlarını Zincirleme 
+
+### 13.1 Metotları Peş Peşe Çağırma Mantığı
+
+Python'da string metotları art arda birbirine bağlanarak, yani **method chaining** yapılarak kullanılabilir.
+
+Bir string metodu çağrıldığında sonuç olarak geriye yine bir string döner. Çıkan bu sonuç da bir string olduğu için, doğrudan sonuna nokta (`.`) eklenerek başka bir string metodu daha çağrılabilir.
+
+Bu işlem soldan sağa doğru sırayla işletilir:
+
+1. En başta orijinal string variable yer alır.
+2. İlk olarak `.lower()` metodu çalışır ve tüm karakterleri küçük harfe çevirerek geriye yeni bir string üretir.
+3. Ardından hemen sonuna eklenen `.strip()` metodu devreye girer ve bu yeni string'in başındaki ve sonundaki boşlukları temizler.
+
+Kendi ortamımızda çalıştırma örneği:
+
+```python
+In [1]: my_var = "  Bir String  "
+
+In [2]: my_var.lower()
+Out[2]: '  bir string  '
+
+In [3]: my_var.lower().strip()
+Out[3]: 'bir string'
+```
+
+---
+
+### 13.2 Orijinal Variable Durumu
+
+Önceki metotlarda olduğu gibi, metotları zincirleme olarak çağırmak da orijinal `my_var` değişkenini kesinlikle değiştirmez.
+
+Eğer bu zincirleme işlemin sonucunda elde edilen temiz ve işlenmiş string'i ileride kullanmak istiyorsak, bunu yeni bir değişkene atamamız veya mevcut değişkene yeniden assign etmemiz gerekir.
+
+> * *method chaining* → bir metodun döndürdüğü sonuç üzerinde doğrudan bir sonraki metodu çağırarak işlemleri peş peşe zincirleme yöntemi.
+> * *lower()* → string içindeki tüm karakterleri küçük harfe dönüştüren metot.
+
+---
+
+## 14. String İçine Variable Yerleştirme
+
+Python'da string içerisine variable gömmek için tarihsel süreçte farklı yöntemler kullanılmıştır. Eski kodları okurken veya başkalarının projelerini incelerken bu yöntemlerle karşılaşmak mümkündür.
+
+---
+
+### 14.1 Yüzde (`%`) Operatörü ile Biçimlendirme (Eski Yöntem)
+
+Tarihsel olarak Python'da bir string içerisine variable yerleştirmek için string içine `%s` konulur ve string bittikten sonra `%` operatörü ile eklenecek variable belirtilirdi:
+
+```python
+In [1]: "Bu bir string: %s" % "merhaba"
+Out[1]: 'Bu bir string: merhaba'
+
+In [2]: my_var = "Merhaba"
+
+In [3]: "Bu bir string: %s" % my_var
+Out[3]: 'Bu bir string: Merhaba'
+```
+
+Eğer birden fazla variable gömülmek istenirse, string içerisine birden fazla `%s` eklenir ve `%` operatöründen sonra parantez içerisinde bir **tuple** yapısı ile variable'lar sırayla verilir. İlk variable ilk `%s` yerine, ikinci variable ise ikinci `%s` yerine geçer:
+
+```python
+In [4]: "Bu bir string: %s %s" % (my_var, "merhaba")
+Out[4]: 'Bu bir string: Merhaba merhaba'
+```
+
+> Kirk Byers bu yöntemi sadece tarihsel arka planı bilmek ve başkalarının yazdığı eski kodları okurken zorlanmamak adına gösterdiğini belirtiyor. 
+
+---
+
+### 14.2 `.format()` Metodu
+
+Zamanla `%` operatörü yerini büyük ölçüde `.format()` metoduna bırakmıştır.
+
+Bu yöntemde `%s` yerine süslü parantez (`{}`) notasyonu kullanılır ve string'in hemen sonuna eklenen `.format()` metodu içerisine aktarılacak variable'lar yazılır. Metot içindeki elemanlar süslü parantezlerin yerine sırayla yerleştirilir:
+
+```python
+In [5]: "Bu bir string: {} {}".format(my_var, "merhaba")
+Out[5]: 'Bu bir string: Merhaba merhaba'
+```
+
+---
+
+### 14.3 F-Strings (Modern Yöntem)
+
+Hem `%` operatörü hem de `.format()` metodu, günümüzde yerini büyük oranda **f-strings** (formatted string literals) yapısına bırakmıştır.
+
+F-string yapısı Python 3.6 ile gelmiştir ve string biçimlendirmenin modern yoludur. Kirk Byers bu yöntemi oldukça kullanışlı bulduğunu ve çok sevdiğini belirtiyor.
+
+F-string kullanımında string'in sonuna herhangi bir metot veya operatör eklenmez. String'in başına küçük ya da büyük `f` harfi eklenir ve doğrudan süslü parantezlerin (`{}`) içerisine yerleştirilmek istenen variable isimleri yazılır. Python bu variable'ları süslü parantezlerin yerine otomatik olarak render eder:
+
+
+```python
+In [6]: f"Bu bir string: {my_var} merhaba"
+Out[6]: 'Bu bir string: Merhaba merhaba'
+
+In [7]: my_var2 = "merhaba"
+
+In [8]: f"Bu bir string: {my_var} {my_var2}"
+Out[8]: 'Bu bir string: Merhaba merhaba'
+```
+
+> * *embedding variables* → string metinlerinin dinamik kısımlarına variable değerlerini gömme / yerleştirme işlemi.
+> * *format operator (`%`)* → eski Python sürümlerinde string biçimlendirmek için kullanılan operatör.
+> * *format()* → süslü parantezler kullanarak string içine değişken yerleştirmeyi sağlayan dahili string metodu.
+> * *f-string* → başına `f` harfi konularak süslü parantezler içinde doğrudan variable çağrılmasını sağlayan modern Python 3.6+ özelliği.
+
+---
+
