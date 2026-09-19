@@ -1238,7 +1238,7 @@ In [29]: f"{my_var = }"
 Out[29]: "my_var = 'merhaba'"
 ```
 
-**2) Temsili Gösterim (`!r` - Repr):**
+**2) Internal Representatio (`!r` - Repr):**
 
 Süslü parantez içerisindeki variable'ın sonuna `!r` eklendiğinde, o nesnenin Python içindeki ham temsili gösterimi yazdırılır:
 
