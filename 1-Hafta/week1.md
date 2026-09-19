@@ -1286,6 +1286,8 @@ Daha karmaşık senaryolarda ise üç tırnak (`"""` veya `'''`) bloklarından f
 f"Değer: {my_dict['ip_addr']}"
 ```
 
+Bu arada önemli: Python 3.12 sürümüyle birlikte f-string altyapısı tamamen yenilenmiştir (PEP 701). Bu sürüm ve sonrasında tırnak çakışması kısıtlaması kaldırılmıştır. Dolayısıyla `f"Değer: {my_dict["ip_addr"]}"` kullanımı Python 3.12+ üzerinde hata vermeden çalışır. Ancak kodun eski Python sürümlerine sahip sunucu veya sistemlerde de sorunsuz çalışabilmesi için yukarıdaki tek/çift tırnak ayrımına sadık kalınması hala en güvenli yazım şeklidir.
+
 > * *expression* → Python tarafından işlenip geriye tek bir değer döndüren ifade veya işlem blokları.
 > * *formatting columns* → metinleri kolonlar halinde belirli karakter genişliklerine ve yönlere göre hizalama.
 > * *float precision* → ondalıklı sayılarda virgülden sonra kaç basamağın gösterileceğini belirleme.
