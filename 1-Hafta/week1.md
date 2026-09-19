@@ -1132,3 +1132,163 @@ Out[8]: 'Bu bir string: Merhaba merhaba'
 
 ---
 
+## 15. Python F-Strings ve İleri Düzey Biçimlendirme
+
+### 15.1 Expressions ile Kullanım
+
+F-string yapısı sadece doğrudan variable gömmekle sınırlı değildir; süslü parantezlerin (`{}`) içerisine Python tarafından önce evaluate edilen ifadeler de yazılabilir.
+
+Bu ifadeler basit bir matematiksel işlem olabileceği gibi, bir metot çağrısı ve ardından listenin indeksine erişim gibi daha karmaşık yapılar da olabilir:
+
+```python
+In [1]: ip_addr1 = "192.168.1.1"
+
+In [2]: print(f"F-string ile IP adresi bulunan bir variable yazdırma: {ip_addr1}")
+F-string ile IP adresi bulunan bir variable yazdırma: 192.168.1.1
+
+In [3]: print(f"F-string ile matematiksel ifadeler yazdırma: {10 + 10}")
+F-string ile matematiksel ifadeler yazdırma: 20
+
+In [4]: print(f"F-string ile variable split edip daha sonra ilk elemanı yazdırma: {ip_addr1.split('.')[0]}")
+F-string ile variable split edip daha sonra ilk elemanı yazdırma: 192
+```
+
+---
+
+### 15.2 Sütun Formatlama ve Hizalama
+
+F-string kullanılarak çıktılar belirli sütun genişliklerine göre hizalanabilir; bu işlem özellikle rapor oluştururken veya terminal çıktısını insanlar için daha okunabilir hale getirmek için tercih edilir.
+
+* **Sütun Genişliği Belirleme (`:genişlik`):** İki nokta (`:`) ve ardından bir sayı yazılarak sütun genişliği verilir. Varsayılan hizalama **sola dayalıdır**.
+
+* **Sağa Hizalama (`:>`):** Büyüktür işareti sağ tarafı işaret ettiği için veriyi sütun içerisinde sağa yaslar.
+
+* **Ortalama (`:^`):** Şapka karakteri (`^`) veriyi tanımlanan sütun genişliğinin tam ortasına yerleştirir.
+
+* **Sola Hizalama (`:<`):** Küçüktür işareti sola hizalar; ancak bu zaten varsayılan davranıştır.
+
+IPython ortamında sütun denemeleri:
+
+```python
+In [5]: ip_addr2 = "192.168.1.2"
+In [6]: ip_addr3 = "192.168.1.3"
+
+In [8]: print(f"{ip_addr1:20}{ip_addr2:20}{ip_addr3:20}")
+192.168.1.1         192.168.1.2         192.168.1.3         
+
+In [10]: print(f"{ip_addr1:>20}{ip_addr2:>20}{ip_addr3:>20}")
+         192.168.1.1         192.168.1.2         192.168.1.3
+
+In [11]: print(f"{ip_addr1:^20}{ip_addr2:^20}{ip_addr3:^20}")
+    192.168.1.1          192.168.1.2          192.168.1.3     
+```
+
+Script örneği (`columns.py`):
+
+```python
+#!/usr/bin/env python
+
+ip_addr1 = "192.168.1.1"
+ip_addr2 = "192.168.1.2"
+ip_addr3 = "192.168.1.3"
+
+header = "-" * 20
+
+header1 = "ip_addr1"
+header2 = "ip_addr2"
+header3 = "ip_addr3"
+
+print()
+print(f"{header1:^20} {header2:^20} {header3:^20}")
+print(f"{header:^20} {header:^20} {header:^20}")
+print(f"{ip_addr1:^20} {ip_addr2:^20} {ip_addr3:^20}")
+print()
+```
+
+---
+
+### 15.3 Float Sayıları Formatlama 
+
+Float sayıların virgülden sonraki basamak hassasiyetini sınırlandırmak için f-string içinde `:.Xf` syntax'ı kullanılır.
+
+Buradaki `:` biçimlendirme başlangıcını, `.` basamak ayrımını, sayı kaç basamağa yuvarlanacağını (örneğin `2`), `f` harfi ise değerin bir float olduğunu belirtir:
+
+```python
+In [24]: my_var = 1/3
+
+In [25]: my_var
+Out[25]: 0.3333333333333333
+
+In [27]: f"my_var değeri: {my_var:.2f}"
+Out[27]: 'my_var değeri: 0.33'
+```
+
+---
+
+### 15.4 F-String İpuçları: Variable Adını Yazdırma ve Repr
+
+**1) Variable adı ve değerini birlikte yazdırma (`{var = }`):**
+
+Süslü parantez içine variable adından sonra eşittir işareti (`=`) konulduğunda, ekrana doğrudan variable adı, eşittir simgesi ve karşısındaki değer literal string olarak yazdırılır:
+
+```python
+In [28]: my_var = "merhaba"
+
+In [29]: f"{my_var = }"
+Out[29]: "my_var = 'merhaba'"
+```
+
+**2) Temsili Gösterim (`!r` - Repr):**
+
+Süslü parantez içerisindeki variable'ın sonuna `!r` eklendiğinde, o nesnenin Python içindeki ham temsili gösterimi yazdırılır:
+
+```python
+In [30]: f"Repr -> my_var: {my_var!r}"
+Out[30]: "Repr -> my_var: 'merhaba'"
+```
+
+---
+
+### 15.5 Tarih ve Zaman Formatlama 
+
+Python'un dahili `datetime` kütüphanesinden üretilen bir nesne f-string içerisinde standart tarih belirteçleri ile doğrudan biçimlendirilebilir:
+
+* `%B` → Ay adı (örneğin September / November)
+* `%d` → Gün numarası (örneğin 19 / 18)
+* `%Y` → Dört basamaklı yıl (örneğin 2026 / 2022)
+
+```python
+In [31]: from datetime import datetime
+
+In [32]: now = datetime.now()
+
+In [33]: f"Zaman formatı: {now:%B %d, %Y}"
+Out[33]: 'Zaman formatı: September 19, 2026'
+```
+
+---
+
+### 15.6 F-String Çakışmaları
+
+F-string yazarken standart tırnak kurallarına dikkat edilmelidir.
+
+Eğer f-string çift tırnak ile başlatıldıysa, süslü parantez içindeki ifadede tekrar çift tırnak kullanılamaz. 
+Çift tırnak kullanılırsa Python bunu string'in bittiği şeklinde yorumlar ve syntax hatası verir.
+
+Bunun önüne geçmek için string çift tırnak ile açıldıysa iç kısımdaki ifadelerde tek tırnak kullanılmalıdır. 
+Daha karmaşık senaryolarda ise üç tırnak (`"""` veya `'''`) bloklarından faydalanılabilir:
+
+```python
+# Hatalı Kullanım:
+# f"Değer: {my_dict["ip_addr"]}"  -> SyntaxError verir.
+
+# Doğru Kullanım:
+f"Değer: {my_dict['ip_addr']}"
+```
+
+> * *expression* → Python tarafından işlenip geriye tek bir değer döndüren ifade veya işlem blokları.
+> * *formatting columns* → metinleri kolonlar halinde belirli karakter genişliklerine ve yönlere göre hizalama.
+> * *float precision* → ondalıklı sayılarda virgülden sonra kaç basamağın gösterileceğini belirleme.
+> * *internal representation (!r)* → bir nesnenin Python tarafından algılanan ham temsili çıktısı.
+
+---
