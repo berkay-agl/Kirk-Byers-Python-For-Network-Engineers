@@ -35,7 +35,7 @@ Bu depodaki içerikler, İngilizce bilmeyen veya teknik detayları Türkçe olar
 
 Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklayarak ilgili dersin Türkçe notlarına ve kodlarına ulaşabileceksiniz:
 
-- [ ] [**Hafta 1: Neden Python?, REPL, ve Strings**](/1-Hafta/week1.md)
+- [X] [**Hafta 1: Neden Python?, REPL, ve Strings**](/1-Hafta/week1.md)
   - Python'un özellikleri, Yorumlayıcı Shell, Standart Input/Output, `dir` ve `help` komutları.
 - [ ] **Hafta 2: Sayılar, Booleans, Dosyalar, Listeler ve Tuple'lar**
   - Mutable ve Immutable object mantığı.
