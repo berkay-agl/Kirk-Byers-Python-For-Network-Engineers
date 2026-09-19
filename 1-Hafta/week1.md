@@ -1294,3 +1294,148 @@ Bu arada önemli: Python 3.12 sürümüyle birlikte f-string altyapısı tamamen
 > * *internal representation (!r)* → bir nesnenin Python tarafından algılanan ham temsili çıktısı.
 
 ---
+
+## 16. String Veri Tipinin Diğer Karakteristikleri
+
+### 16.1 String Membership Kontrolü
+
+Python'da bir string içerisinde belirli bir substring'in yer alıp almadığını kontrol etmek için **`in`** operatörü kullanılır.
+
+Bu kontrol sonucunda geriye bir **boolean** değer döner: Aranan substring ana metin içinde varsa `True`, yoksa `False` sonucu elde edilir.
+
+```python
+In [1]: bir_str = "Bu bir string mesajı"
+
+In [2]: "string" in bir_str
+Out[2]: True
+```
+
+---
+
+### 16.2 Raw Strings Mantığı
+
+Python'da string tanımlarken ters eğik çizgi (`\`) karakteri ile başlayan özel kaçış dizileri bulunur; örneğin `\n` yeni bir satırı, `\t` ise bir tab boşluğunu temsil eder.
+
+Özellikle Windows dosya yolları oluştururken bu karakterler beklenmedik çıktılara ve `SyntaxWarning: invalid escape sequence` uyarılarına sebep olabilir:
+
+```python
+In [3]: win_path = "C:\windows\new_dir\test\python"
+<>:1: SyntaxWarning: invalid escape sequence '\w'
+<ipython-input-3-926a55bba4f2>:1: SyntaxWarning: invalid escape sequence '\w'
+  win_path = "C:\windows\new_dir\test\python"
+
+In [4]: print(win_path)
+C:\windows
+ew_dir   est\python
+```
+
+Bu kaçış karakterlerinin özel anlamlarını devre dışı bırakmak ve her karakteri olduğu gibi işlemek için string'in hemen başına küçük **`r`** harfi eklenerek **raw string** oluşturulur:
+
+```python
+In [5]: win_path = r"C:\windows\new_dir\test\python"
+
+In [6]: print(win_path)
+C:\windows\new_dir\test\python
+```
+
+> Raw strings yapısı, kursun ilerleyen bölümlerinde işlenecek olan **regular expressions** kalıpları oluşturulurken de yoğun biçimde kullanılacaktır.
+
+---
+
+### 16.3 String Concatenation ve `+=` Operatörü
+
+Python'da birden fazla string'i birleştirmek için artı (**`+`**) operatörü kullanılır; bu işleme **string concatenation** denir. 
+Bu işlem f-strings veya `.format()` ile de yapılabilir ancak doğrudan toplama operatörüyle de birleştirilebilir:
+
+```python
+In [7]: sehir = "Sakarya"
+
+In [8]: plaka = "54"
+
+In [9]: konum = sehir + ", " + plaka
+
+In [10]: konum
+Out[10]: 'Sakarya, 54'
+```
+
+Bir değişkene mevcut değerinin üzerine yeni bir string ekleyerek güncelleme işlemi oldukça yaygındır:
+
+```python
+In [11]: data = "birinci satır output \n"
+
+In [12]: data = data + "ikinci satır output \n"
+
+In [14]: print(data)
+birinci satır output 
+ikinci satır output 
+```
+
+Bu yapının kısayol gösterimi ise **`+=` operatörüdür**. `new_data += "..."` ifadesi, `new_data = new_data + "..."` işlemi ile tamamen eşdeğerdir ve değişkenin sonuna yeni veriyi ekler:
+
+```python
+In [15]: new_data = "birinci satır output \n"
+
+In [16]: new_data += "ikinci satır output \n"
+
+In [17]: print(new_data)
+birinci satır output 
+ikinci satır output 
+```
+
+---
+
+### 16.4 Stringler Dizidir
+
+Python'da stringler doğası gereği birer **sequence** yani dizi yapısındadır.
+
+Sequence olmasının getirdiği temel karakteristikler şunlardır:
+
+* **Belirli bir sıraları vardır:** Birinci karakter, ikinci karakter şeklinde sıralı bir yapı barındırırlar.
+
+* **İndeks ile erişim:** Köşeli parantez `[]` kullanılarak karakterlere erişilebilir. İlk karakter `0` indeksi ile, ikinci karakter `1` indeksi ile alınır.
+
+* **Uzunluk bilgisi:** Yerleşik `len()` fonksiyonu kullanılarak string'in toplam karakter uzunluğu öğrenilebilir.
+
+* **Döngü ile gezinme:** For loop kullanılarak string içerisindeki tüm karakterler tek tek dönülebilir.
+
+```python
+In [19]: bir_str
+Out[19]: 'Bu bir string mesajı'
+
+In [20]: bir_str[0]
+Out[20]: 'B'
+
+In [21]: bir_str[1]
+Out[21]: 'u'
+
+In [22]: for letter in bir_str:
+    ...:     print(letter)
+    ...: 
+B
+u
+ 
+b
+i
+r
+ 
+s
+t
+r
+i
+n
+g
+ 
+m
+e
+s
+a
+j
+ı
+```
+
+> **Önemli İpucu:** Kod yazarken yaygın karşılaşılan bug'lardan biri, liste veya dictionary sanılan bir veri yapısı üzerinde döngü kurup aslında bir string üzerinde dönmektir. Eğer döngü çıktısında beklediğiniz bütün veriler yerine tek tek harfler geliyorsa, üzerinde döngü kurduğunuz yapının string olduğunu anlayabilirsiniz.
+
+> * *membership check* → bir alt string'in ana metin içinde bulunup bulunmadığını `in` anahtar kelimesi ile denetleme işlemi. 
+> * *raw string* → kaçış karakterlerini (`\n`, `\t`) yok sayıp metni ham karakterleriyle alan, başına `r` eklenmiş string.
+> * *concatenation* → string nesnelerini `+` veya `+=` ile uç uca ekleyerek birleştirme.
+> * *sequence* → elemanları belirli bir sıraya göre dizilmiş, indekslenebilir ve üzerinde döngü kurulabilir sıralı veri yapıları.
