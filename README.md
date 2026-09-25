@@ -37,7 +37,7 @@ Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklay
 
 - [X] [**Hafta 1: Neden Python?, REPL, ve Strings**](/1-Hafta/)
   - Python'un özellikleri, Yorumlayıcı Shell, Standart Input/Output, `dir` ve `help` komutları.
-- [ ] **Hafta 2: Sayılar, Booleans, Dosyalar, Listeler ve Tuple'lar**
+- [ ] [**Hafta 2: Sayılar, Booleans, Dosyalar, Listeler ve Tuple'lar**](/2-Hafta/)
   - Mutable ve Immutable object mantığı.
 - [ ] **Hafta 3: Koşullu İfadeler, Döngüler ve List Comprehensions**
   - `if/elif/else`, `for`, `while` döngüleri ve Generator ifadeleri.
