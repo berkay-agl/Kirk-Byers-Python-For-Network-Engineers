@@ -684,3 +684,146 @@ yeni mesaj
 
 ---
 
+## 6. Dosya İşlemleri: Dosyanın Sonuna Veri Ekleme 
+
+Python'da bir dosyaya veri eklemek istediğimizde, önceki derste gördüğümüz destructive `mode="w"` yönteminin aksine **append** modu kullanılır.
+
+Bu işlem için yine built-in gelen `open()` fonksiyonu kullanılır; ancak bu kez mod parametresi olarak **`mode="a"`** (append mode) belirtilir. 
+Dosya yolu girilmediğinde dosya yine **current working directory'de** aranır veya yoksa oluşturulur.
+
+---
+
+### 6.1 Dosyayı Append Modunda Açma ve Yazma
+
+Dosya `mode="a"` ile açıldığında, dosyanın önceki içeriği kesinlikle silinmez. Yazılan yeni veriler doğrudan dosyanın en sonuna eklenir:
+
+**1) İlk olarak dosyanın `mode="w"` ile oluşturulup ilk satırın yazılması:**
+
+```python
+In [1]: f = open("test_file.txt", "w")
+
+In [2]: f.write("Merhaba!\n")
+Out[2]: 9
+
+In [3]: f.flush()
+
+In [4]: f.close()
+
+In [5]: exit
+```
+
+Terminalden kontrol ettiğimizde dosyanın ilk hali görülür:
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-2$ cat test_file.txt 
+Merhaba!
+```
+
+**2) Dosyanın `mode="a"` ile açılıp yeni satırın eklenmesi:**
+
+```python
+In [1]: f = open("test_file.txt", "a")
+
+In [2]: f.write("Tekrar merhaba!\n")
+Out[2]: 16
+
+In [3]: f.flush()
+
+In [4]: f.close()
+
+In [5]: exit
+```
+
+Terminalden dosya içeriği yeniden kontrol edildiğinde eski satırın korunduğu ve yeni metnin dosyanın sonuna eklendiği görülür:
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-2$ cat test_file.txt 
+Merhaba!
+Tekrar merhaba!
+```
+
+---
+
+### 6.2 Dosya Yazma İşlemlerinde En İyi Yaklaşımlar 
+
+Kirk Byers dosyalara veri yazarken genel olarak iki ana yöntemi öneriyor:
+
+1. **Destructive Yazma (`mode="w"`):** Yazılacak tüm verileri önceden hazırlayıp tek seferde dosyanın üzerine yazmak (mevcut içeriği tamamen silerek yeni veriyi kaydetmek).
+
+2. **Sonuna Ekleme (`mode="a"`):** Var olan dosyanın içeriğini bozmadan sadece sonuna yeni satırlar/metinler eklemek.
+
+Kirk Byers bir dosyanın **ortasına** doğrudan string eklemeye veya güncellemeler yapmaya çalışılmaması gerektiğine dikkat çekiyor. 
+Eğer dosya içinde arama yapıp aradaki verileri sürekli güncellemeniz gereken durumlar ortaya çıkıyorsa, düz metin dosyaları yerine **database** — özellikle dosya tabanlı basit bir çözüm olan **SQLite / SQLite3** — kullanmanın çok daha doğru bir çözüm olacağını belirtiyor.
+
+> * *mode="a"* → dosyayı append modunda açar; dosyanın mevcut içeriğini silmeden yeni verileri dosyanın sonuna ekler.
+> * *append* → var olan bir dosya veya listenin sonuna yeni veri iliştirme işlemi.
+> * *SQLite / SQLite3* → dosya içerisinde arama ve orta kısımlarda güncelleme gerektiren karmaşık senaryolarda dosya yerine tercih edilmesi önerilen hafif ve dosya tabanlı veritabanı.
+
+---
+
+## 7. Python Kod Blokları ve Indentation Yapısı 
+
+Kursun bir sonraki adımında dosya işlemlerini daha güvenli ve standart hale getiren **context manager** yani `with` yapısına geçeceğiz. 
+Ancak `with` ifadesi, Python'da ilk defa bir **indented block** ile karşılaşacağımız yerdir.
+
+Kirk Byers, context manager konusunun detaylarına girmeden önce Python'daki kod bloklarının çalışma mantığını ve syntax kurallarını bu kısa bölümde ayrıntılandırıyor.
+
+---
+
+### 7.1 İki Nokta ve Girintileme
+
+Python'da bir kod bloğunun başladığını belirten işaret satırın en sonundaki **iki nokta üst üste (`:`)** karakteridir; buna **colon terminator** denir.
+
+Context manager syntax'ı üzerinden incelersek:
+
+```python
+with open("show_version.txt", mode="r") as f:
+    data = f.read()
+```
+
+* **`with` ve `as f`:** Context manager yapısını kuran anahtar kelimelerdir; dosya nesnesi `as f` ile bir file handle değişkenine atanır.
+  
+* **Colon Terminator (`:`):** Satır sonundaki `:` karakteri, Python'a hemen ardından girintili bir kod bloğunun geleceğini bildirir.
+
+* **Dört Boşluk:** Bloğun içindeki satırlar mutlaka **4 boşluk** girinti ile yazılmalıdır; tab tuşu kullanılmamalıdır.
+
+* **Blok Kapsamı:** Bu bloğun içine tek bir satır yazılabileceği gibi onlarca hatta yüzlerce satır kod da yazılabilir. Aynı blok seviyesindeki tüm satırlar aynı 4 boşluk hizasını korumalıdır.
+
+---
+
+### 7.2 İç İçe Bloklar ve Bloğun Sona Ermesi
+
+Python'da kod blokları birbirinin içerisine istenilen derinlikte yerleştirilebilir buna **nested** bloklar deniliyor.
+
+Bir bloğun bittiğini göstermek için özel bir kapanış karakteri (örneğin süslü parantez `}`) kullanılmaz. 
+Sadece satır başındaki indentation'ı bir önceki seviyeye çekmek veya tamamen sıfırlamak bloğun sonlandığını belirtmek için yeterlidir.
+
+Kirk Byers'ın IPython üzerinde gösterdiği iç içe blok örneği:
+
+```python
+In [1]: if True:
+   ...:     print("Hello")
+   ...:     print("Something")
+   ...:     for x in range(10):
+   ...:         print(x)
+   ...:         print(x)
+   ...:     print("Else")
+   ...: print("something else")
+```
+
+Bu yapı adım adım şöyle işler:
+
+1. **`if True:`** satırının sonundaki `:` karakteri ilk bloğun başladığını gösterir.
+2. Altındaki `print("Hello")` ve `print("Something")` satırları **4 boşluk** içeridedir.
+3. Ardından gelen **`for x in range(10):`** loop kendi sonundaki `:` karakteri ile yeni bir **nested** blok başlatır.
+4. Bu **nested** bloğun satırları olan `print(x)` komutları bir 4 boşluk daha içeriye girerek toplam **8 boşluk** seviyesine geçer.
+5. Döngü bittiğinde indentation tekrar bir kademe geri çekilerek 4 boşluk seviyesindeki `print("Else")` satırına dönülür (bu satır hâlâ `if` bloğunun içindedir).
+6. En altta indentation'ın tamamen sıfırlandığı `print("something else")` satırına gelindiğinde ise artık ana programa dönülmüş olur ve `if` bloğu tamamen sona erer.
+
+> Bu aşamada `if` koşullarının veya `for` döngülerinin mekaniğine odaklanmaya gerek yoktur; buradaki temel amaç iki nokta (`:`) karakterinin yeni bir blok başlattığını ve girintinin geri çekilmesinin o bloğu kapattığını görmektir.
+
+> * *colon terminator (`:`)* → Python'da indentation bir kod bloğunun başlayacağını belirten iki nokta üst üste karakteri.
+> * *indented block* → iki nokta karakterinden sonra 4 space boşluk bırakılarak yazılan ve ilgili yapıya ait olan kod satırları.
+> * *nested blocks* → blokların birbiri içerisine hiyerarşik olarak yerleştirilmesi.
+
+---
