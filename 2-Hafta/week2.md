@@ -558,3 +558,129 @@ In [15]: f.close()
 
 ---
 
+## 5. Dosya İşlemleri: Dosyaya Yazma Yapma 
+
+Python'da bir dosyaya veri yazmak için de okuma işlemine benzer şekilde built-in gelen `open()` fonksiyonu kullanılır.
+
+Bu işlemde dosya ismi belirtildikten sonra ikinci parametre olarak açık bir şekilde **`mode="w"`** (write mode) tanımlanır. 
+Dosya yolu verilmediğinde yine **current working directory**'de dosya oluşturulur.
+
+---
+
+### 5.1 Dosyaya Yazma ve `.write()` Metodu
+
+Dosyayı yazma modunda açtıktan sonra dönen file handle nesnesi üzerinden **`.write()`** metodu çağrılır:
+
+```python
+In [1]: f = open("test_file.txt", "w")
+
+In [2]: f.write("Merhaba...\n")
+Out[2]: 11
+
+In [3]: f.write("Merhaba...\n")
+Out[3]: 11
+```
+
+* `.write()` metodu parametre olarak verilen string'i olduğu gibi dosyaya yazar; satır sonu eklemesi yapmaz. Alt satıra geçilmesi isteniyorsa string'in sonuna açıkça **`\n`** (newline) eklenmelidir.
+
+* Çıktı olarak dönen sayısal değer (`11`), yazılan toplam karakter yani byte sayısını belirtir.
+
+---
+
+### 5.2 Buffer, `.flush()` ve Dosyanın Kapanması
+
+İşletim sistemleri dosya yazma işlemlerinde performans amacıyla veriyi hemen diske yazmak yerine bellekte bir süre **cache** içinde tutabilir.
+
+Kirk Byers'ın videosunda da gösterildiği gibi, iki kez `.write()` çağrılmasına rağmen dosya henüz kapatılmadığında veya bellekte tutulduğunda dosya sisteminde dosyanın boyutu **0 byte** görünebilir:
+
+```bash
+[py311_venv] ktbyers@pydev2 ~/learning_python/lesson2/files
+$ ls -ltr
+total 8
+-rw-rw-r-- 1 ktbyers ktbyers 3171 Feb  1 21:15 show_version.txt
+-rw-rw-r-- 1 ktbyers ktbyers   35 Feb  1 21:19 simple_file.txt
+-rw-rw-r-- 1 ktbyers ktbyers    0 Mar 27 18:09 test_file.txt
+```
+
+Veriyi diske zorla yazdırmak için iki yöntem bulunur:
+
+1. **`.flush()` Metodu:** Dosyayı kapatmadan, buffer'da bekleyen verileri doğrudan diske basar.
+
+2. **Dosyayı Kapatmak (`close` veya `exit`):** Dosya kapatıldığında (`f.close()`) ya da Python interpreter oturumu sonlandırıldığında (`exit`), bekleyen buffer otomatik olarak diske aktarılır.
+
+> Kendi ortamımızda IPython'dan çıkış yapıldığında (`exit`), oturum kapanırken dosya nesnesi otomatik kapatıldığı için `.flush()` çağrılmasa dahi 22 byte verinin diske eksiksiz yazıldığı görülür:
+
+```bash
+In [1]: f = open("test_file.txt", "w")
+
+In [2]: f.write("Merhaba...\n")
+Out[2]: 11
+
+In [3]: f.write("Merhaba...\n")
+Out[3]: 11
+
+In [4]: exit
+
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-2$ ls -la | grep test_file.txt 
+-rw-rw-r-- 1 berkay berkay   22 Sep 27 18:02 test_file.txt
+
+# Exit demeden yeni bir terminalde kontrol edersek:
+
+berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-2$ ls -l | grep test.txt 
+-rw-rw-r-- 1 berkay berkay    0 Sep 27 18:10 test.txt
+```
+
+Manuel olarak `.flush()` çağrıldığında ise oturumu kapatmaya gerek kalmadan veriler anında diske yazılır:
+
+```bash
+In [1]: f = open("test_file.txt", "w")
+
+In [2]: f.write("Merhaba...\n")
+Out[2]: 11
+
+In [3]: f.write("Merhaba...\n")
+Out[3]: 11
+
+In [4]: f.flush()
+
+In [5]: exit
+
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-2$ ls -la | grep test_file.txt 
+-rw-rw-r-- 1 berkay berkay   22 Sep 27 18:04 test_file.txt
+
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-2$ cat test_file.txt 
+Merhaba...
+Merhaba...
+```
+
+---
+
+### 5.3 Write İşleminin Destructive Doğası 
+
+Dosya işlemlerinde **`mode="w"`** kullanımı kesinlikle **destructive** yani yıkıcı bir işlemdir.
+
+Mevcut ve içinde veri bulunan bir dosya yeniden `mode="w"` ile açıldığında, dosyanın önceki tüm içeriği silinir ve üzerine yeni yazılan içerik kaydedilir:
+
+```python
+In [1]: f = open("test_file.txt", "w")
+
+In [2]: f.write("yeni mesaj\n")
+Out[2]: 12
+
+In [3]: f.close()
+```
+
+Terminalden dosya içeriği kontrol edildiğinde önceki satırların tamamen silindiği ve yalnızca yeni mesajın kaldığı görülür:
+
+```bash
+$ cat test_file.txt
+yeni mesaj
+```
+
+> * *mode="w"* → dosyayı sıfırdan yazma modunda açar; dosya varsa eski içeriğini tamamen silerek açan destructive moddur.
+> * *write()* → belirtilen string veriyi dosyaya yazan metot. 
+> * *flush()* → bellekte/önbellekte bekleyen tampon verileri dosyayı kapatmadan diske yazmaya zorlayan metot.
+> * *destructive* → var olan dosya içeriğinin üzerine yazılarak eski verilerin geri dönüşsüz şekilde kaybolması durumu.
+
+---
+
