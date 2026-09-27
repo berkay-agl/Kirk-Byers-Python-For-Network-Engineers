@@ -369,3 +369,192 @@ Out[30]: False
 > * *NoneType* → Python'da tanımsızlığı ve yokluğu temsil eden, `null` karşılığı olan özel `None` veri tipi.
 
 ---
+
+## 4. Dosya İşlemleri: Dosyadan Okuma Yapma 
+
+Python'da dosya işlemleri ağ otomasyonunda cihaz çıktılarını, konfigürasyonları ve logları işlerken en temel konulardan biridir.
+
+Kirk Byers bu bölümde dosyaları okumanın ilk ve temel yöntemini — henüz bir **context manager** yani `with` yapısı kullanmadan — ele alıyor. 
+Python'da `with` bloğu kullanmak daha standart ve doğru kabul edilen yöntem olsa da, dosya mekanizmasının temelini kavramak adına ilk olarak bu basit yapı incelenmektedir.
+
+---
+
+### 4.1 Dosyayı Açma ve Default Mod
+
+Bir dosyayı açmak için `open()` fonksiyonu kullanılır ve parametre olarak dosya ismi verilir:
+
+```python
+In [1]: f = open("show_version.txt")
+```
+
+Python burada dosya yolu verilmediğinde, dosyayı doğrudan komut satırını çalıştırdığınız **current working directory** yani mevcut çalışma dizini içinde arar.
+
+`open()` çağrıldığında geriye `f` şeklinde bir **file handle** döner. Bu değişken doğrudan incelendiğinde dosyanın özellikleri görülür:
+
+```python
+In [5]: f
+Out[5]: <_io.TextIOWrapper name='show_version.txt' mode='r' encoding='UTF-8'>
+```
+
+* **Default Mode (`mode='r'`):** `open()` fonksiyonuna herhangi bir mod belirtilmediğinde dosya default olarak **read** yani okuma modunda açılır.
+
+* **Text File:** Dosya default olarak bir metin dosyası şeklinde işleme alınır.
+
+* **Explicit Tanımlama:** İstenirse mod açık bir şekilde `mode="r"` olarak da belirtilebilir:
+
+```python
+In [6]: f = open("show_version.txt", mode="r")
+```
+
+---
+
+### 4.2 Dosya İçeriğini Okuma Yöntemleri
+
+Dosyadaki verileri okumak için farklı metotlar mevcuttur:
+
+**1) `.read()` Metodu:**
+
+Dosyanın tüm içeriğini baştan sona tek bir **string** olarak okur. 
+Okunan veri bir variable'a atanır ve ardından dosya kapatılır:
+
+```python
+In [1]: f = open("show_version.txt")
+
+In [2]: data = f.read()
+
+In [3]: f.close()
+
+In [4]: data
+Out[4]: 'Switch> show version\nCisco IOS Software, C2960 Software (C2960-LANBASEK9-M), Version 15.0(2)SE4, RELEASE SOFTWARE (fc1)\nTechnical Support: http://cisco.com\nCopyright (c) 1986-2013 by Cisco Systems, Inc.\nCompiled Wed 26-Jun-13 02:49 by prod_rel_team\n\nROM: Bootstrap program is 2960 Boot Loader\nBOOTLDR: C2960 Boot Loader version 12.2(44)SE5, RELEASE SOFTWARE (fc1)\n\nSwitch uptime is 39 minutes\nSystem returned to ROM by power-on\nSystem image file is "flash:c2960-lanbasek9-mz.150-2.SE4.bin"\nLast reload reason: Power-on\n\n\n\nThis product contains cryptographic features and is subject to United\nStates and local country laws governing import, export, transfer and\nuse. Delivery of Cisco cryptographic products does not imply\nthird-party authority to import, export, distribute or use encryption.\nImporters, exporters, distributors and users are responsible for\ncompliance with U.S. and local country laws. Malicious use of this\nsoftware is a violation of U.S. and international law.\n\nCisco WS-C2960-24TT-L (PowerPC405) processor (revision B0) with 65536K bytes of memory.\nProcessor board ID FOC1432Y101\nLast reset from power-on\n1 Virtual Ethernet interface\n24 FastEthernet interfaces\n2 Gigabit Ethernet interfaces\n64K bytes of flash-simulated non-volatile configuration memory.\nBase ethernet MAC Address       : 00:2A:6A:3B:4C:D0\nMotherboard assembly number     : 73-9834-08\nPower supply part number        : 341-0097-02\nMotherboard serial number       : FOC143105X5\nPower supply serial number      : LIT14280E1A\nModel revision number           : B0\nMotherboard revision number     : A0\nModel number                    : WS-C2960-24TT-L\n\nConfiguration register is 0xF\n'
+```
+
+**2) `.readline()` Metodu:**
+
+Dosyayı satır satır okumayı sağlar. Metot her çağrıldığında sıradaki tek bir satırı string olarak döndürür:
+
+```python
+In [6]: f = open("show_version.txt", mode="r")
+
+In [7]: f.readline()
+Out[7]: 'Switch> show version\n'
+```
+
+**3) `.seek()` ile Başa Dönme:**
+
+Dosyadan veri okundukça imleç dosya içinde ileriye doğru hareket eder. Dosyayı kapatıp yeniden açmadan tekrar en başa sarmak gerektiğinde `seek(0)` kullanılır:
+
+```python
+In [8]: f.seek(0)
+Out[8]: 0
+
+In [17]: f = open("show_version.txt")
+
+In [18]: f.readline()
+Out[18]: 'Switch> show version\n'
+
+In [19]: f.readline
+Out[19]: <function TextIOWrapper.readline(size=-1, /)>
+
+In [20]: f.seek(0)
+Out[20]: 0
+
+In [21]: f.readline()
+Out[21]: 'Switch> show version\n'
+```
+
+**4) `.readlines()` Metodu:**
+
+Sonunda çoğul eki olan `s` harfi bulunur. Dosyadaki tüm satırları okur ve her bir satırı ayrı bir string eleman olacak şekilde tek bir **list** haline getirir.
+
+Elde edilen bu liste üzerinde for loop kurarak gezinebilir veya satırlara indeks numaraları ile erişebilirsiniz:
+
+```python
+In [9]: data = f.readlines()
+
+In [10]: data
+Out[10]: 
+['Switch> show version\n',
+ 'Cisco IOS Software, C2960 Software (C2960-LANBASEK9-M), Version 15.0(2)SE4, RELEASE SOFTWARE (fc1)\n',
+ 'Technical Support: http://cisco.com\n',
+ 'Copyright (c) 1986-2013 by Cisco Systems, Inc.\n',
+ 'Compiled Wed 26-Jun-13 02:49 by prod_rel_team\n',
+ '\n',
+ 'ROM: Bootstrap program is 2960 Boot Loader\n',
+ 'BOOTLDR: C2960 Boot Loader version 12.2(44)SE5, RELEASE SOFTWARE (fc1)\n',
+ '\n',
+ 'Switch uptime is 39 minutes\n',
+ 'System returned to ROM by power-on\n',
+ 'System image file is "flash:c2960-lanbasek9-mz.150-2.SE4.bin"\n',
+ 'Last reload reason: Power-on\n',
+ '\n',
+ '\n',
+ '\n',
+ 'This product contains cryptographic features and is subject to United\n',
+ 'States and local country laws governing import, export, transfer and\n',
+ 'use. Delivery of Cisco cryptographic products does not imply\n',
+ 'third-party authority to import, export, distribute or use encryption.\n',
+ 'Importers, exporters, distributors and users are responsible for\n',
+ 'compliance with U.S. and local country laws. Malicious use of this\n',
+ 'software is a violation of U.S. and international law.\n',
+ '\n',
+ 'Cisco WS-C2960-24TT-L (PowerPC405) processor (revision B0) with 65536K bytes of memory.\n',
+ 'Processor board ID FOC1432Y101\n',
+ 'Last reset from power-on\n',
+ '1 Virtual Ethernet interface\n',
+ '24 FastEthernet interfaces\n',
+ '2 Gigabit Ethernet interfaces\n',
+ '64K bytes of flash-simulated non-volatile configuration memory.\n',
+ 'Base ethernet MAC Address       : 00:2A:6A:3B:4C:D0\n',
+ 'Motherboard assembly number     : 73-9834-08\n',
+ 'Power supply part number        : 341-0097-02\n',
+ 'Motherboard serial number       : FOC143105X5\n',
+ 'Power supply serial number      : LIT14280E1A\n',
+ 'Model revision number           : B0\n',
+ 'Motherboard revision number     : A0\n',
+ 'Model number                    : WS-C2960-24TT-L\n',
+ '\n',
+ 'Configuration register is 0xF\n']
+```
+
+**5) File Handle Üzerinde For Loop Kurma:**
+
+Dosyayı satır satır okumak için ara bir liste variable oluşturmadan, doğrudan `open()` ile oluşturulan file handle (`f`) üzerinde döngü kurulabilir ve her satır tek tek yazdırılabilir:
+
+```python
+for line in f:
+    print(line)
+
+f.close()
+
+...
+
+Cisco IOS Software, C2960 Software (C2960-LANBASEK9-M), Version 15.0(2)SE4, RELEASE SOFTWARE (fc1)
+
+Technical Support: http://cisco.com
+
+Copyright (c) 1986-2013 by Cisco Systems, Inc.
+
+Compiled Wed 26-Jun-13 02:49 by prod_rel_team
+...
+```
+
+---
+
+### 4.3 Dosyayı Kapatma (`close`)
+
+Bu kullanım şeklinde en önemli kural, dosya ile işlemler tamamlandıktan sonra `close()` çağrısı yapılarak dosyanın mutlaka kapatılmasıdır.
+
+```python
+In [15]: f.close()
+```
+
+> * *file handle* → açılan bir dosyaya işaret eden ve dosya üzerinde işlemler yapmayı sağlayan object.
+> * *current working directory* → komut satırının veya Python interpreter'ın o an çalıştığı mevcut dizin.
+> * *read()* → dosya içeriğinin tamamını tek bir string olarak okuyan metot.
+> * *readline()* → dosyadan her defasında bir sonraki satırı okuyan metot.
+> * *readlines()* → dosyadaki tüm satırları okuyup string elemanlardan oluşan bir list haline getiren metot.
+> * *seek(0)* → dosya okuma imlecini dosyanın en başına geri saran metot.
+> * *close()* → açılmış dosyayı kapatan ve ayrılan sistem kaynaklarını serbest bırakan metot.
+
+---
+
