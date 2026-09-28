@@ -1257,3 +1257,104 @@ Python'da listeler üzerinde kullanılabilecek diğer hazır metotlar şunlardı
 > * *pop()* → listenin sonundan veya belirtilen indeksinden elemanı silip geriye o değeri döndüren metot.
 
 ---
+
+## 12. List Slices
+
+Python'da **list slices**, var olan bir listeden dinamik olarak parçalar çıkarıp yeni listeler üretmenin yoludur.
+
+Tek bir indeks numarası belirtilerek yapılan eleman erişiminin aksine, slicing işleminde genellikle iki sayı belirtilir. 
+Bu iki sayı yeni listenin başlangıç ve bitiş sınırlarını tanımlar.
+
+---
+
+### 12.1 Başlangıç ve Bitiş İndeksi Mantığı
+
+Slicing işleminde iki indeks arasına iki nokta üst üste (`:`) konulur:
+
+* **İlk Sayı (Başlangıç):** Dilimlemenin başlayacağı indeksi belirtir ve **sonuca dahil edilir** yani included.
+
+* **İkinci Sayı (Bitiş):** Dilimlemenin biteceği indeksi belirtir ancak **sonuçtan hariç tutulur** yani excluded.
+
+Bu kural nedeniyle slice, belirtilen bitiş indeksinin bir eksiğine (`n-1`) kadar gider. 
+Kirk Byers bu davranışın arka plandaki matematiksel hesaplamaları kolaylaştırmak amacıyla bu şekilde tasarlandığını belirtiyor.
+
+Kendi ortamımızda çalıştırma:
+
+```python
+In [1]: my_list = ["berkay", 1, "network", [], None, 1.9, [1, 2, 3], "test", True]
+
+In [2]: my_list[1:3]
+Out[2]: [1, 'network']
+
+In [3]: my_list[2:4]
+Out[3]: ['network', []]
+```
+
+> `my_list[1:3]` ifadesi `1` indeksindeki elemanı dahil eder, `3` indeksini hariç tutar; geriye `1` ve `2` indekslerindeki elemanları döndürür.
+
+---
+
+### 12.2 Başlangıç veya Bitiş İndeksini Boş Bırakma
+
+Dilimleme yaparken sınır değerlerinden biri veya her ikisi birden boş bırakılabilir:
+
+**1) Başlangıç İndeksinin Boş Bırakılması (`[:n]`):**
+
+İlk sayı belirtilmediğinde dilimleme listenin en başından başlar. Sıfırıncı indeksten başlayarak belirtilen bitiş indeksinin bir eksiğine kadar gider:
+
+```python
+In [4]: my_list[:3]
+Out[4]: ['berkay', 1, 'network']
+```
+
+**2) Bitiş İndeksinin Boş Bırakılması (`[n:]`):**
+
+İkinci sayı belirtilmediğinde dilimleme verilen başlangıç indeksinden listenin en sonuna kadar gider; son eleman da dahil edilir:
+
+```python
+In [5]: my_list[4:]
+Out[5]: [None, 1.9, [1, 2, 3], 'test', True]
+```
+
+**3) İki İndeksin de Boş Bırakılması (`[:]`):**
+
+Başlangıç ve bitiş indeksleri yazılmayıp yalnızca iki nokta kullanıldığında, listenin tamamı baştan sona kopyalanır.
+
+Bu işlem, önceki bölümde gördüğümüz `.copy()` metodu gibi bir **shallow copy** üretir:
+
+```python
+In [6]: my_list[:]
+Out[6]: ['berkay', 1, 'network', [], None, 1.9, [1, 2, 3], 'test', True]
+```
+
+---
+
+### 12.3 Negatif İndeksler ile Dilimleme
+
+Slicing işlemlerinde negatif indeks numaraları da kullanılabilir:
+
+```python
+In [7]: my_list[4:-1]
+Out[7]: [None, 1.9, [1, 2, 3], 'test']
+
+In [8]: my_list[4:-2]
+Out[8]: [None, 1.9, [1, 2, 3]]
+```
+
+Negatif sayılarda da ikinci sayının hariç tutulması kuralı geçerlidir. `my_list[4:-1]` ifadesinde dilim `4` indeksinden başlar; `-1` listenin en son elemanına karşılık gelse de bitiş indeksi olduğu için hariç tutulur ve son eleman sonuca dahil edilmez.
+
+---
+
+### 12.4 Orijinal Listenin Korunması
+
+List slicing işlemi **orijinal listeyi kesinlikle modifiye etmez**.
+
+Orijinal `my_list` değişkeni bellekte hiçbir değişikliğe uğramadan ilk haliyle kalır. 
+Slicing sonucunda dinamik olarak üretilen bu yeni listeyi ileride kullanmak istiyorsak, bunu yeni bir variable'a assign etmemiz gerekir.
+
+> * *list slice* → mevcut bir listeden indeks aralıkları kullanılarak dinamik olarak yeni alt listeler türetme işlemi. 
+> * *included* → dilimlemenin başladığı ilk indeksin sonuca dahil edilmesi kuralı.
+> * *excluded* → dilimlemenin bittiği ikinci indeksin sonuç listesine dahil edilmemesi kuralı.
+> * *[:] (slice copy)* → başlangıç ve bitiş belirtilmeden tüm listeyi shallow copy yöntemiyle kopyalama syntaxı.
+
+---
