@@ -1358,3 +1358,94 @@ Slicing sonucunda dinamik olarak üretilen bu yeni listeyi ileride kullanmak ist
 > * *[:] (slice copy)* → başlangıç ve bitiş belirtilmeden tüm listeyi shallow copy yöntemiyle kopyalama syntaxı.
 
 ---
+
+## 13. Multidimensional Lists
+
+Python'da bir listenin elemanları başka listelerden oluşabilir; bu yapılara **multidimensional lists** yani çok boyutlu listeler denir.
+Nested tanımlanan bu listelerde elemanlara erişirken zero-based indeksleme mantığı aynı şekilde geçerliliğini korur.
+
+---
+
+### 13.1 Çok Boyutlu Liste Tanımlama ve Dış Elemanlara Erişim
+
+Bir listenin içerisine eleman olarak yeni listeler yerleştirildiğinde, en dıştaki liste kapsayıcı olarak çalışır.
+
+Kendi ortamımızda iki adet alt liste barındıran bir liste tanımlama:
+
+```python
+In [1]: my_list = [[1, 2, 3], ["a", "b", "c"]]
+```
+
+Burada `my_list` iki ana elemandan oluşur. En dıştaki listeden bu alt listelere ulaşmak için standart indeksler kullanılır:
+
+* **`my_list[0]`:** Listenin sıfırıncı indeksindeki ilk alt listeyi (`[1, 2, 3]`) döndürür.
+* **`my_list[1]`:** Birinci indeksindeki ikinci alt listeyi (`["a", "b", "c"]`) döndürür.
+
+```python
+In [2]: my_list[0]
+Out[2]: [1, 2, 3]
+
+In [3]: my_list[1]
+Out[3]: ['a', 'b', 'c']
+```
+
+---
+
+### 13.2 Chain Indices ile İç Elemanlara Ulaşma
+
+Dönen değerin kendisi de bir liste olduğu için, içerideki spesifik bir elemana ulaşmak amacıyla indeksler soldan sağa doğru **zincirleme** şeklinde ardı ardına eklenir:
+
+1. **İlk İndeks:** En dıştaki listeden hangi alt listenin seçileceğini belirler - outermost list.
+
+2. **İkinci İndeks:** Seçilen o iç listenin içerisindeki hangi elemana ulaşılacağını belirler - inner list.
+
+Birinci alt listenin (`[1, 2, 3]`) elemanlarına erişim:
+
+```python
+In [5]: my_list[0][0]
+Out[5]: 1
+
+In [7]: my_list[0][1]
+Out[7]: 2
+
+In [8]: my_list[0][2]
+Out[8]: 3
+```
+
+İkinci alt listenin (`["a", "b", "c"]`) elemanlarına erişim:
+
+```python
+In [4]: my_list[1][0]
+Out[4]: 'a'
+
+In [9]: my_list[1][1]
+Out[9]: 'b'
+
+In [10]: my_list[1][2]
+Out[11]: 'c'
+```
+
+---
+
+### 13.3 Alt Listeyi Yeni Bir Değişkene Atama
+
+Zincirleme indeks yazmak yerine, istenirse içteki alt liste bağımsız bir değişkene atanabilir ve ardından o değişken üzerinden doğrudan tek indeksle işlem yapılabilir:
+
+```python
+In [10]: str_list = my_list[1]
+
+In [11]: str_list
+Out[11]: ['a', 'b', 'c']
+
+In [12]: str_list[1]
+Out[12]: 'b'
+```
+
+Bu yöntemle önce `my_list[1]` alt listesi `str_list` adında bir değişkene referans olarak atanır, ardından `str_list[1]` denilerek doğrudan `'b'` elemanına erişilir.
+
+> * *multidimensional list* → elemanları başka listelerden oluşan nested liste yapısı.
+> * *chain indices* → çok boyutlu yapılarda derinlik seviyelerine göre indeksleri köşeli parantezlerle yan yana (`my_list[0][1]`) bağlama yöntemi.
+> * *outermost list* → tüm alt elemanları ve diğer listeleri kapsayan en dıştaki ana liste.
+> * *inner list* → ana listenin bir elemanı olarak içeride yer alan alt liste.
+
+---
