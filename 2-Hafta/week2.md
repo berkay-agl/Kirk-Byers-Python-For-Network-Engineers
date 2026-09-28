@@ -1081,3 +1081,179 @@ Listeler aynı elemandan birden fazla barındırabilir buna duplicate elements d
 > * *duplicate elements* → bir liste içinde aynı değere sahip birden fazla elemanın bulunması durumu.
 
 ---
+
+## 11. List Methods
+
+Python'da listeler üzerinde işlem yapabilmemiz için birçok yerleşik metot bulunur. 
+Bu bölümde en sık kullanılan temel liste metotları, listelerin bellekteki davranışları ve birleştirme yöntemleri ele alınmaktadır.
+
+---
+
+### 11.1 `.append()` Metodu ve Mutable Yapı
+
+Muhtemelen en yaygın kullanılan liste metodu **`.append()`** metodudur. Bir listenin sonuna tek bir yeni eleman eklemek için kullanılır.
+
+```python
+In [1]: my_list = ["berkay", 1, "network", [], None, 1.9, [1, 2, 3], "test", True]
+
+In [2]: my_list
+Out[2]: ['berkay', 1, 'network', [], None, 1.9, [1, 2, 3], 'test', True]
+
+In [3]: my_list.append("yeni eleman")
+
+In [4]: my_list
+Out[4]: ['berkay', 1, 'network', [], None, 1.9, [1, 2, 3], 'test', True, 'yeni eleman']
+```
+
+> **Önemli Kural:** `.append()` metodu geriye yeni bir liste döndürmez; doğrudan mevcut listeyi modifiye eder. Bu durum listelerin **mutable** yani değiştirilebilir bir veri tipi olmasından kaynaklanır. Kursun ilerleyen bölümlerinde detaylandırılacak olan mutable/immutable ayrımının temel mantığı buraya dayanır: Listeler bellekteki yerinde doğrudan güncellenebilir.
+
+---
+
+### 11.2 `.clear()` ve `.count()` Metotları
+
+Daha seyrek kullanılan iki yardımcı metot:
+
+* **`.clear()`:** Liste içindeki tüm elemanları temizleyerek boş bir liste (`[]`) haline getirir. Kirk Byers boş bir liste elde etmek için `clear()` yerine listeyi doğrudan boş listeye yeniden assign etmenin (`my_list = []`) daha yaygın ve daha anlaşılır bir pratik olduğunu belirtiyor.
+
+```python
+In [5]: my_list.clear()
+
+In [6]: my_list
+Out[6]: []
+```
+
+* **`.count()`:** Belirli bir elemanın liste içerisinde kaç defa geçtiğini sayar.
+
+```python
+In [7]: my_list = ["berkay", 1, "network", [], None, 1.9, [1, 2, 3], "test", True]
+
+In [9]: my_list.count("network")
+Out[9]: 1
+```
+
+---
+
+### 11.3 `.copy()` Metodu ve Bellek Adresleri 
+
+Python'da bir listeyi başka bir değişkene kopyalamak istediğimizde sadece `new_list = my_list` yazarsak yeni bir liste oluşmaz. 
+Bu işlem yalnızca bellekteki aynı listeye işaret eden ikinci bir isim yani referans tanımlar. Birinde yapılacak değişiklik diğerini de bozar.
+
+Bağımsız bir kopya üretmek için **`.copy()`** metodu kullanılır:
+
+```python
+In [11]: new_list = my_list.copy()
+
+In [12]: new_list
+Out[12]: ['berkay', 1, 'network', [], None, 1.9, [1, 2, 3], 'test', True]
+```
+
+Bu kopyalama işleminin bellekte farklı bir nesne oluşturup oluşturmadığını doğrulamak için Python'un built-in **`id()`** fonksiyonu kullanılır:
+
+```python
+In [13]: id(my_list)
+Out[13]: 140422702361792
+
+In [14]: id(new_list)
+Out[14]: 140422702443200
+```
+
+`id()` çıktılarının farklı olması, `new_list`'in bellekte ayrı bir alanda tutulduğunu kanıtlar. Böylece `my_list` üzerinde yapılacak bir değişiklik `new_list`'i etkilemez.
+
+> Bu kopyalama yöntemi bir **shallow copy** işlemidir. Nested listeler barındıran daha karmaşık yapılarda shallow copy ile deep copy farkı mutable/immutable tartışmasında detaylandırılacaktır.
+
+---
+
+### 11.4 List Concatenation ve `.extend()` Metodu
+
+Stringlerde olduğu gibi listelerde de artı (**`+`**) operatörü ile **list concatenation** yapılabilir:
+
+```python
+In [15]: "network" + "rose"
+Out[15]: 'networkrose'
+
+In [16]: "network" + " rose"
+Out[16]: 'network rose'
+
+In [18]: my_list + [10, "string"]
+Out[18]: ['berkay', 1, 'network', [], None, 1.9, [1, 2, 3], 'test', True, 10, 'string']
+```
+
+> `+` operatörü orijinal `my_list` değişkenini değiştirmez; iki listenin birleşiminden yeni bir liste üretir. Bu sonucu korumak için yeni bir değişkene atamak veya mevcut listeye yeniden assign etmek gerekir.
+
+**`.extend()` Metodu:**
+
+Birleştirme işlemini listeyi yerinde değiştirerek yapmak istediğimizde **`.extend()`** metodu kullanılır.
+
+Metot parametre olarak tek bir veri koleksiyonu örneğin bir liste bekler:
+
+```python
+In [19]: my_list.extend('test', 54)
+TypeError: list.extend() takes exactly one argument (2 given)
+```
+
+Elemanlar liste içerisinde `['test', 54]` şeklinde tek bir argüman olarak verildiğinde, listenin sonuna her iki eleman da ayrı ayrı eklenir:
+
+```python
+In [20]: my_list.extend(['test', 54])
+
+In [21]: my_list
+Out[21]: ['berkay', 1, 'network', [], None, 1.9, [1, 2, 3], 'test', True, 'test', 54]
+```
+---
+
+### 11.5 `.pop()` Metodu
+
+Append metodundan sonra muhtemelen en çok kullanılan ikinci liste metodu **`.pop()`** metodudur.
+
+`pop()` metodu iki işi aynı anda yapar: Belirtilen indeksteki elemanı listeden tamamen çıkarır ve çıkarılan bu değeri geri döndürür. Dönen bu değer doğrudan bir değişkene atanabilir.
+
+**1) Listenin Sonundan Eleman Çıkarma:**
+
+Parantez içine hiçbir parametre verilmediğinde listenin en sonundaki elemanı çıkarır ve teslim eder:
+
+```python
+In [22]: val1 = my_list.pop()
+
+In [23]: val1
+Out[23]: 54
+
+In [24]: my_list
+Out[24]: ['berkay', 1, 'network', [], None, 1.9, [1, 2, 3], 'test', True, 'test']
+```
+
+**2) Listenin Başından Eleman Çıkarma (`pop(0)`):**
+
+Parantez içine `0` indeksi verildiğinde listenin ilk elemanını çıkarıp teslim eder:
+
+```python
+In [25]: val2 = my_list.pop(0)
+
+In [26]: val2
+Out[26]: 'berkay'
+
+In [27]: my_list
+Out[27]: [1, 'network', [], None, 1.9, [1, 2, 3], 'test', True, 'test']
+```
+
+> Kirk Byers'ın pratik tavsiyesi: `pop()` işlemini yalnızca **listenin en sonundan** veya **en başından** yapın; listenin ortasındaki rastgele yerlerden pop yapmaktan kaçının.
+
+---
+
+### 11.6 Diğer Liste Metotları
+
+Python'da listeler üzerinde kullanılabilecek diğer hazır metotlar şunlardır:
+
+* **`.sort()`:** Listenin elemanlarını kendi içinde sıralar.
+* **`.reverse()`:** Listenin eleman sıralamasını tersine çevirir.
+* **`.insert()`:** Listenin belirlenen bir indeksine araya eleman sokar.
+* **`.remove()`:** Belirtilen değere sahip ilk elemanı listeden siler.
+* **`.index()`:** Belirtilen bir değerin listedeki indeks numarasını bulur.
+
+> * *append()* → listenin sonuna tek bir eleman ekleyen ve listeyi doğrudan modifiye eden metot. 
+> * *mutable* → tanımlandıktan sonra bellekteki içeriği doğrudan değiştirilebilen veri tipi özelliği.
+> * *shallow copy* → listenin bellekte yeni bir kopyasını oluşturan ancak nested yani iç içe referansları kopyalamayan yüzeysel kopyalama.
+> * *id()* → bir nesnenin bellekteki benzersiz kimlik/adres numarasını döndüren built-in fonksiyon.
+> * *extend()* → parametre olarak verilen listenin elemanlarını mevcut listenin sonuna ekleyerek listeyi yerinde genişleten metot.
+> * *pop()* → listenin sonundan veya belirtilen indeksinden elemanı silip geriye o değeri döndüren metot.
+
+---
