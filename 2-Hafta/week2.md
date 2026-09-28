@@ -917,3 +917,88 @@ Hatanın bildirdiği `I/O operation on closed file` mesajı, `with` bloğunun cr
 > * *gracefully cleanup* → hata çıksa dahi açık kalan kaynakların (dosya, soket, veritabanı) arka planda düzgünce kapatılması.
 
 ---
+
+## 9. List Basics
+
+Şimdiye kadar Python'da sayılar (integers ve floats), strings, booleans ve özel `None` veri tipi gibi temel veri yapıları ele alındı.
+
+Listeler ise Python'da daha karmaşık veri yapılarına attığımız ilk adımdır. 
+Listeler, kendi içinde doğal bir sıralaması olan elemanlar topluluğudur; yani birinci eleman, ikinci eleman, üçüncü eleman şeklinde listenin sonuna kadar uzanan sıralı bir yapı barındırırlar. 
+Diğer programlama dillerinde bu yapılar genellikle **arrays** olarak adlandırılır.
+
+---
+
+### 9.1 Liste Tanımlama ve Farklı Veri Tipleri
+
+Python'da liste oluşturmak için **köşeli parantez `[]**` kullanılır. Liste içindeki elemanlar birbirinden virgül (`,`) ile ayrılır ve liste kapatma köşeli parantezi ile sonlandırılır.
+
+Python listelerinin en önemli özelliklerinden biri, **içerisinde yer alan elemanların veri tiplerinin aynı olma zorunluluğunun bulunmamasıdır**. 
+Bir listenin içine aynı anda string, integer, float, boolean, `None` ve hatta başka bir boş ya da dolu listeyi gömebilirsiniz.
+
+Kendi ortamımızda çalıştırma:
+
+```python
+In [1]: my_list = ["berkay", 1, "network", [], None, 1.9]
+
+In [2]: type(my_list)
+Out[2]: list
+
+In [3]: my_list
+Out[3]: ['berkay', 1, 'network', [], None, 1.9]
+```
+
+Built-in `type()` fonksiyonu ile kontrol edildiğinde nesnenin tipinin `list` olduğu görülür.
+
+---
+
+### 9.2 Zero-Based İndeksleme 
+
+Listeler sequential yani sıralı yapılardır ve elemanlarına erişmek için **sıfır tabanlı indeksleme** kullanılır:
+
+* Listenin en başındaki ilk elemana ulaşmak için `0` indeksi kullanılır (`my_list[0]`).
+* İkinci eleman için `1`, üçüncü eleman için `2`, dördüncü eleman için `3` şeklinde sırayla devam edilir.
+
+```python
+In [4]: my_list[0]
+Out[4]: 'berkay'
+```
+
+---
+
+### 9.3 Liste Elemanlarını Güncelleme
+
+Listeler doğrudan güncellenebilir yapılardır. Bir indeks numarası belirtilip karşısına yeni bir değer assign edildiğinde, o indeksteki eski veri silinir ve yerine yeni değer geçer:
+
+```python
+In [5]: my_list[2] = "NetworkRose"
+
+In [6]: my_list
+Out[6]: ['berkay', 1, 'NetworkRose', [], None, 1.9]
+```
+
+Bu güncelleme sırasında veri tipini korumak zorunda değilsiniz. Örneğin daha önce string olan bir elemanın yerine bir integer ya da başka bir veri tipi atayabilirsiniz; Python buna izin verir.
+
+---
+
+### 9.4 Negatif İndeksler ile Sondan Erişme
+
+Listenin sonundaki elemanlara ulaşmak istediğimizde negatif sayılar kullanılır.
+
+Negatif indeksleme listenin en sonundan geriye doğru çalışır:
+
+* **`-1` İndeksi:** Listenin en sonundaki son elemanı verir (`my_list[-1]`).
+* **`-2` İndeksi:** Sondan bir önceki elemanı verir.
+* **`-3`, `-4`:** Listenin sonundan başına doğru geriye doğru sayarak erişim sağlar.
+
+```python
+In [7]: my_list[-1]
+Out[7]: 1.9
+```
+
+> * *list* → farklı veri tiplerini bir arada tutabilen, sıralı ve değiştirilebilir koleksiyon veri yapısı. 
+> * *array* → diğer programlama dillerinde listelere karşılık gelen dizi yapısı.
+> * *zero-based index* → eleman sayımının ve konum erişiminin sıfırdan başladığı indeksleme sistemi.
+> * *negative index* → bir listenin son elemanından (`-1`) başlayarak geriye doğru elemanlara erişmeyi sağlayan indeksleme yöntemi.
+
+---
+
