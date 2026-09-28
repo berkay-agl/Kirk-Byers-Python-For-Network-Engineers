@@ -827,3 +827,93 @@ Bu yapı adım adım şöyle işler:
 > * *nested blocks* → blokların birbiri içerisine hiyerarşik olarak yerleştirilmesi.
 
 ---
+
+## 8. Python Context Managers ve `with` Statement
+
+Python'da belirli bir kaynağı açmak, üzerinde işlem yapmak ve ardından bu kaynağı kapatmak çok yaygın bir operasyon desenidir. 
+Dosya işlemleri de doğrudan bu kalıba uyar: Dosya açılır (`open`), üzerinde okuma/yazma/ekleme yapılır ve iş bitince dosya kapatılır (`close`).
+
+Bu desen sadece dosyalarda değil; veritabanı bağlantılarında (bağlantı açma, sorgu çalıştırma, bağlantıyı kapatma), API oturumlarında (authenticate olma, işlemleri yapma, bağlantıyı kapatma) ve ağ cihazlarına bağlanırken de birebir karşımıza çıkar.
+
+Python, bu süreci güvenli ve otomatik yönetmek için **context manager** adı verilen özel bir yapı sunar; bu yapının anahtar kelimesi **`with`** statement'tır.
+
+---
+
+### 8.1 `with` Statement Syntax'ı ve Otomatik Kapanma
+
+Önceki bölümlerde gördüğümüz `f = open(...)` ve manuel `f.close()` yapısı yerine context manager şu şekilde kurulur:
+
+```python
+with open("show_version.txt", mode="r") as f:
+    data = f.read()
+```
+
+* **`with open(...)`:** Dosyayı açar; buradaki `mode="r"` opsiyoneldir, belirtilmezse default olarak read modunda açılır.
+* **`as f`:** Açılan dosyaya işaret eden file handle değişkeni satırın sonuna eklenir.
+* **Colon Terminator (`:`):** Satır sonundaki iki nokta üst üste karakteri, ardından bir indented block geleceğini bildirir.
+* **Otomatik Kapanma ve Flush:** 4 boşluk girintili bloğun içerisindeki işlemler tamamlanıp girintili blok bittiğinde, Python **dosyayı otomatik olarak kapatır**. Dosya kapatıldığı için otomatik olarak bir **flush** işlemi de tetiklenir; yani `mode="w"` veya `mode="a"` kullanılırken yazılan tüm veriler diske basılmış olur.
+
+Kendi ortamımızda çalıştırma:
+
+```python
+In [1]: with open("show_version.txt", mode="r") as f:
+   ...:     data = f.read()
+   ...:     print(data)
+   ...: 
+Switch> show version
+Cisco IOS Software, C2960 Software (C2960-LANBASEK9-M), Version 15.0(2)SE4, RELEASE SOFTWARE (fc1)
+Technical Support: http://cisco.com
+Copyright (c) 1986-2013 by Cisco Systems, Inc.
+Compiled Wed 26-Jun-13 02:49 by prod_rel_team
+...
+Configuration register is 0xF
+```
+
+---
+
+### 8.2 Hata - Exception Durumunda Kaynak Temizliği
+
+Context manager kullanmanın en kritik avantajı beklenmedik bir **exception** durumunda ortaya çıkar.
+
+Eski yöntemde (`open` yapıp ardından kod çalıştırırken) aradaki bir işlem programı crash ederse veya beklenmedik bir hata fırlatılırsa, alttaki `f.close()` satırına hiçbir zaman ulaşılamaz; dosya, veritabanı veya network bağlantısı sistem üzerinde açık kalır.
+
+Context manager ise blok içerisinde ölümcül bir hata meydana gelse dahi, arka planda **cleanup** yani kaynak temizliği işleminin daima çalışmasını garanti eder. 
+Hata çıksa bile dosya güvenle kapatılır ve flush işlemi gerçekleştirilir.
+
+Kirk Byers'ın ve kendi terminalimizin gösterdiği test:
+
+```python
+In [3]: with open("show_version.txt", mode="r") as f:
+   ...:     print(no_var)
+   ...: 
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+Cell In[3], line 2
+      1 with open("show_version.txt", mode="r") as f:
+----> 2     print(no_var)
+
+NameError: name 'no_var' is not defined
+```
+
+Tanımlanmamış bir variable ekrana yazdırılmaya çalışıldığında Python bir `NameError` exception'ı üretir ve blok çöker.
+
+Ancak bu çökmeden hemen sonra file handle üzerinden okuma yapmaya çalıştığımızda dosyanın arka planda başarıyla kapatıldığını doğrularız:
+
+```python
+In [4]: f.read()
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+Cell In[4], line 1
+----> 1 f.read()
+
+ValueError: I/O operation on closed file.
+```
+
+Hatanın bildirdiği `I/O operation on closed file` mesajı, `with` bloğunun crash anında dahi devreye girip dosyayı kapattığını gösterir.
+
+> * *context manager* → kaynakların açılması, kullanılması ve işlem bitiminde (veya hata anında) güvenle serbest bırakılmasını otomatikleştiren yapı.
+> * *with statement* → Python'da context manager protokolünü çağıran anahtar ifade.
+> * *exception* → programın çalışma esnasında karşılaştığı ve akışı kesen beklenmedik hata durumu.
+> * *gracefully cleanup* → hata çıksa dahi açık kalan kaynakların (dosya, soket, veritabanı) arka planda düzgünce kapatılması.
+
+---
