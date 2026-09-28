@@ -1002,3 +1002,82 @@ Out[7]: 1.9
 
 ---
 
+## 10. Lists: Len, Range ve Membership
+
+Bu bölümde listelerin diğer pratik özellikleri olan eleman sayısı kontrolü, dinamik liste üretimi ve liste içi eleman sorgulama mekanizmaları incelenmektedir.
+
+---
+
+### 10.1 `len()` ile Liste Uzunluğunu Bulma
+
+Bir listenin kaç tane eleman barındırdığını öğrenmek için built-in gelen **`len()`** fonksiyonu kullanılır. 
+Fonksiyona parametre olarak liste verildiğinde, geriye listedeki toplam eleman sayısını belirten bir integer değer döner.
+
+Kendi ortamımızda çalıştırma:
+
+```python
+In [1]: my_list = ["berkay", 1, "network", [], None, 1.9, [1, 2, 3], "test", True]
+
+In [2]: my_list
+Out[2]: ['berkay', 1, 'network', [], None, 1.9, [1, 2, 3], 'test', True]
+
+In [3]: len(my_list)
+Out[3]: 9
+```
+
+---
+
+### 10.2 `range()` Built-in Fonksiyonu ve İndeks İlişkisi
+
+Python'da **`range()`** fonksiyonu, dinamik olarak sayı dizileri üretmek ve özellikle listelerle birlikte çalışmak için oldukça kullanışlı bir built-in fonksiyondur.
+
+`range()` tek bir argüman ile çağrıldığında default olarak `0` değerinden başlar ve belirtilen sayının bir eksiğine (`n-1`) kadar gider. 
+Üretilen bu sayı dizisini doğrudan görebilmek için sonuç `list()` fonksiyonu ile cast edilir:
+
+```python
+In [4]: list(range(10))
+Out[4]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+**İndekslerle Birebir Örtüşme Mantığı:**
+
+`range(10)` fonksiyonunun ürettiği `0, 1, 2, 3, 4, 5, 6, 7, 8, 9` sayıları, tam olarak 10 elemanlı bir listenin indeks numaralarına karşılık gelir.
+Aynı şekilde 7 elemanlı bir liste için `range(7)` çağrıldığında `0`'dan `6`'ya kadar olan sayılar elde edilir; bu da o listenin sıfırdan yedinci elemana kadar olan tüm indekslerini birebir temsil eder.
+
+**Başlangıç Değerini Değiştirme:**
+
+`range()` fonksiyonuna iki argüman verilerek başlangıç değeri değiştirilebilir.
+İlk argüman başlangıç değerini, ikinci argüman ise bitiş sınırını belirler; ancak bitiş sınırındaki sayı sonuca dahil edilmez:
+
+```python
+In [5]: list(range(5, 10))
+Out[5]: [5, 6, 7, 8, 9]
+```
+
+---
+
+### 10.3 List Membership Kontrolü (`in`)
+
+Bir elemanın liste içerisinde var olup olmadığını denetlemek için **`in`** anahtar kelimesi ile **membership check** yapılır.
+
+Sorgulanan elemanın adı yazılır, ardından `in` anahtar kelimesi ve liste adı belirtilir. Bu işlem sonucunda geriye bir **boolean** (`True` ya da `False`) döner:
+
+```python
+In [6]: "network" in my_list
+Out[6]: True
+
+In [7]: "test123" in my_list
+Out[7]: False
+```
+
+**Duplicate Elements:**
+
+Listeler aynı elemandan birden fazla barındırabilir buna duplicate elements deniliyor. `in` operatörü aranan elemanın listede kaç defa geçtiğini saymaz; yalnızca o elemanın listenin herhangi bir yerinde bulunup bulunmadığını kontrol ederek `True` veya `False` yanıtını verir.
+
+> * *len()* → bir veri koleksiyonunun barındırdığı toplam eleman sayısını döndüren built-in fonksiyon.
+> * *range()* → sıfırdan veya belirlenen bir başlangıç değerinden başlayarak bitiş değerinin bir eksiğine kadar ardışık sayı dizisi üreten fonksiyon.
+> * *casting* → bir veri tipinin başka bir tipe (örneğin range nesnesinin listeye) açıkça dönüştürülmesi.
+> * *membership check (`in`)* → bir elemanın liste içerisinde yer alıp almadığını denetleyen ve geriye boolean sonuç döndüren kontrol işlemi.
+> * *duplicate elements* → bir liste içinde aynı değere sahip birden fazla elemanın bulunması durumu.
+
+---
