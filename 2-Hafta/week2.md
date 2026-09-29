@@ -1762,3 +1762,194 @@ Böylece `my_dcs` üzerine yeni bir `"london"` eklendiğinde bu değişiklik yal
 
 ---
 
+## 16. Shallow Copy vs Deep Copy 
+
+Bu ders mutable ve immutable nesnelerin iç içe geçtiği senaryolarda kopyalama davranışını ele alan bir ara konudur. 
+Kirk Byers, konuyu anlamakta zorlananların kursun ilerleyen bölümlerini tamamladıktan sonra buraya tekrar dönebileceğini belirtmektedir.
+
+Shallow copy ve deep copy kavramları yalnızca **nested** yapılarda, yani birden fazla derinlik seviyesinde mutable nesne barındıran veri yapılarında (örneğin listeler barındıran bir liste veya listeler barındıran bir dictionary) anlam kazanır.
+
+* **Shallow Copy:** Yalnızca en dıştaki kapsayıcıyı yani **outermost container**'ı kopyalar.
+* **Deep Copy:** Veri yapısının tüm derinlik seviyelerine iner ve içerideki tüm **mutable** veri yapılarını baştan sona kopyalar.
+
+---
+
+### 16.1 Düz Listelerde Shallow Copy'nin Yeterliliği
+
+Elemanları yalnızca string veya integer gibi **immutable** nesnelerden oluşan tek boyutlu listelerde shallow copy (`.copy()`) kullanmak tamamen güvenlidir.
+
+```python
+In [3]: data_centers = ["sf1", "sf2", "la1", "la2", "dallas"]
+
+In [4]: dc_list = data_centers.copy()
+
+In [5]: dc_list
+Out[5]: ['sf1', 'sf2', 'la1', 'la2', 'dallas']
+
+In [6]: data_centers
+Out[6]: ['sf1', 'sf2', 'la1', 'la2', 'dallas']
+
+In [7]: data_centers.append("ny1")
+
+In [8]: dc_list[-1] = "denver"
+
+In [9]: data_centers
+Out[9]: ['sf1', 'sf2', 'la1', 'la2', 'dallas', 'ny1']
+
+In [10]: dc_list
+Out[10]: ['sf1', 'sf2', 'la1', 'la2', 'denver']
+
+In [11]: id(data_centers)
+Out[11]: 140625911994816
+
+In [12]: id(dc_list)
+Out[12]: 140625910356224
+```
+
+* **Pointer Kopyalama Mantığı:** `.copy()` çağrıldığında yeni bir dış liste konteyneri oluşturulur ve eski listedeki pointer adresleri kopyalanır. Bu pointer adresleri bellekteki aynı string nesnelerine (`"sf1"`, `"sf2"`, `"dallas"`) işaret eder.
+
+* **İzolasyonun Sebebi:** `dc_list[-1] = "denver"` assignment'ı yapıldığında stringler immutable olduğu için mevcut nesne değiştirilemez. Yeni bir `"denver"` nesnesi oluşturulur ve yalnızca `dc_list`'in son pointer'ı buraya yönlendirilir. Orijinal `data_centers` listesi bu değişiklikten etkilenmez.
+
+---
+
+### 16.2 Nested Mutable Listelerde Shallow Copy Yanılgısı
+
+Eğer listenin içindeki elemanlar da başka listelerden (yani mutable nesnelerden) oluşuyorsa shallow copy yeterli korumayı sağlayamaz:
+
+```python
+In [30]: data_centers = [['365 Main', 'Freemont 1', '1525 Comstock'], ['600 W 7th', '808 North Spring Street']]
+
+In [31]: data_centers[0]
+Out[31]: ['365 Main', 'Freemont 1', '1525 Comstock']
+
+In [32]: dc_list = data_centers.copy()
+
+In [33]: dc_list[0]
+Out[33]: ['365 Main', 'Freemont 1', '1525 Comstock']
+```
+
+Dış listelerin `id()` adresleri farklı olsa da, kopyalanan pointer adresleri içerideki alt listeleri göstermektedir:
+
+```python
+In [34]: dc_list[0] is data_centers[0]
+Out[34]: True
+
+...
+
+# Şu hazırladığım örnekte de anlaşılır:
+
+In [57]: data_centers = [['365 Main', 'Freemont 1', '1525 Comstock'], ['600 W 7th', '808 North Spring Street']]
+
+In [58]: dc_list[0]
+Out[58]: ['365 Main', 'Freemont 1', '1525 Comstock']
+
+In [59]: dc_list = data_centers.copy()
+
+In [60]: dc_list[0]
+Out[60]: ['365 Main', 'Freemont 1', '1525 Comstock']
+
+In [61]: id(data_centers)
+Out[61]: 140625680422208
+
+In [62]: id(dc_list)
+Out[62]: 140625887694464
+
+In [63]: id(dc_list[0])
+Out[63]: 140625889652672
+
+In [64]: id(data_centers[0])
+Out[64]: 140625889652672
+```
+
+`is` operatörünün `True` dönmesi, her iki listenin sıfırıncı indeksindeki alt listenin bellekte **birebir aynı nesne** olduğunu doğrular.
+
+Bu durumda iç listelerden birine eleman eklendiğinde, her iki dış liste de bu değişiklikten etkilenir:
+
+```python
+In [35]: dc_list[0].append("200 Paul")
+
+In [36]: dc_list[0]
+Out[36]: ['365 Main', 'Freemont 1', '1525 Comstock', '200 Paul']
+
+In [37]: data_centers[0]
+Out[37]: ['365 Main', 'Freemont 1', '1525 Comstock', '200 Paul']
+```
+
+Kirk Byers'ın belirttiği gibi: "Birini modifiye etmek ikisini birden modifiye eder; çünkü aslında ortada iki farklı nested liste yoktur".
+
+---
+
+### 16.3 Çözüm: `copy.deepcopy()` ile Tam İzolasyon
+
+Nested mutable yapıların birbirinden tamamen bağımsız kopyalanabilmesi için Python'ın built-in **`copy`** modülü içindeki **`copy.deepcopy()`** fonksiyonu kullanılır.
+
+Deep copy, veri yapısının en derin katmanına kadar traverse eder ve karşısına çıkan tüm **mutable** nesneleri bellekte bağımsız olarak sıfırdan oluşturur:
+
+```python
+In [38]: import copy
+
+In [39]: data_centers = [['365 Main', 'Freemont 1', '1525 Comstock'], ['600 W 7th', '808 North Spring Street']]
+
+In [40]: dc_list = copy.deepcopy(data_centers)
+```
+
+**Bellek Adreslerinin Ayrılması:**
+
+```python
+In [41]: id(data_centers)
+Out[41]: 140625890746688
+
+In [42]: id(dc_list)
+Out[42]: 140625888770560
+
+In [43]: id(data_centers[0])
+Out[43]: 140625684381376
+
+In [44]: id(dc_list[0])
+Out[44]: 140625682713344
+```
+
+Hem dış kapsayıcıların (`data_centers` ve `dc_list`), hem de içteki alt listelerin (`data_centers[0]` ve `dc_list[0]`) bellek adresleri tamamen farklılaşmıştır.
+
+Artık `dc_list[0]` üzerine yapılan modifikasyonlar orijinal listeyi bozmaz:
+
+```python
+In [45]: dc_list[0].append("200 Paul")
+
+In [46]: dc_list
+Out[46]: 
+[['365 Main', 'Freemont 1', '1525 Comstock', '200 Paul'],
+ ['600 W 7th', '808 North Spring Street']]
+
+In [47]: data_centers
+Out[47]: 
+[['365 Main', 'Freemont 1', '1525 Comstock'],
+ ['600 W 7th', '808 North Spring Street']]
+```
+
+Kirk Byers'ın terminalde gösterdiği loop ile iç adreslerin bağımsızlığının doğrulanması:
+
+```python
+In [48]: for element in data_centers:
+    ...:     print(id(element))
+    ...: 
+140625684381376
+140625910811008
+
+In [49]: for element in dc_list:
+    ...:     print(id(element))
+    ...: 
+140625682713344
+140625680806464
+```
+
+> **Costly Operation:** Deep copy tüm veri yapısını dolaşarak derinlemesine kopya çıkardığı için, milyonlarca kayıt içeren devasa ve karmaşık veri yapılarında bellek ve işlemci açısından pahalı bir operasyon olabilir.
+
+> * *shallow copy* → sadece en dıştaki veri object'ini kopyalayan, alt seviyedeki mutable nesnelerin referans adreslerini ortak bırakan kopyalama yöntemi.
+> * *deep copy* → tüm derinlik katmanlarını tarayarak veri yapısındaki tüm mutable alt nesneleri bellekte bağımsız olarak sıfırdan üreten kopyalama yöntemi.
+> * *copy.deepcopy()* → Python'un copy kütüphanesi içinde yer alan ve tam derinlikli kopyalama sağlayan fonksiyon.
+> * *traverse* → karmaşık bir veri yapısının tüm dallarında ve derinlik seviyelerinde adım adım gezinme işlemi.
+> * *costly operation* → büyük ve derin veri yapılarında deep copy işleminin getireceği işlemci ve bellek maliyeti.
+
+---
+
