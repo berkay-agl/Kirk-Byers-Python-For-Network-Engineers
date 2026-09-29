@@ -1615,3 +1615,150 @@ Listeler ise bu tiplerin aksine **mutable** yani değiştirilebilir nesnelerdir;
 
 ---
 
+## 15. Değiştirilebilir Nesneler: Mutable Objects 
+
+Önceki bölümde immutable nesneleri inceledikten sonra bu bölümde bellekteki içeriği doğrudan güncellenebilen **mutable** nesneler ele alınmaktadır.
+Python'da mutable bir nesne oluşturulduğunda, nesnenin bellekteki adresi bozulmadan üzerinde ekleme, çıkarma veya güncelleme yapılabilir.
+
+Python'daki temel mutable veri yapıları şunlardır:
+
+* **Lists**
+* **Dictionaries** (kursun ilerleyen bölümlerinde işlenecek)
+* **Sets** (kursun ilerleyen bölümlerinde işlenecek)
+  
+---
+
+### 15.1 Mutable Doğası ve Değişmeyen `id()` Adresi
+
+Immutable nesnelerde (örneğin sayılar ve stringler) her atamada yeni bir object üretilirken, listeler gibi mutable nesnelerde yapılan değişiklikler doğrudan bellekteki mevcut object üzerinde gerçekleştirilir buna in-place modification deniliyor:
+
+```python
+In [1]: data_centers = ["sf1", "sf2", "la1", "la2", "denver", "dallas"]
+
+In [2]: id(data_centers)
+Out[2]: 140257726516224
+
+In [3]: data_centers.append("ny1")
+
+In [4]: id(data_centers)
+Out[4]: 140257726516224
+```
+
+Listeye `.append("ny1")` ile yeni bir eleman eklenmesine rağmen `id(data_centers)` çıktısı tamamen aynı kalmıştır (`140257726516224`). 
+Liste genişlemiş ancak bellekteki asıl container object yerini korumuştur.
+
+---
+
+### 15.2 Listelerin Bellek Mekaniği: Pointer Mantığı
+
+Listeler potansiyel olarak milyonlarca veriyi barındırabilecek container yapılardır. 
+Python listeleri bellekte tutarken doğrudan nesnelerin kendisini listenin içine gömmez:
+
+1. Python önce bellekte belirli boyutta ardışık bir blok ayırır buna **contiguous block of memory** deniliyor.
+2. Bu ayrılan bloğun içine gerçek nesneleri değil, o nesnelere işaret eden **pointer** yani işaretçi / referans adreslerini yerleştirir.
+3. `data_centers` değişkeni listenin başlangıcına referans verirken; listenin birinci seviyesi içerideki bağımsız `"sf1"`, `"sf2"`, `"la1"` gibi string nesnelerinin bellek adreslerini işaret eder.
+
+Kendi ortamımızda liste elemanlarının bağımsız bellek adresleri:
+
+```python
+In [5]: data_centers[0]
+Out[5]: 'sf1'
+
+In [6]: id(data_centers[0])
+Out[6]: 140257726478352
+
+In [7]: data_centers[1]
+Out[7]: 'sf2'
+
+In [9]: id(data_centers[1])
+Out[9]: 140257726478688
+
+...
+
+# Aşağıda da kendi oluşturduğum başka bir örnek:
+
+In [25]: liste = ["a", "b"]
+
+In [26]: id(liste)
+Out[26]: 140257705654208
+
+In [27]: id(liste[0])
+Out[27]: 10823432
+
+In [28]: id(liste[1])
+Out[28]: 10823480
+
+In [29]: liste[0] = 1
+
+In [30]: liste
+Out[30]: [1, 'b']
+
+In [31]: id(liste[0])
+Out[31]: 10758864
+
+In [32]: id(liste)
+Out[32]: 140257705654208
+```
+
+Görüldüğü gibi listenin kendi kimliği (`140257726516224`) ile içerisindeki elemanların adresleri (`140257726478352`, `140257726478688`) tamamen farklıdır. 
+Bu mekanizma, shallow copy ve deep copy kavramlarının temelini oluşturur.
+
+---
+
+### 15.3 Mutable Nesneleri Kopyalama Hatası 
+
+Mutable nesnelerde en çok yapılan hata, bir listeyi başka bir variable'a doğrudan eşittir (`=`) ile atamaktır:
+
+```python
+In [10]: data_centers
+Out[10]: ['sf1', 'sf2', 'la1', 'la2', 'denver', 'dallas', 'ny1']
+
+In [11]: my_dcs = data_centers
+```
+
+Bu atama yeni bir liste kopyası oluşturmaz; bellekteki aynı listeye işaret eden **ikinci bir referans / name tag** bağlar. 
+İki variable da bellekteki tam olarak aynı listeye bakar.
+
+Bu durumda isimlerden biri üzerinden yapılan bir modifikasyon, aynı nesneye baktıkları için diğer ismi de doğrudan etkiler:
+
+```python
+In [12]: my_dcs.append("london")
+
+In [13]: my_dcs
+Out[13]: ['sf1', 'sf2', 'la1', 'la2', 'denver', 'dallas', 'ny1', 'london']
+
+In [14]: data_centers
+Out[14]: ['sf1', 'sf2', 'la1', 'la2', 'denver', 'dallas', 'ny1', 'london']
+```
+
+`my_dcs` üzerinden `"london"` append edildiğinde, `data_centers` listesi de otomatik olarak değişmiş olur.
+
+---
+
+### 15.4 Bağımsız Kopya Oluşturma: `.copy()` (Shallow Copy)
+
+İki listenin birbirinden bağımsız olmasını ve birinde yapılan modifikasyonun diğerini etkilememesini istiyorsak **`.copy()`** metodu kullanılır:
+
+```python
+In [15]: my_dcs = data_centers.copy()
+
+In [16]: my_dcs.append("london")
+
+In [17]: my_dcs
+Out[17]: ['sf1', 'sf2', 'la1', 'la2', 'denver', 'dallas', 'ny1', 'london', 'london']
+
+In [18]: data_centers
+Out[18]: ['sf1', 'sf2', 'la1', 'la2', 'denver', 'dallas', 'ny1', 'london']
+```
+
+`.copy()` çağrıldığında bellekte yeni bir liste nesnesi üretilir işte shallow copy dediğimiz kısım bu. 
+Böylece `my_dcs` üzerine yeni bir `"london"` eklendiğinde bu değişiklik yalnızca o listeyi etkiler; orijinal `data_centers` listesi değişmeden kalır.
+
+> * *mutable* → bellekteki adresi korunarak içeriği doğrudan modifiye edilebilen nesne özelliği. 
+> * *contiguous block of memory* → listenin pointer adreslerini barındırmak için bellekte ardışık olarak ayrılan alan.
+> * *pointer* → gerçek verinin bellekte saklandığı adresi işaret eden referans bağlantısı. 
+> * *direct assignment (`=`)* → yeni bir kopya üretmeden bellekteki aynı nesneye ikinci bir name tag bağlama işlemi. 
+> * *shallow copy (`.copy()`)* → orijinal listeyi etkilemeden bağımsız işlem yapabilmek için bellekte yeni bir liste object oluşturan kopyalama metodu.
+
+---
+
