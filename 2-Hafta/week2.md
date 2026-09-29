@@ -1449,3 +1449,169 @@ Bu yöntemle önce `my_list[1]` alt listesi `str_list` adında bir değişkene r
 > * *inner list* → ana listenin bir elemanı olarak içeride yer alan alt liste.
 
 ---
+
+## 14. Değiştirilemeyen Nesneler: Immutable Objects 
+
+Bu bölüm orta seviye bir konu olarak ele alınmaktadır. 
+Python'ın bazı durumlarda neden belirli şekillerde davrandığını kavramak ve variable mantığını derinlemesine anlamak açısından **mutable** ve **immutable** object ayrımı oldukça önemlidir. 
+Kirk Byers, bu aşamada konuyu kavramakta zorlananların kursun ilerleyen kısımlarını tamamladıktan sonra buraya tekrar dönebileceğini belirtmektedir.
+
+---
+
+### 14.1 Python'da Değişkenler: İsimler ve Bellekteki Nesneler
+
+Python'da bir assignment yapıldığında değişken ile bellekteki veri birbirine doğrudan yapışık tek bir kutu gibi düşünülmemelidir. 
+Bellekteki gerçek veri (**object**) ile kod yazarken kullanılan değişken adı (**name**) birbirinden tamamen ayrı iki kavramdır:
+
+```python
+In [1]: rtr1_addr = "10.250.1.1"
+```
+
+* **Object in Memory:** Bilgisayar belleğinde `"10.250.1.1"` string nesnesi oluşturulur ve belirli bir bellek alanı ayrılır.
+
+* **Name Tag:** `rtr1_addr` ise sadece bellekteki bu string nesnesine işaret eden yani referans veren bir isim etiketidir.
+
+Bu iki kavramı birbirinden ayırmak bellek yönetiminin temelini oluşturur.
+
+---
+
+### 14.2 Aynı Nesneye İşaret Eden Çoklu İsimler ve `id()` Doğrulaması
+
+Mevcut bir değişken başka bir değişkene atandığında bellekte yeni bir nesne kopyası oluşturulmaz:
+
+```python
+In [2]: gw1 = rtr1_addr
+```
+
+Burada yapılan işlem, bellekteki `"10.250.1.1"` nesnesine **ikinci bir isim etiketi** (`gw1`) bağlamaktan ibarettir. Artık iki farklı isim bellekteki tam olarak aynı nesneye işaret eder.
+
+**`id()` ile Nesne Kimliği Kontrolü:**
+
+Python'da built-in gelen **`id()`** fonksiyonu bir object'in unique identifier'ını yani benzersiz tanımlayıcısını döndürür. 
+CPython implementasyonunda bu değer doğrudan nesnenin bellekteki adresiyle ilişkilidir:
+
+```python
+In [3]: id(rtr1_addr)
+Out[3]: 140490150976944
+
+In [4]: id(gw1)
+Out[4]: 140490150976944
+
+In [5]: rtr1_addr in gw1
+Out[5]: True
+```
+
+Her iki değişkenin `id()` çıktısının birebir aynı olması, ikisinin de bellekte tek bir nesneye baktığını kanıtlar.
+
+**`is` ve `==` Farkı:**
+
+* **`==` Operatörü:** İki değişkenin sahip olduğu değerlerin/içeriğin eşit olup olmadığını denetler.
+* **`is` Operatörü:** Yalnızca içerik benzerliğine değil, iki değişkenin bellekte **aynı nesneye** (aynı bellek adresine) işaret edip etmediğine bakar. `rtr1_addr is gw1` sorgusu doğrudan `True` döner.
+
+---
+
+### 14.3 Immutable Nesnelerin Doğası
+
+**Immutable**, doğrudan "değiştirilemeyen" anlamına gelir. Python'da bir nesne immutable ise bellekte oluşturulduktan sonra asla güncellenemez veya değiştirilemez.
+
+Sayılar (integers, floats) ve stringler gibi tipler immutable nesnelerdir. 
+Bir değişkene yeni bir değer verildiğinde, bellekteki eski sayı değiştirilmez; **yeni bir nesne oluşturulur** ve değişkenin etiketi bu yeni nesneye yönlendirilir:
+
+```python
+In [6]: ssh_timeout = 2
+
+In [7]: id(ssh_timeout)
+Out[7]: 10758896
+
+In [8]: ssh_timeout = 1
+
+In [9]: id(ssh_timeout)
+Out[9]: 10758864
+```
+
+`ssh_timeout` değişkenine `1` atandığında `2` sayısı yerinde değiştirilmemiştir. 
+Bellekte `1` nesnesi oluşturulmuş ve isim etiketi oraya kaydırılmıştır; bu yüzden `id()` adresi tamamen değişmiştir.
+
+Yeniden `ssh_timeout = 2` yazıldığında ise değişken tekrar `2` nesnesine işaret eder ve adresi ilk baştaki `10758896` değerine geri döner:
+
+```python
+In [10]: ssh_timeout = 2
+
+In [11]: id(ssh_timeout)
+Out[11]: 10758896
+```
+
+---
+
+### 14.4 `+=` ve `-=` İşlemlerinde Arka Plan Davranışı
+
+Sayaç artırma kısayolu olan `+= 1` veya azaltma olan `-= 1` çalıştırıldığında dahi immutable nesnelerin yapısı gereği yerinde bir değişiklik yapılamaz:
+
+```python
+In [12]: ssh_timeout += 1
+
+In [13]: id(ssh_timeout)
+Out[13]: 10758928
+
+```
+
+Python arka planda gizlice **yeni bir assignment** yapar. 
+`2 + 1` işleminin sonucu olan `3` değeri için bellekte bağımsız yeni bir integer nesnesi oluşturulur ve `ssh_timeout` bu yeni adrese (`10758928`) yönlendirilir. 
+Bu durum, `+=` öncesi ve sonrasındaki `id()` adreslerinin farklılaşmasıyla doğrulanır.
+
+Tam fark:
+
+```python
+In [6]: ssh_timeout = 2
+
+In [7]: id(ssh_timeout)
+Out[7]: 10758896
+
+In [8]: ssh_timeout = 1
+
+In [9]: id(ssh_timeout)
+Out[9]: 10758864
+
+In [10]: ssh_timeout = 2
+
+In [11]: id(ssh_timeout)
+Out[11]: 10758896
+
+In [12]: ssh_timeout += 1
+
+In [13]: id(ssh_timeout)
+Out[13]: 10758928
+
+In [14]: ssh_timeout -= 1
+
+In [15]: id(ssh_timeout)
+Out[15]: 10758896
+
+In [16]: ssh_timeout -= 1
+
+In [17]: id(ssh_timeout)
+Out[17]: 10758864
+```
+
+---
+
+### 14.5 Python'da Temel Immutable Nesne Tipleri
+
+Python'da bellekteki içeriği asla değiştirilemeyen temel immutable veri tipleri şunlardır:
+
+* **None**
+* **Booleans** (`True`, `False`)
+* **Strings**
+* **Integers**
+* **Floats**
+
+Listeler ise bu tiplerin aksine **mutable** yani değiştirilebilir nesnelerdir; önceki bölümlerde görüldüğü üzere `.append()` veya `.pop()` ile bellekteki adresleri bozulmadan doğrudan yerinde değiştirilebilirler.
+
+> * *immutable* → bellekte oluşturulduktan sonra içeriği doğrudan değiştirilemeyen, her değişiklikte yeni bir nesne üreten veri tipleri.
+> * *object* → bellekte kendine ait yer ayrılmış olan asıl veri varlığı.
+> * *name* → bellekteki nesneye referans veren değişken etiketi.
+> * *id()* → bir nesnenin bellekteki adresini ve kimliğini temsil eden benzersiz numarayı döndüren built-in fonksiyon.
+> * *is* → iki ismin sadece değerlerinin değil, bellekteki tam olarak aynı nesneye işaret edip etmediğini kontrol eden kimlik operatörü.
+
+---
+
