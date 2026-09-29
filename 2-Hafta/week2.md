@@ -1953,3 +1953,94 @@ In [49]: for element in dc_list:
 
 ---
 
+## 17. Tuples
+
+Kursun kapsamıyla ilgili küçük bir not: Kirk Byers, **sets** konusunu kursun ilerleyen kısımlarına ertelediğini ve bu bölümde doğrudan **tuples** konusunu ele alacağını belirtmektedir.
+
+Listeleri incelerken onların **mutable** yapıda olduğunu; `.append()` ile eleman ekleyebildiğimizi veya `.pop()` ile eleman çıkarabildiğimizi gördük. 
+**Tuple** ise en basit tanımıyla **değiştirilemeyen bir liste** yani immutable list gibidir; yani listeye benzeyen ancak içeriği sonradan asla modifiye edilemeyen bir veri yapısıdır.
+
+---
+
+### 17.1 Tuple Tanımlama ve Elemanlara Erişim
+
+Listelerde köşeli parantez `[]` kullanılırken, tuple tanımlanırken **normal parantez `()**` kullanılır.
+
+Tıpkı listelerde olduğu gibi elemanlar birbirinden virgül (`,`) ile ayrılır ve tuple içerisindeki elemanların veri tipleri birbirinden farklı olabilir:
+
+```python
+In [1]: my_tuple = (1, "merhaba", 10, None, 1.9)
+
+In [2]: type(my_tuple)
+Out[2]: tuple
+```
+
+Built-in `type()` fonksiyonu ile kontrol edildiğinde nesnenin tipinin `tuple` olduğu görülür.
+
+**İndeksleme Mantığı:**
+
+Tuple elemanlarına erişmek için listelerle tamamen aynı syntax'ı kullanılır. 
+Tanımlama parantezle yapılmış olsa dahi, elemana erişirken yine köşeli parantez `[]` ve **zero-based** indeksleme kullanılır:
+
+```python
+In [3]: my_tuple[1]
+Out[3]: 'merhaba'
+```
+
+* `0` indeksi ilk elemanı, `1` indeksi ikinci elemanı, `2` indeksi ise üçüncü elemanı getirir.
+
+---
+
+### 17.2 Immutable Yapı ve Modifikasyon Kısıtlamaları
+
+Tuple yapıları **immutable** olduğu için elemanları üzerinde sonradan herhangi bir değişiklik yapılamaz:
+
+**1) Yeni Değer Atama Engeli - item assignment:**
+
+Mevcut bir indekse yeni bir değer atanmaya çalışıldığında Python bir `TypeError` fırlatır:
+
+```python
+In [4]: my_tuple[1] = "naber"
+TypeError: 'tuple' object does not support item assignment
+```
+
+**2) Modifikasyon Metotlarının Yokluğu:**
+
+Listelerde bulunan `.append()`, `.extend()` veya `.pop()` gibi veri yapısını değiştiren metotlar tuple nesnelerinde bulunmaz. Bu metotlar çağrıldığında `AttributeError` hatası alınır:
+
+```python
+In [5]: my_tuple.append("naber")
+AttributeError: 'tuple' object has no attribute 'append'
+```
+
+---
+
+### 17.3 Tuple Tuzağı: Virgül Notasyonu 
+
+Python'da tuple oluştururken parantez kullanmak standart yöntemdir. 
+Ancak Python, teknik olarak parantez yazılmasa dahi sadece **virgül notasyonu** kullanıldığında veriyi otomatik olarak bir tuple olarak kabul eder:
+
+```python
+In [6]: ip_addresses = ("10.1.1.1", "10.1.1.2")
+
+In [7]: ip_addresses = "10.1.1.1", "10.1.1.2"
+
+In [8]: type(ip_addresses)
+Out[8]: tuple
+```
+
+Kirk Byers bu durumu bir tuzak olarak nitelendirir. Kod yazarken bir değişken tanımlarken satır sonuna veya araya yanlışlıkla virgül koyarsanız, Python arka planda istemeden bir tuple oluşturur ve bu durum kodunuza kolayca beklenmedik bir hata sokmanıza yol açabilir.
+
+---
+
+### 17.4 Neden Tuple Kullanılır?
+
+Madem listeler varken tuple değiştirilemiyor, bu yapıya neden ihtiyaç duyulur? Kirk Byers bunun iki temel sebebini vurgular:
+
+1. **Başkalarının Kodları:** Ağ otomasyonunda veya açık kaynak kütüphanelerde başkalarının yazdığı kodlarla çalışırken sıklıkla tuple yapılarıyla karşılaşılır.
+2. **Built-in Fonksiyon Dönüşleri:** Python'da sıkça kullanılan bazı built-in işlemler ve fonksiyonlar geriye doğrudan tuple döndürür. Bu nedenle yapının çalışma mantığına temel düzeyde hakim olmak şarttır.
+
+> * *tuple* → normal parantez `()` ile tanımlanan, zero-based indeksleme ile erişilen, immutable list-like veri yapısı.
+> * *immutable list* → elemanları değiştirilemeyen, ekleme ve çıkarma metotları barındırmayan liste benzeri yapı.
+> * *tuple hatası* → parantez kullanılmasa dahi araya konulan virgül sebebiyle Python'ın değişkeni otomatik olarak tuple'a dönüştürmesi durumu.
+> * *item assignment* → bir indeks numarası belirtilerek o konumdaki verinin yeni bir değerle güncellenmesi işlemi; tuple tiplerinde bu işlem desteklenmez. 
