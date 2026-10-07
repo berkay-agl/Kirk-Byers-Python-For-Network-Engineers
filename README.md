@@ -58,6 +58,6 @@ Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklay
 
 ## Yasal Uyarı & Teşekkür
 
-Bu repo tamamen **eğitim ve topluluk paylaşımı** amacıyla kişisel bir çabayla hazırlanmıştır. Kursun fikri mülkiyeti ve orijinal materyalleri **Kirk Byers / Twin Bridges Technology**'ye aittir. Network otomasyonu topluluğuna yaptığı bu devasa katkılardan dolayı Kirk'e teşekkürler.
+Bu repo tamamen **eğitim ve topluluk paylaşımı** amacıyla kişisel bir çabayla hazırlanmıştır. Kursun fikri mülkiyeti ve orijinal materyalleri **Kirk Byers / Twin Bridges Technology**'ye aittir. Network otomasyonu topluluğuna yaptığı bu devasa katkılardan dolayı Kirk'e teşekkürler...
 
 - BERKAY AĞGÜL
