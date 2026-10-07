@@ -826,3 +826,222 @@ Burada iki döngü birlikte çalışırken sonuna eklenen `if y == 1` koşulu de
 > * *readability indentation* → birden fazla döngü veya koşul içeren karmaşık comprehension yapılarını alt alta satırlara bölerek okunabilir kılma yaklaşımı.
 
 ---
+
+## 6. Generator Expressions 
+
+List comprehension konusuna benzer şekilde **generator expressions** konusu da opsiyonel ve orta seviye bir içeriktir. 
+Kirk Byers, konunun kafa karıştırıcı gelmesi durumunda atlanabileceğini ve daha sonra tekrar dönülebileceğini belirtmektedir.
+
+---
+
+### 6.1 Neden Generator? Bellek Problemi ve Çözümü
+
+Listelerde veya list comprehension yapılarında devasa boyutta bir veri kümesi üretilmeye çalışıldığında, Python bu elemanların **her birini bellekte saklamak** zorundadır.
+
+**Büyük Listelerde Bellek Yükü:**
+
+10 milyon elemanlı bir liste oluşturulduğunda sistemde gecikme hissedilir:
+
+```python
+In [1]: my_list = list(range(10_000_000))
+
+In [2]: len(my_list)
+Out[2]: 10000000
+```
+
+Eleman sayısı 100 milyona çıkarıldığında ise Python tüm bu veriyi belleğe sığdıramaz. 
+Kirk Byers'ın sunucusunda bu işlem bellek yetersizliğinden işletim sistemi tarafından `Killed` edilip terminale düşerken, sistem kaynaklarına bağlı olarak IPython bir `MemoryError` hatası verebilir veya işlemi doğrudan sonlandırabilir:
+
+```python
+In [15]: my_list = list(range(100_000_000))
+```
+
+**Generator Mekanizması:**
+
+Tüm elemanları aynı anda bellekte tutmak yerine; yalnızca o anki durumu hatırlayan ve bir sonraki elemanın nasıl üretileceğini bilen bir algoritma kullanılır.
+
+Bir generator:
+
+1. Çağrıldığında durumu initialize eder ve ilk elemanı döndürür.
+2. Nerede kaldığını belleğinde saklar.
+3. Bir sonraki çağrıda sıradaki elemanı üretir.
+
+Kirk Byers, fonksiyon tabanlı klasik generator yapısını göstermek adına `yield` ifadesini örnekler:
+
+```python
+In [3]: def gen(n):
+   ...:      i = 0
+   ...:      while i < n:
+   ...:          yield i
+   ...:          i += 1
+   ...: 
+
+In [4]: for val in gen(10):
+   ...:      print(val)
+   ...: 
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+```
+
+`yield` ifadesi her çağrıldığında o anki değeri teslim eder. 100 milyon eleman olsa dahi tüm liste belleğe yazılmaz; her adımda yalnızca tek bir sayı üretilip teslim edilir.
+
+---
+
+### 6.2 Generator Expressions Syntax Yapısı
+
+Fonksiyon yazıp `yield` kullanmak yerine, tıpkı list comprehension gibi pratik ve tek satırlık bir syntax sunan yapılara **generator expressions** denir.
+
+* **Normal Parantez `()` Kullanımı:** List comprehension'da köşeli parantez `[]` kullanılırken, generator expression tanımlanırken **normal parantez `()**` kullanılır.
+* İç kısımdaki döngü ve ifade mekaniği list comprehension ile tamamen aynıdır.
+
+```python
+In [10]: my_generator = (rakamlar**2 for rakamlar in range(10))
+
+In [11]: type(my_generator)
+Out[11]: generator
+
+In [12]: my_generator
+Out[12]: <generator object <genexpr> at 0x7f7a16c2c5f0>
+```
+
+Built-in `type()` fonksiyonu ile kontrol edildiğinde nesnenin tipinin **`generator`** olduğu görülür.
+
+**Döngü ile Değerleri Tüketme:**
+
+Üretilen generator bir `for` döngüsüne verilerek elemanları sırayla alınabilir:
+
+```python
+In [13]: for val in my_generator:
+    ...:      print(val)
+    ...: 
+0
+1
+4
+9
+16
+25
+36
+49
+64
+81
+```
+
+100 milyon elemanlık devasa bir aralık verilse dahi generator belleği tüketmez; döngü çalıştıkça sayıları tek tek üretir:
+
+```python
+In [14]: my_generator = (rakamlar**2 for rakamlar in range(100_000_000))
+```
+
+---
+
+### 6.3 Multiple Loops ve Adım Adım İlerleme
+
+Generator expressions içerisinde de birden fazla `for` döngüsü peş peşe kullanılabilir.
+
+Döngü içinde `break` kullanıldığında generator durur; ancak nerede kaldığını unutmaz. 
+Bir sonraki döngü çağrısında kaldığı yerden sıradaki elemanı üretmeye devam eder:
+
+```python
+In [23]: base_addr = "192.168"
+
+In [24]: ip_generator = (f"{base_addr}.{x}.{y}" for x in range(10, 15) for y in range(5, 10))
+
+In [25]: type(ip_generator)
+Out[25]: generator
+
+In [26]: for ip_addr in ip_generator:
+    ...:      print(ip_addr)
+    ...:      break
+    ...: 
+192.168.10.5
+
+In [27]: for ip_addr in ip_generator:
+    ...:      print(ip_addr)
+    ...:      break
+    ...: 
+192.168.10.6
+
+In [28]: for ip_addr in ip_generator:
+    ...:      print(ip_addr)
+    ...:      break
+    ...: 
+192.168.10.7
+```
+
+Her for döngüsü `break` ile tek bir elemandan sonra kırılsa da, generator sırasıyla `10.5`, ardından `10.6` ve `10.7` değerlerini belleğinde tuttuğu sıradan üretir.
+
+---
+
+### 6.4 Generator Expressions ile Koşul (`if`) Kullanımı
+
+List comprehension'da olduğu gibi generator expressions sonuna da filtreleme amacıyla `if` koşulları eklenebilir:
+
+```python
+In [37]: ip_generator = (f"{base_addr}.{x}.{y}" for x in range(15, 30) for y in range(10, 20) if x == y)
+
+In [38]: for ip_addr in ip_generator:
+    ...:      print(ip_addr)
+    ...:      break
+    ...: 
+192.168.15.15
+```
+
+Burada yalnızca `x == y` eşitliğini sağlayan ilk IP adresi üretilmiş ve `break` ile döngüden çıkılmıştır.
+
+---
+
+### 6.5 Generator Tuzağı: Tükenme Mekanizması
+
+Generator yapılarının en kritik çalışma kuralı ve tuzağı, **bir kez tüketildikten sonra tükenmeleridir**.
+
+* **Listeler vs Generator:** Bir listenin üzerinde `for` döngüsü kurulup tüm elemanlar yazdırıldıktan sonra yeni bir döngü açılırsa, liste baştan sıfırıncı indeksten tekrar çalışır.
+
+* **Generator Davranışı:** Bir generator baştan sona tüketilip tüm elemanları üretildikten sonra geriye hiçbir şey kalmaz. Tekrar bir döngüye sokulduğunda hiçbir çıktı üretmez. Yeniden kullanılmak isteniyorsa generator'ın sıfırdan tekrar tanımlanması gerekir.
+
+**Tükenmenin Doğrulanması:**
+
+```python
+In [39]: ip_generator = (f"{base_addr}.{x}.{y}" for x in range(10, 20) for y in range(10, 20) if x == y)
+
+In [40]: for ip_addr in ip_generator:
+    ...:      print(ip_addr)
+    ...: 
+192.168.10.10
+192.168.11.11
+192.168.12.12
+192.168.13.13
+192.168.14.14
+192.168.15.15
+192.168.16.16
+192.168.17.17
+192.168.18.18
+192.168.19.19
+
+```
+
+Generator içindeki tüm veriler (10.10'dan 19.19'a kadar) ekrana basıldıktan sonra generator tükenir.
+
+Hemen ardından aynı generator nesnesi üzerinde tekrar döngü kurulduğunda:
+
+```python
+In [41]: for ip_addr in ip_generator:
+    ...:      print(ip_addr)
+    ...:      break
+    ...: 
+```
+
+Ekrana hiçbir şey basılmaz; çünkü generator daha önceki döngüde tamamen tükenmiştir.
+
+> * *generator expression* → normal parantez `()` kullanılarak tek satırda tanımlanan, verileri belleğe yığmadan ihtiyaç duyuldukça tek tek üreten syntax. 
+> * *yield* → fonksiyon tabanlı generator yapılarında değeri dışarı aktaran ve fonksiyonun o anki durumunu donduran ifade.
+> * *current state* → generator nesnesinin döngüde nerede kaldığını ve bir sonraki adımda ne üreteceğini hatırlayan dahili durum bilgisi.
+> * *exhausted (tükenme)* → bir generator nesnesinin tüm elemanları üretildikten sonra boşalması ve tekrar kullanılamaması durumu.
+> * *re-initialize* → tükenen bir generator nesnesini yeniden kullanabilmek için baştan tekrar tanımlama zorunluluğu.
