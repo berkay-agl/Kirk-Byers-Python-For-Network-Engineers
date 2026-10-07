@@ -682,3 +682,5 @@ Kirk Byers iki döngü yapısı arasındaki temel kavramsal farkı şu şekilde 
 > * *event-based* → döngünün eleman sayısına göre değil, belirli bir durumun/olayın gerçekleşmesine göre çalışıp sonlanması mantığı.
 
 ---
+
+test
