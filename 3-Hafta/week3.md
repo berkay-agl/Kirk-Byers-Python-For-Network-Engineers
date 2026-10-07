@@ -683,4 +683,146 @@ Kirk Byers iki döngü yapısı arasındaki temel kavramsal farkı şu şekilde 
 
 ---
 
-test
+## 5. List Comprehensions 
+
+List comprehensions konusu opsiyonel ve orta seviye bir konu olarak ele alınmaktadır. 
+Kirk Byers, bu konunun kafa karıştırıcı gelmesi durumunda veya takılmak istenmiyorsa atlanabileceğini ve daha sonra tekrar dönülebileceğini belirtmektedir; aynı durum generator expressions konusu için de geçerlidir.
+
+**Neden Kullanılır?**
+
+List comprehension, mevcut bir liste veya veri dizisinden dinamik olarak yeni bir liste oluşturmanın oldukça pratik ve kolay yoludur.
+
+---
+
+### 5.1 Syntax Yapısı ve Okuma Mantığı
+
+List comprehension yazımı köşeli parantezler `[]` ile başlar ve biter. Syntax alışılmış standart döngü akışına göre biraz tersten geldiği için ilk başta garip gelebilir.
+
+```python
+In [1]: my_list = [0, 1, 2, 3, 4]
+
+In [2]: my_list
+Out[2]: [0, 1, 2, 3, 4]
+
+In [3]: [rakamlar**2 for rakamlar in my_list]
+Out[3]: [0, 1, 4, 9, 16]
+```
+
+Kirk Byers bu yapının şu sırayla okunması gerektiğini belirtir:
+
+1. **Önce For Loop'u Bulun:** İlk olarak ifadenin içindeki `for rakamlar in my_list` kısmına odaklanılır. Burada `my_list` üzerinde dönülür ve her eleman `rakamlar` adlı loop variable'a atanır.
+2. **Baştaki Expression'ı İnceleyin:** En başta yer alan `rakamlar**2` ifadesi, yeni listeye tam olarak neyin koyulacağını belirler.
+3. **Yeni Listenin Oluşumu:** `my_list` içindeki her bir sayının karesi alınarak dinamik olarak yeni bir liste oluşturulur (`[0, 1, 4, 9, 16]`).
+
+> **Orijinal Listenin Korunması:** Bu işlem orijinal `my_list` listesini kesinlikle modifiye etmez. Çıkan sonucu saklamak istiyorsak bunu yeni bir değişkene assign etmemiz gerekir. 
+
+Farklı kuvvet alma örnekleri:
+
+```python
+In [4]: [rakamlar**2 for rakamlar in my_list]
+Out[4]: [0, 1, 4, 9, 16]
+
+In [5]: [rakamlar**3 for rakamlar in my_list]
+Out[5]: [0, 1, 8, 27, 64]
+
+In [6]: [rakamlar**4 for rakamlar in my_list]
+Out[6]: [0, 1, 16, 81, 256]
+```
+
+---
+
+### 5.2 Conditional List Comprehensions
+
+List comprehension yapısının sonuna bir koşul (`if`) eklenebilir. Bu durumda yeni listeye sadece bu koşulu sağlayan (`True` olan) elemanlar dahil edilir:
+
+```python
+In [7]: my_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+In [8]: [rakamlar for rakamlar in my_list if rakamlar % 2 == 0]
+Out[8]: [0, 2, 4, 6, 8, 10]
+```
+
+* **Okuma Sırası:** Önce `for rakamlar in my_list` döngüsü bulunur.
+* **Koşul Değerlendirmesi:** Döngünün hemen içine gömülü olan `if rakamlar % 2 == 0` koşulu her sayı için kontrol edilir (çift sayı kontrolü).
+* **Yeni Listeye Aktarma:** Koşulu sağlayan sayılar baştaki `rakamlar` ifadesi üzerinden yeni listeye eklenir; böylece yalnızca çift sayılardan oluşan filtrelenmiş bir liste üretilir.
+
+---
+
+### 5.3 Multiple Loops
+
+Bir list comprehension içerisinde birden fazla `for` döngüsü peş peşe tanımlanabilir. Bu yapı nested döngüler gibi çalışır.
+
+Kirk Byers, birden fazla for loop kullanıldığında okunabilirliği artırmak için satırları alt alta girintili yazmayı tavsiye eder:
+
+**Tek Satırda Yazım:**
+
+```python
+In [9]: [f"192.168.{x}.{y}" for x in range(10) for y in range(5)]
+Out[9]: 
+['192.168.0.0',
+ '192.168.0.1',
+ '192.168.0.2',
+ '192.168.0.3',
+ '192.168.0.4',
+ '192.168.1.0',
+ '192.168.1.1',
+ ...
+ '192.168.9.3',
+ '192.168.9.4']
+```
+
+**Okunabilir / Girintili Yazım:**
+
+```python
+In [11]: [f"192.168.{x}.{y}"
+    ...: for x in range(10)
+    ...: for y in range(5)
+Out[11]: 
+['192.168.0.0',
+ '192.168.0.1',
+ '192.168.0.2',
+ '192.168.0.3',
+ '192.168.0.4',
+ '192.168.1.0',
+ '192.168.1.1',
+ ...
+ '192.168.9.3',
+ '192.168.9.4']
+```
+
+* **Çalışma Sırası:** İlk for loop olan `for x in range(10)` dış döngüdür; ilk adımda `x = 0` olur.
+* Ardından gelen `for y in range(5)` iç döngüdür; `x = 0` iken `y` sırayla `0, 1, 2, 3, 4` değerlerini alır.
+* İç döngü bittiğinde `x` artırılır ve süreç tekrarlanır. Baştaki `f"192.168.{x}.{y}"` formatı sayesinde dinamik IP adresleri üretilir.
+
+---
+
+### 5.4 Çoklu Döngü ve Koşul Birlikteliği 
+
+Hem birden fazla `for` döngüsü hem de bir koşul aynı list comprehension içinde birleştirilebilir. 
+Kirk Byers bu karmaşık yapı için slaytta esprili bir şekilde *"List Comprehensions: One might question your sanity"* ifadesini kullanır. (Yani birisi senin akıl sağlığını sorgulayabilir diyor.)
+
+```python
+In [10]: [f"192.168.{x}.{y}" for x in range(10) for y in range(5) if y == 1]
+Out[10]: 
+['192.168.0.1',
+ '192.168.1.1',
+ '192.168.2.1',
+ '192.168.3.1',
+ '192.168.4.1',
+ '192.168.5.1',
+ '192.168.6.1',
+ '192.168.7.1',
+ '192.168.8.1',
+ '192.168.9.1']
+```
+
+Burada iki döngü birlikte çalışırken sonuna eklenen `if y == 1` koşulu devreye girer; yalnızca `y` değerinin 1 olduğu durumlar filtrelenerek yeni listeye eklenir.
+
+> * *list comprehension* → mevcut bir veri dizisinden köşeli parantezler içinde tek satırda dinamik yeni liste türeten yapı.
+> * *dynamically create a list* → verileri manuel olarak tek tek eklemek yerine döngü ve ifade kurallarıyla çalışma anında otomatik liste üretme.
+> * *loop variable* → comprehension içindeki for döngüsünde sıradaki elemanı temsil eden değişken (`x`, `rakamlar`). 
+> * *expression* → listenin en başına yazılan ve yeni listenin elemanlarını oluşturan işlem/ifade.
+> * *multiple loops* → list comprehension içerisinde iç içe çalışan birden fazla for ifadesinin peş peşe kullanılması.
+> * *readability indentation* → birden fazla döngü veya koşul içeren karmaşık comprehension yapılarını alt alta satırlara bölerek okunabilir kılma yaklaşımı.
+
+---
