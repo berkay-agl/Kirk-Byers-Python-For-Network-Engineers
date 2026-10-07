@@ -468,3 +468,217 @@ Döngü doğal yoldan tamamlandığı için hemen ardından `else` bloğu devrey
 > * *for-else* → döngü bir `break` ile kesilmeden doğal olarak tamamlandığında çalışan blok yapısı.
 
 ---
+
+## 4. Python While Loops
+
+Python'da döngü kurmanın bir diğer temel yöntemi **while loop** yapılarıdır. 
+Bir veri koleksiyonunu baştan sona tüketmek yerine, belirli bir mantıksal koşul `True` kaldığı sürece çalışmaya devam eden döngüler oluşturmak için kullanılır.
+
+---
+
+### 4.1 Syntax Yapısı ve Çalışma Mekaniği
+
+While döngüsü `while` keyword'ü ve ardından gelen bir **expression** yani koşul ifadesi ile tanımlanır. 
+Satır sonundaki colon (`:`) karakterinden sonra indented block başlar:
+
+```python
+while expression:
+    print("A message")
+    print("A second message")
+```
+
+Bu ifade `True` olarak evaluate edildiği sürece döngünün gövdesindeki komutlar çalıştırılır. 
+Bloğun sonuna gelindiğinde Python tekrar en başa döner ve koşul ifadesini yeniden değerlendirir. Koşul `False` değerine düştüğünde döngü sonlanır.
+
+Döngünün doğal olarak sonlanması için döngü gövdesi içinde koşulun `False` olmasını sağlayacak bir durumun gerçekleşmesi (örneğin bir sayacın artırılması) ya da bir `break` ifadesinin çalışması gerekir.
+
+Kirk Byers'ın ilk örnekte belirttiği sayaç yapısı:
+
+```python
+i = 1
+while i <= 5:
+    # do something
+    print(i)
+    if i == 5:
+        break
+    i += 1
+```
+
+Burada `i` değişkeni `1` olarak initialize edilir; `i <= 5` koşulu doğru kaldığı sürece döngü devam eder, `i += 1` ile artırılır ve `i == 5` olduğunda ya da ifade `False` olduğunda döngüden çıkılır.
+
+---
+
+### 4.2 Sonsuz Döngü Tuzağı ve `continue`
+
+While döngülerinde en sık karşılaşılan problem **infinite loops** yani sonsuz döngü durumudur. 
+Eğer döngüden çıkışı sağlayacak koşul hiçbir zaman `False` olmuyorsa veya sayaç güncellenemiyorsa döngü sonsuza kadar çalışır ve program kilitlenir.
+
+Özellikle **`continue`** kullanılırken sayaç artırımı atlanırsa sonsuz döngü meydana gelir:
+
+```python
+#!/usr/bin/env python3
+
+i = 0
+while i <= 5:
+    if i == 3:
+        continue
+    if i == 5:
+        break
+    print(i)
+    i += 1
+```
+
+Bu script çalıştırıldığında çıktıda döngü `2` değerinden sonra takılı kalır:
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-3$ python while_loop.py 
+0
+1
+2
+^CTraceback (most recent call last):
+  File "/home/berkay/Desktop/Python-All/Python-For-Network-Engineers/Week-3/while_loop.py", line 6, in <module>
+    continue
+KeyboardInterrupt
+```
+
+* `i = 0`, `1`, `2` değerlerinde sayaç normal şekilde `i += 1` ile artar ve sayılar ekrana basılır.
+* Sayaç `3` değerine ulaştığında `if i == 3:` bloğu devreye girer ve `continue` çalıştırılır.
+* `continue` ifadesi altındaki `print(i)` ve `i += 1` satırlarını atlayarak anında döngünün en başına zıplar.
+* Sayaç artırılamadığı için `i` değeri sürekli `3` olarak kalır ve `3 <= 5` koşulu daima `True` döndüğünden program sonsuz döngüye girer. Programı durdurmak için terminalden `CTRL+C` (`KeyboardInterrupt`) ile müdahale etmek zorunda kalınır.
+
+**Sonsuz Döngünün Düzeltilmesi:**
+
+Bu sorunu çözmek için `continue` çağrılmadan hemen önce sayacın manuel olarak artırılması gerekir:
+
+```python
+#!/usr/bin/env python3
+
+i = 0
+while i <= 5:
+    if i == 3:
+        i += 1
+        continue
+    if i == 5:
+        break
+    print(i)
+    i += 1
+else:
+    print("'break' olmadı ?!")
+```
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-3$ python while_loop.py 
+0
+1
+2
+4
+```
+
+`i == 3` olduğunda önce `i += 1` yapılarak değer `4`'e çıkarılır, ardından `continue` çalıştırılır. Böylece `3` değeri ekrana basılmadan atlanır ve döngü kilitlenmeden devam eder. `i == 5` olduğunda ise `break` tetiklenerek döngü sonlanır.
+
+---
+
+### 4.3 Akış Denetimi Benzerlikleri: `break`, `continue` ve `else`
+
+For döngülerinde kullanılan akış denetim ifadeleri while döngülerinde de tamamen aynı şekilde çalışır:
+
+* **`break`:** Döngüyü anında sonlandırır ve while bloğunun dışına çıkar.
+* **`continue`:** Mevcut iterasyonun geri kalanını atlayarak doğrudan while koşul kontrolüne geri döner.
+* **`else` Bloğu:** For döngüsünde olduğu gibi while döngüsünün sonuna da opsiyonel bir `else` bloğu eklenebilir. Bu blok, **döngü hiçbir `break` ifadesiyle karşılaşmadan** koşulun `False` olmasıyla doğal yoldan tamamlandığında çalışır. Yukarıdaki scriptte `i == 5` olduğunda `break` çalıştığı için `else` bloğu yürütülmemiştir.
+
+---
+
+### 4.4 `while True` Kalıbı
+
+While döngülerinde yaygın olarak kullanılan bir diğer yapı, koşul kısmına doğrudan `True` yazılarak kurulan **`while True:`** kalıbıdır.
+
+```python
+while True:
+    if condition:
+        break
+
+    # do something
+    pass
+```
+
+Bu yapıda koşul ifadesi hiçbir zaman `False` değerine düşmeyeceği için döngünün tek çıkış yolu blok içerisinde bir **`break`** keyword'ü ile karşılaşmaktır. Çıkış şartı sağlandığında `break` tetiklenir ve döngü kırılır.
+
+---
+
+### 4.5 Nested Loops 
+
+While döngüleri kendi içlerinde veya for döngüleri ile birlikte iç içe kullanılabilir. Bu yapılar kodun gereksinimine göre birden fazla derinlik seviyesine kadar uzanabilir.
+
+**1) While İçinde While:**
+
+```python
+In [1]: base_addr = "192.168"
+
+In [2]: oktet_3 = 0
+
+In [3]: while oktet_3 < 10:
+   ...:      oktet_4 = 2
+   ...:      while oktet_4 < 255:
+   ...:          ip_addr = f"{base_addr}.{oktet_3}.{oktet_4}"
+   ...:          print(f"IP Adresi: {ip_addr}")
+   ...:          oktet_4 += 1
+   ...:      oktet_3 += 1
+   ...: 
+IP Adresi: 192.168.0.2
+IP Adresi: 192.168.0.3
+IP Adresi: 192.168.0.4
+IP Adresi: 192.168.0.5
+IP Adresi: 192.168.0.6
+IP Adresi: 192.168.0.7
+IP Adresi: 192.168.0.8
+IP Adresi: 192.168.0.9
+IP Adresi: 192.168.0.10
+...
+```
+
+Dış döngü `oktet_3` değerini `0`'dan `9`'a kadar yönetirken, içteki while döngüsü her bir 3. oktet için `oktet_4` değerini `2`'den `254`'e kadar döndürür ve sayaçlar manuel olarak (`+= 1`) artırılır.
+
+**2) While İçinde For Loop:**
+
+```python
+In [8]: base_addr = "192.168"
+
+In [9]: oktet_3 = 0
+
+In [10]: while oktet_3 < 10:
+   ...:      for oktet_4 in range(2, 255):
+   ...:          ip_addr = f"{base_addr}.{oktet_3}.{oktet_4}"
+   ...:          print(f"IP Adresi: {ip_addr}")
+   ...:      oktet_3 += 1
+   ...: 
+IP Adresi: 192.168.0.2
+IP Adresi: 192.168.0.3
+IP Adresi: 192.168.0.4
+IP Adresi: 192.168.0.5
+IP Adresi: 192.168.0.6
+IP Adresi: 192.168.0.7
+IP Adresi: 192.168.0.8
+IP Adresi: 192.168.0.9
+IP Adresi: 192.168.0.10
+...
+```
+
+Burada dış döngü `while` ile kontrol edilirken, iç kısımdaki sayaç yönetimi `range(2, 255)` kullanan bir `for` döngüsüne devredilmiştir.
+
+---
+
+### 4.6 For Loops vs While Loops Karşılaştırması
+
+Kirk Byers iki döngü yapısı arasındaki temel kavramsal farkı şu şekilde özetler:
+
+* **For Loops (Collection-based):** Bir veri koleksiyonu (list, tuple vb.) üzerinde gezinmek için kullanılır. Mantık olarak bir **"for each"** yapısıdır; koleksiyondan sıradaki elemanı alır, işlemlerini yapar ve tüm elemanlar tükenene kadar devam eder.
+
+* **While Loops (Event-based):** Koleksiyonlardan ziyade **olay tabanlıdır**. Belirli bir koşul sağlandığında döngüye girilir ve döngüden çıkmayı tetikleyecek bir olay (koşulun `False` olması veya `break`) gerçekleşene kadar döngü içinde kalınır.
+
+> * *while loop* → belirtilen mantıksal koşul doğru (`True`) kaldığı sürece çalışan olay tabanlı döngü yapısı.
+> * *infinite loop* → döngüden çıkış koşulunun hiçbir zaman sağlanamaması sebebiyle programın kilitlenip sonsuza kadar çalışması durumu.
+> * *while True* → döngüden çıkışın yalnızca dahili bir `break` ifadesi ile mümkün olduğu kalıp.
+> * *while-else* → döngü herhangi bir `break` ile kesilmeden koşulun `False` olmasıyla doğal olarak bittiğinde çalışan blok.
+> * *event-based* → döngünün eleman sayısına göre değil, belirli bir durumun/olayın gerçekleşmesine göre çalışıp sonlanması mantığı.
+
+---
