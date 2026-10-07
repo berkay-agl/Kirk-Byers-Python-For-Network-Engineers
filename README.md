@@ -39,7 +39,7 @@ Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklay
   - Python'un özellikleri, Yorumlayıcı Shell, Standart Input/Output, `dir` ve `help` komutları.
 - [X] [**Hafta 2: Sayılar, Booleans, Dosyalar, Listeler ve Tuple'lar**](/2-Hafta/)
   - Mutable ve Immutable object mantığı.
-- [ ] [**Hafta 3: Koşullu İfadeler, Döngüler ve List Comprehensions**](/3-Hafta/)
+- [x] [**Hafta 3: Koşullu İfadeler, Döngüler ve List Comprehensions**](/3-Hafta/)
   - `if/elif/else`, `for`, `while` döngüleri ve Generator ifadeleri.
 - [ ] **Hafta 4: Kümeler (Sets), Dictionaries ve Exceptions**
   - Veri yapıları arasında geçişler, dict kullanımları ve `try/except` blokları.
