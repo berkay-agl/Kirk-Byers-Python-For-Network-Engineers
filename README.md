@@ -41,7 +41,7 @@ Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklay
   - Mutable ve Immutable object mantığı.
 - [x] [**Hafta 3: Koşullu İfadeler, Döngüler ve List Comprehensions**](/3-Hafta/)
   - `if/elif/else`, `for`, `while` döngüleri ve Generator ifadeleri.
-- [ ] **Hafta 4: Kümeler (Sets), Dictionaries ve Exceptions**
+- [ ] [**Hafta 4: Kümeler (Sets), Dictionaries ve Exceptions**](/4-Hafta/)
   - Veri yapıları arasında geçişler, dict kullanımları ve `try/except` blokları.
 - [ ] **Hafta 5: Regular Expressions - RegEx**
   - Özel karakterler, Capture Groups, Anchors ve `re` kütüphanesi.
