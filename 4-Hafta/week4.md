@@ -343,3 +343,129 @@ Out[7]:
 
 ---
 
+## 4. Python Dictionaries 
+
+Kirk Byers, Python'da en çok odaklanılması gereken en temel iki veri yapısının **lists** ve **dictionaries** olduğunu belirtir. 
+Dictionaries çok yaygındır ve verilerin saklanıp kullanılmasında çok sayıda farklı bağlamı yönetir.
+
+---
+
+### 4.1 Syntax Yapısı ve Key-Value İlişkisi
+
+Dictionary yapısı **key-value** çiftlerinden oluşan bir koleksiyondur. 
+Diğer programlama dillerinde bu yapılar **hashes** veya **hash maps** olarak da adlandırılır.
+
+* **Sıralama:** Python 3.7 sürümünden itibaren dictionary yapıları **sıralı** hale getirilmiştir. Bu sıra, elemanların dictionary içerisine eklenme sırasıdır.
+* **Syntax:** Tanımlama süslü parantezler `{}` ile yapılır. Her bir eleman `key: value` biçiminde yazılır ve çiftler birbirinden virgülle ayrılır.
+* **Veri Tipleri:** Key'ler neredeyse her zaman string tipindedir. Karşılık gelen value kısmı ise string, integer, list veya başka bir dictionary gibi farklı veri tiplerinde olabilir.
+
+```python
+In [1]: my_dict = {
+   ...: "rtr1": "10.100.1.1",
+   ...: "rtr2": "10.100.2.1",
+   ...: "rtr3": "10.100.3.1",
+   ...: }
+
+In [2]: my_dict
+Out[2]: {'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '10.100.3.1'}
+```
+
+---
+
+### 4.2 Key ile Erişme ve Yeni Value Atama 
+
+Dictionary içerisindeki bir değere erişmek veya değeri güncellemek için köşeli parantez `[]` syntax'ı kullanılır:
+
+**1) Değere Erişme:**
+
+Dictionary adının yanına köşeli parantez içinde ilgili key yazılarak karşılık gelen value elde edilir:
+
+```python
+In [3]: my_dict["rtr3"]
+Out[3]: '10.100.3.1'
+```
+
+**2) Yeni Değer Atama:**
+
+Mevcut bir key'e yeni bir değer atamak için doğrudan key referans alınarak atama yapılır:
+
+```python
+In [4]: my_dict["rtr3"] = "10.100.100.1"
+
+In [5]: my_dict
+Out[5]: {'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '10.100.100.1'}
+```
+
+---
+
+### 4.3 Big-O Notasyonu ve Arama Hızı ($O(1)$)
+
+Kirk Byers'ın vurguladığı en kritik noktalardan biri dictionary yapılarının erişim hızıdır.
+
+* Bir dictionary içerisinde 100 bin, 1 milyon veya 10 milyar eleman olsa dahi bir key verildiğinde karşılık gelen value değerinin getirilme süresi veri yapısının büyüklüğüne göre değişmez.
+* Bilgisayar biliminde arama süresi **Big-O notation** ile ölçülür.
+* Dictionary yapılarında key üzerinden arama hızı **$O(1)$** (constant / fixed time) olarak tanımlanır. Yani veri kümesi ne kadar devasa olursa olsun arama işlemi temelde sabit bir sürede son derece hızlı gerçekleşir.
+
+---
+
+### 4.4 Olmayan Bir Key'e Erişme ve KeyError Exception
+
+Dictionary içerisinde tanımlı olmayan bir key köşeli parantez ile çağrıldığında Python bir **`KeyError`** exception fırlatır:
+
+```python
+In [6]: my_dict["rtr4"]
+---------------------------------------------------------------------------
+KeyError                                  Traceback (most recent call last)
+Cell In[6], line 1
+----> 1 my_dict["rtr4"]
+
+KeyError: 'rtr4'
+```
+
+Programın çökmesine yol açan bu durum, aranan anahtarın sözlükte bulunmadığını belirtir.
+
+---
+
+### 4.5 `.get()` Metodu ile Güvenli Arama
+
+Hata almadan daha kontrollü bir erişim sağlamak için **`.get()`** metodu kullanılır:
+
+* **Varsayılan Davranış (`None` Dönüşü):** Key mevcutsa değerini döndürür; eğer key mevcut değilse hata fırlatmak yerine varsayılan olarak **`None`** döndürür. Program kırılmadan çalışmayı sürdürür.
+
+```python
+In [7]: my_dict.get("rtr3")
+Out[7]: '10.100.100.1'
+
+In [8]: ret_val = my_dict.get("rtr4")
+
+In [9]: print(ret_val)
+None
+
+In [10]: ret_val
+
+In [11]: my_dict
+Out[11]: {'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '10.100.100.1'}
+```
+
+* **Varsayılan Değeri Değiştirme:** `.get()` metoduna ikinci bir argüman verilerek `None` yerine dönmesi istenen varsayılan değer belirlenebilir:
+
+
+```python
+In [12]: my_dict.get("rtr4", "unknown")
+Out[12]: 'unknown'
+
+In [13]: my_dict
+Out[13]: {'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '10.100.100.1'}
+```
+
+Aranan `"rtr4"` anahtarı bulunamadığı için metot `"unknown"` değerini teslim eder; ancak dictionary içeriğine herhangi bir ekleme yapmaz.
+
+> * *dictionary* → süslü parantezlerle tanımlanan, key-value çiftlerini saklayan sıralı koleksiyon veri yapısı.
+> * *key-value pair* → bir anahtar ve o anahtara atanmış değerden oluşan eşleşme.
+> * *insertion order* → elemanların dictionary'ye eklendikleri sırayı koruma özelliği (Python 3.7+).
+> * *Big-O / $O(1)$* → dictionary içerisindeki bir key'in veri seti büyüklüğünden bağımsız sabit sürede bulunabilme arama karmaşıklığı.
+> * *KeyError* → dictionary içerisinde yer almayan bir key'e köşeli parantezle doğrudan erişilmek istendiğinde üretilen exception.
+> * *.get()* → aranan key mevcut değilse exception fırlatmak yerine `None` veya belirlenen varsayılan değeri döndüren güvenli erişim metodu.
+
+---
+
