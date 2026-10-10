@@ -404,7 +404,7 @@ Kirk Byers'ın vurguladığı en kritik noktalardan biri dictionary yapıların�
 
 * Bir dictionary içerisinde 100 bin, 1 milyon veya 10 milyar eleman olsa dahi bir key verildiğinde karşılık gelen value değerinin getirilme süresi veri yapısının büyüklüğüne göre değişmez.
 * Bilgisayar biliminde arama süresi **Big-O notation** ile ölçülür.
-* Dictionary yapılarında key üzerinden arama hızı **$O(1)$** (constant / fixed time) olarak tanımlanır. Yani veri kümesi ne kadar devasa olursa olsun arama işlemi temelde sabit bir sürede son derece hızlı gerçekleşir.
+* Dictionary yapılarında key üzerinden arama hızı **$O(1)$** (constant / fixed time) olarak tanımlanır. Yani veri kümesi ne kadar devasa olursa olsun arama işlemi temelde sabit bir sürede son derece hızlı gerçekleşir. (Bence ekstra olarak O(1), O(N), O(N^2) araştırmak iyi olur.) 
 
 ---
 
