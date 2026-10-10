@@ -238,3 +238,108 @@ Out[24]: {'10.220.33.1', '10.220.33.2'}
 > * *difference (`-`)* → solundaki kümeden sağındakinin ortak elemanlarını çıkaran ve yönün kritik olduğu fark operasyonu.
 
 ---
+
+## 3. Set Comprehensions 
+
+Set comprehensions konusu, list comprehensions yapısına oldukça benzeyen, opsiyonel ve orta seviye bir konudur. 
+Bir `for` loop kullanarak dinamik olarak yeni bir set oluşturmanın pratik yoludur.
+
+---
+
+### 3.1 Syntax Yapısı ve Çalışma Mantığı
+
+Set comprehension syntax'ı temel olarak list comprehension ile aynı mantıkta çalışır. Tek fark, dış sınırları belirleyen köşeli parantezler `[]` yerine süslü parantezlerin `{}` kullanılmasıdır:
+
+```python
+In [1]: my_set = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+In [2]: my_set
+Out[2]: {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+In [3]: {rakamlar**2 for rakamlar in my_set}
+Out[3]: {0, 1, 4, 9, 16, 25, 36, 49, 64, 81}
+```
+
+* **Döngü Kısmı:** `{... for rakamlar in my_set}` ifadesi mevcut küme üzerinde gezinir ve her bir değeri `rakamlar` loop variable'ına atar.
+* **Expression:** En başta yer alan `rakamlar**2` ifadesi, yeni set'e eklenecek olan yeni elemanları hesaplar (karelerini alır).
+* **Yeni Set Üretimi:** Orijinal kümedeki elemanların kareleri alınarak tek satırda yeni bir set dinamik olarak üretilir.
+
+---
+
+### 3.2 Conditional Set Comprehensions
+
+Set comprehension yapısının sonuna bir `if` koşulu eklenebilir. Bu durumda yalnızca koşulu sağlayan (`True` evaluate edilen) elemanlar ifadeye sokulup yeni kümeye dahil edilir:
+
+```python
+In [4]: {rakamlar**2 for rakamlar in my_set if rakamlar % 2 == 0}
+Out[4]: {0, 4, 16, 36, 64}
+```
+
+* For loop ile `my_set` elemanları tek tek taranır.
+* `if rakamlar % 2 == 0` kontrolü ile yalnızca çift sayılar filtrelenir; tek sayılar elenir.
+* Filtreyi geçen çift sayıların kareleri (`rakamlar**2`) alınarak yeni set'e aktarılır.
+
+---
+
+### 3.3 Multiple Loops
+
+Tıpkı list comprehension'da olduğu gibi, set comprehension içerisinde de birden fazla `for` döngüsü peş peşe tanımlanabilir. 
+Soldan sağa doğru okunduğunda ilk döngü dış döngü, sonraki ise iç döngü olarak çalışır:
+
+```python
+In [5]: base_addr = "192.168."
+
+In [6]: {f"{base_addr}{x}.{y}" for x in range(1, 10) for y in range(1, 10)}
+Out[6]: 
+{'192.168.1.1',
+ '192.168.1.2',
+ '192.168.1.3',
+ ...
+ '192.168.9.7',
+ '192.168.9.8',
+ '192.168.9.9'}
+```
+
+* İlk döngü olan `for x in range(1, 10)` dış döngüdür.
+* `x` değeri her bir adım için sabit tutulurken, içteki `for y in range(1, 10)` döngüsü sırayla tüm `y` değerlerini tüketir.
+* İç döngü tamamlandığında `x` değeri artırılır ve süreç yinelenerek dinamik IP adresleri üretilir.
+
+---
+
+### 3.4 Multiple Loops ve Conditional
+
+Birden fazla `for` döngüsü ve bir `if` koşulu aynı set comprehension içerisinde birlikte kullanılabilir. 
+Kirk Byers, bu tip karmaşık ifadelerde okunabilirliği artırmak adına kodu alt alta çok satırlı yazmanın çok daha temiz olduğunu belirtir:
+
+```python
+In [7]: {f"{base_addr}{x}.{y}"
+   ...: for x in range(1, 10)
+   ...: for y in range(1, 10)
+   ...: if x == y
+   ...: }
+Out[7]: 
+{'192.168.1.1',
+ '192.168.2.2',
+ '192.168.3.3',
+ '192.168.4.4',
+ '192.168.5.5',
+ '192.168.6.6',
+ '192.168.7.7',
+ '192.168.8.8',
+ '192.168.9.9'}
+```
+
+* `for x in range(1, 10)` en dıştaki döngüdür.
+* `for y in range(1, 10)` içteki döngüdür.
+
+
+* Sona eklenen `if x == y` koşulu, yalnızca `x` ve `y` değerlerinin birbirine eşit olduğu durumları filtreler. Yalnızca bu koşulu sağlayan IP adresleri yeni set'in elemanı olarak kaydedilir.
+
+> * *set comprehension* → süslü parantezler `{}` içinde `for` döngüsü kullanarak tek satırda dinamik yeni küme üreten syntax yapısı.
+> * *expression* → comprehension'ın en başında yer alan ve yeni set'e eklenecek elemanların değerini belirleyen işlem.
+> * *inner loop / topmost loop* → çoklu döngülü comprehension yapılarında sırasıyla iç ve dış döngüleri ifade eden hiyerarşik yapı.
+> * *conditional set comprehension* → döngü sonuna `if` ekleyerek yalnızca belirli şartları karşılayan elemanları yeni kümeye dahil etme mekanizması.
+> * *readability (multiple lines)* → karmaşık comprehension ifadelerini alt alta satırlara bölerek okunabilirliği artırma yöntemi.
+
+---
+
