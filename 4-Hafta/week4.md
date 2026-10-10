@@ -469,3 +469,172 @@ Aranan `"rtr4"` anahtarı bulunamadığı için metot `"unknown"` değerini tesl
 
 ---
 
+### 4.6 Looping over Dictionaries
+
+Dictionary üzerinde döngü kurarken ihtiyaç duyulan veriye göre (yalnızca key'ler, yalnızca value'lar veya her ikisi birden) farklı döngü yaklaşımları kullanılır.
+
+---
+
+#### 4.6.1 Doğrudan Döngü ile Key'leri Alma
+
+Bir dictionary üzerinde doğrudan `for` döngüsü kurulduğunda, varsayılan olarak her iterasyonda sıradaki **key** döner:
+
+```python
+In [1]: my_dict = {
+   ...: "rtr1": "10.100.1.1",
+   ...: "rtr2": "10.100.2.1",
+   ...: "rtr3": "10.100.100.1",
+   ...: }
+
+In [2]: print(my_dict)
+{'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '10.100.100.1'}
+
+In [3]: for key in my_dict:
+   ...:      print(key)
+   ...: 
+rtr1
+rtr2
+rtr3
+```
+
+Loop variable (burada `key`) her adımda sıradaki anahtar ismini tutar.
+
+---
+
+#### 4.6.2 `.values()` Metodu ile Value'ları Alma
+
+Yalnızca değerler üzerinde gezinmek istendiğinde **`.values()`** metodu kullanılır.
+Döngü adımlarında dictionary'ye eklenme sırasına sadık kalınarak doğrudan value verileri döner:
+
+```python
+In [4]: for value in my_dict.values():
+   ...:      print(value)
+   ...: 
+10.100.1.1
+10.100.2.1
+10.100.100.1
+```
+
+---
+
+#### 4.6.3 `.items()` ve Unpacking ile Key ve Value'ları Birlikte Alma
+
+En yaygın kullanım kalıplarından biri, hem key hem de value değerlerine aynı anda erişmektir. Bunun için **`.items()`** metodu kullanılır.
+
+`.items()` metodu döngüye her adımda iki elemanlı bir yapı teslim eder. 
+Python'ın otomatik **unpacking** yeteneği sayesinde key birinci değişkene (`key`), value ise ikinci değişkene (`value`) atanır:
+
+```python
+In [5]: for key, value in my_dict.items():
+   ...:      print(f"Key: {key} Value: {value}")
+   ...: 
+Key: rtr1 Value: 10.100.1.1
+Key: rtr2 Value: 10.100.2.1
+Key: rtr3 Value: 10.100.100.1
+```
+
+> * *looping over dictionaries* → dictionary üzerinde key, value veya ikisini birlikte işlemek üzere kurulan for loop yapıları.
+> * *default loop behavior* → dictionary üzerinde doğrudan dönüldüğünde yalnızca key'lerin gelmesi kuralı. 
+> * *.values()* → döngüde yalnızca value elemanlarını sırayla döndüren metot.
+> * *.items()* → döngüde key ve value çiftlerini eşzamanlı olarak teslim eden metot.
+> * *unpacking (dict items)* → `.items()` çıktısını döngü satırında `for key, value in ...` şeklinde iki ayrı değişkene doğrudan dağıtma mekanizması.
+
+---
+
+### 4.7 Dictionary Methods
+
+Dictionary yapılarında eleman silmek veya iki farklı sözlüğü birleştirmek için çeşitli metotlar ve ifadeler kullanılır.
+
+---
+
+#### 4.7.1 `.pop()` Metodu ile Key Silme
+
+Kirk Byers, bir dictionary içerisinden bir key silmek istediğinde tipik olarak **`.pop()`** metodunu tercih ettiğini belirtir.
+
+`.pop()` metodu, argüman olarak verilen key'i dictionary'den çıkartır ve o key'e ait karşılık gelen **value değerini döndürür**:
+
+```python
+In [1]: my_dict = {
+   ...: "rtr1": "10.100.1.1",
+   ...: "rtr2": "10.100.2.1",
+   ...: "rtr3": "10.100.100.1",
+   ...: "rtr4": "10.99.1.1",
+   ...: }
+
+In [2]: print(my_dict)
+{'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '10.100.100.1', 'rtr4': '10.99.1.1'}
+
+In [3]: ret_value = my_dict.pop("rtr4")
+
+In [4]: print(ret_value)
+10.99.1.1
+
+In [5]: my_dict
+Out[5]: {'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '10.100.100.1'}
+```
+
+* `my_dict.pop("rtr4")` çağrıldığında `"rtr4"` anahtarına ait `'10.99.1.1'` değeri `ret_value` değişkenine atanır.
+* İşlem sonrasında `"rtr4"` key-value çifti `my_dict` içerisinden tamamen kaldırılmış olur.
+
+---
+
+#### 4.7.2 `del` İfadesi ile Key Silme
+
+Bir key'i silmenin bir diğer yolu built-in **`del`** ifadesini kullanmaktır.
+
+`del` ifadesi silinen değeri geriye döndürmez; doğrudan belirtilen key-value çiftini sözlükten kaldırır:
+
+```python
+In [6]: my_dict = {
+   ...: "rtr1": "10.100.1.1",
+   ...: "rtr2": "10.100.2.1",
+   ...: "rtr3": "10.100.100.1",
+   ...: "rtr4": "10.99.1.1",
+   ...: }
+
+In [7]: print(my_dict)
+{'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '10.100.100.1', 'rtr4': '10.99.1.1'}
+
+In [8]: del my_dict["rtr4"]
+
+In [9]: print(my_dict)
+{'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '10.100.100.1'}
+```
+
+---
+
+#### 4.7.3 `.update()` Metodu ile Sözlükleri Birleştirme 
+
+İki farklı dictionary'yi birleştirmek için **`.update()`** metodu kullanılır.
+
+Bu işlemde argüman olarak geçilen dictionary'deki tüm key-value çiftleri hedef dictionary'ye eklenir. 
+Eğer her iki sözlükte aynı key mevcutsa, sonradan eklenen sözlükteki yeni değer eskisinin üzerine yazılır:
+
+```python
+In [10]: ca_routers = {
+    ...: "rtr1": "10.100.1.1",
+    ...: "rtr2": "10.100.2.1",
+    ...: "rtr3": "10.100.100.1",
+    ...: }
+
+In [11]: la_routers = {
+    ...: "la_rtr1": "10.101.254.1",
+    ...: "la_rtr2": "10.101.254.2",
+    ...: "rtr3": "192.168.200.1",
+    ...: }
+
+In [12]: ca_routers.update(la_routers)
+
+In [13]: print(ca_routers)
+{'rtr1': '10.100.1.1', 'rtr2': '10.100.2.1', 'rtr3': '192.168.200.1', 'la_rtr1': '10.101.254.1', 'la_rtr2': '10.101.254.2'}
+```
+
+* `la_routers` içindeki `"la_rtr1"` ve `"la_rtr2"` anahtarları doğrudan `ca_routers` sözlüğüne dahil edilir.
+* Her iki sözlükte ortak olan `"rtr3"` anahtarının değeri, `la_routers` içerisindeki yeni IP adresi olan `'192.168.200.1'` ile güncellenir (eski `'10.100.100.1'` değeri ezilir).
+
+> * *.pop()* → belirtilen key'i dictionary'den silen ve silinen değeri değişkene döndüren metot.
+> * *del* → bir dictionary içerisinden belirtilen key-value çiftini geriye değer döndürmeksizin doğrudan silen ifade.
+> * *.update() (dict)* → bir dictionary'ye başka bir dictionary'nin verilerini ekleyen, ortak key varsa yeni değerle güncelleyen metot.
+
+---
+
