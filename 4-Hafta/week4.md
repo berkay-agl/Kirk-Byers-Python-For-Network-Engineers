@@ -1054,3 +1054,69 @@ Dışarıda kalan print.
 > * *except block* → `try` içerisinde beklenen hata gerçekleştiğinde devreye giren ve hatayı yöneten kod bloğu.
 
 ---
+
+### 6.6 Handling Multiple Exception Types
+
+Kirk Byers, bir programda birden fazla farklı hata türüyle karşılaşılabileceğini ve bu durumları yönetmek için iki temel yaklaşım bulunduğunu belirtir:
+
+1. **Tek Bir Handler ile Birden Fazla Exception Türünü Yakalama:** Farklı hatalar için aynı kurtarma veya loglama adımı yürütülecekse kullanılır.
+2. **Farklı Exception Türleri İçin Ayrı Handler'lar Tanımlama:** Her hata türüne özel farklı bir işlem yürütülecekse tercih edilir.
+
+---
+
+#### 6.6.1 Tek Bir Blokta Çoklu Exception Yakalama 
+
+Farklı hata türlerini tek bir `except` bloğunda toplamak için hata isimleri parantez içinde virgülle ayrılarak bir **tuple** şeklinde yazılır (`except (IndexError, KeyError):`):
+
+```python
+In [1]: my_list = []
+
+In [2]: my_dict = {}
+
+In [3]: try:
+   ...:      my_list[0]
+   ...:      my_dict["olmayan key"]
+   ...: except (IndexError, KeyError):
+   ...:      print("Hata yakalandı!")
+   ...: print("Dışarıda kalan print.")
+Hata yakalandı!
+Dışarıda kalan print.
+```
+
+* `try` bloğu içerisinde `my_list[0]` satırına gelindiğinde bir `IndexError` üretilir.
+* Kirk Byers'ın vurguladığı gibi: Karşılaşılan ilk hatada Python derhal `try` bloğundan çıkar ve doğrudan `except` bloğuna atlar.
+* Bu nedenle hemen altındaki `my_dict["olmayan key"]` satırına hiçbir zaman geçilmez.
+* Hata, tanımlanan tuple içerisindeki türlerden biriyle (`IndexError`) eşleştiği için `except` bloğundaki `print("Hata yakalandı!")` çalıştırılır.
+* Blok sonlandığında program normal akışına devam ederek en dıştaki `print("Dışarıda kalan print.")` satırını yürütür.
+
+---
+
+#### 6.6.2 Farklı Exception Türleri İçin Ayrı Handler'lar 
+
+Her hata türü için farklı bir aksiyon almak gerektiğinde ardışık `except` blokları tanımlanır. Python oluşan hatanın türüne uyan ilk `except` bloğuna atlar ve yalnızca o bloğu yürütür:
+
+```python
+In [4]: try:
+   ...:      my_list[0]
+   ...:      my_dict["olmayan key"]
+   ...: except IndexError:
+   ...:      print("Hata yakalandı: olmayan list elemanı")
+   ...: except KeyError:
+   ...:      print("Hata yakalandı: olmayan key")
+   ...: print("Dışarıda kalan print.")
+Hata yakalandı: olmayan list elemanı
+Dışarıda kalan print.
+```
+
+* `my_list` boş olduğu için ilk satırda `IndexError` oluşur.
+* Python doğrudan eşleşen ilk handler olan `except IndexError:` bloğuna sıçrar ve `"Hata yakalandı: olmayan list elemanı"` mesajını basar.
+* İkinci handler olan `except KeyError:` bloğu tamamen atlanır.
+* Kirk Byers'ın slaytında gösterdiği gibi; eğer liste düzgün tanımlanmış olsaydı liste satırı başarıyla geçilecek, ardından dictionary satırında `KeyError` oluşacak ve bu kez ikinci handler (`except KeyError:`) devreye girecekti.
+* Hata yönetimi tamamlandıktan sonra blok dışındaki `print("Dışarıda kalan print.")` satırı her halükarda çalıştırılır.
+
+> * *multiple exception types* → bir programda ortaya çıkabilecek farklı hata türlerinin ayrı ayrı veya birlikte yönetilmesi.
+> * *tuple exception syntax* → `except (Err1, Err2):` şeklinde birden fazla hata türünü tek bir handler altında toplama yöntemi.
+> * *multiple handlers* → her exception türü için ayrı `except` bloğu kurarak hataya özgü işlem yürütme yapısı.
+> * *first error match* → `try` bloğunda ilk hatayla karşılaşıldığı anda sonraki satırların durdurulup eşleşen ilk exception handler'a atlanması kuralı.
+
+---
