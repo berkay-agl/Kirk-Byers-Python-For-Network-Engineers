@@ -918,3 +918,139 @@ In [9]: print(routers)
 > * *duplicate key behavior* → bir sözlük oluşturulurken aynı key tekrar geldiğinde sonuncu değerin geçerli olması kuralı.
 
 ---
+
+## 6. Exception Handling Basics
+
+Kirk Byers, programda bir hata meydana geldiğinde Python'ın bir exception ürettiğini ve kodun çalışmayı durdurarak çöktüğünü belirtir. 
+Exception handling, belirli bir hatanın oluşabileceğini önceden bildiğimiz durumlarda programın çökmesini engelleyip hatayı zarifçe yönetmek için kullanılır.
+
+Kirk Byers network üzerinden somut bir örnek verir: 100 farklı ağ cihazına SSH bağlantısı yapan bir kod yazıldığında, bazı cihazların çevrimdışı olması, IP'nin geçersiz olması veya yanlış kimlik bilgileri girilmesi nedeniyle bağlantının kopabileceğini biliriz. Kodun ilk başarısız cihazda çökmesi yerine, bir log mesajı basıp hatayı yakalayarak sıradaki cihaza devam etmesini isteriz.
+
+---
+
+### 6.1 Hata Çıktısının Anatomisi 
+
+Program elemanı olmayan boş bir listede var olmayan bir indekse erişmeye çalıştığında Python çöker ve bir hata çıktısı üretir:
+
+```bash
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-4$ cat error.py 
+my_list = []
+print("\nVar olmayan bir indekse erişmeye çalışmak\n")
+
+my_list[0]
+print("Bu mesaj print edilmeyecek.")
+
+(py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-4$ python error.py 
+
+Var olmayan bir indekse erişmeye çalışmak
+
+Traceback (most recent call last):
+  File "/home/berkay/Desktop/Python-All/Python-For-Network-Engineers/Week-4/error.py", line 4, in <module>
+    my_list[0]
+    ~~~~~~~^^^
+IndexError: list index out of range
+```
+
+* İlk print satırı sorunsuz çalışır ve mesajı ekrana basar.
+* `my_list[0]` satırına gelindiğinde bir exception oluşur ve hemen ardından gelen `"Bu mesaj print edilmeyecek."` satırı asla çalıştırılamaz.
+* Hata çıktısının en alt satırında oluşan exception türü (**`IndexError`**) ve ek detaylar (`list index out of range`) yer alır.
+* Çıktı, hatanın hangi dosyada ve hangi satırda meydana geldiğini işaret eder (`line 4`).
+
+* Kirk Byers, hata çıktısını incelerken işaret edilen satırdan başlayıp geriye doğru satırların kontrol edilmesini önerir; çünkü bazen hatayı asıl tetikleyen durum işaret edilen satırın hemen öncesinde yer alabilir.
+
+---
+
+### 6.2 `try` / `except` Temel Yapısı
+
+Hataları kontrollü şekilde ele almak için **`try`** ve **`except`** blokları kullanılır. 
+`try:` ifadesinin altına indented olarak çalıştırılmak istenen satırlar yazılır. Bu satırlarda hedeflenen exception türü meydana gelirse kod anında `except` bloğuna atlar:
+
+```python
+In [1]: my_list = []
+
+In [2]: try:
+   ...:      my_list[0]
+   ...: except IndexError:
+   ...:      print("Hata yakalandı!")
+   ...: 
+Hata yakalandı!
+```
+
+* `try` bloğundaki `my_list[0]` satırı `IndexError` üretir.
+* Python hatayı yakalar ve tanımlanan exception türüyle (`IndexError`) eşleştiği için `except` bloğuna geçer.
+* Program çökmeden `print("Hata yakalandı!")` ifadesi ekrana basılır.
+
+---
+
+### 6.3 `try` Bloğunda Satırların Yürütülme Sırası
+
+`try` bloğu birden fazla satır içerebilir. Python satırları yukarıdan aşağıya sırayla yürütür; hatanın oluştuğu anda `try` bloğundaki kalan satırlar atlanır ve doğrudan `except` bloğuna sıçranır:
+
+```python
+In [3]: try:
+   ...:      print("Önce")
+   ...:      my_list[0]
+   ...:      print("Sonra")
+   ...: except IndexError:
+   ...:      print("Hata yakalandı!")
+   ...: 
+Önce
+Hata yakalandı!
+```
+
+* `print("Önce")` ifadesi hatadan önce geldiği için normal şekilde çalışır ve ekrana basılır.
+* `my_list[0]` satırında hata meydana geldiği anda kod `except IndexError:` bloğuna atlar.
+* Hatanın hemen altında yer alan `print("Sonra")` satırı hiçbir zaman yürütülmez.
+
+---
+
+### 6.4 `except` Bloğunda Çoklu Satırlar ve Blok Dışı Akış
+
+Hem `try` hem de `except` bloğu birden fazla satır barındırabilir. `except` bloğundaki işlemler bittiğinde program akışına normal şekilde devam eder ve blokların dışındaki kodları çalıştırır:
+
+```python
+In [4]: try:
+   ...:      my_list[0]
+   ...: except IndexError:
+   ...:      print("Hata yakalandı!")
+   ...:      print("Başka bir hata yakalama.")
+   ...: print("Dışarıda kalan print.")
+Hata yakalandı!
+Başka bir hata yakalama.
+Dışarıda kalan print.
+```
+
+* `IndexError` oluştuktan sonra `except` bloğu içerisindeki iki print satırı da sırayla ekrana basılır.
+* Hata yönetimi tamamlandığında `try`/`except` kapsamı dışında kalan en alttaki `print("Dışarıda kalan print.")` satırı yürütülür.
+
+---
+
+### 6.5 Hata Oluşmadığında `except` Bloğunun Atlanması
+
+Eğer `try` bloğu içerisindeki kodlar hatasız bir şekilde tamamlanırsa, `except` bloğu tamamen atlanır ve program doğrudan sonraki kodları çalıştırmaya geçer:
+
+```python
+In [5]: my_list = ["10.1.1.1"]
+
+In [6]: try:
+   ...:      my_list[0]
+   ...: except IndexError:
+   ...:      print("Hata yakalandı!")
+   ...:      print("Başka bir hata yakalama.")
+   ...: print("Dışarıda kalan print.")
+Dışarıda kalan print.
+```
+
+* `my_list` içerisinde eleman bulunduğu için `my_list[0]` erişimi başarıyla gerçekleşir ve hiçbir exception üretilmez.
+* Hata oluşmadığı için `except IndexError:` bloğu tamamen yok sayılır ve atlanır.
+* Yalnızca `try`/`except` yapısının dışında kalan satır yürütülerek ekrana `"Dışarıda kalan print."` basılır.
+
+> * *exception* → kodun çalışması sırasında meydana gelen ve yönetilmezse programın çökmesine yol açan hata durumu. 
+> * *crash* → beklenmeyen bir exception nedeniyle programın yürütmeyi tamamen durdurması.
+> * *gracefully handle* → oluşabilecek hataları `try`/`except` ile yakalayarak programın çökmeden işleyişine devam etmesini sağlama yaklaşımı.
+> * *traceback* → hatanın meydana geldiği dosya, satır ve çağrı hiyerarşisini gösteren Python hata raporu.
+> * *IndexError* → dizilerde veya listelerde var olmayan bir indeks numarasına erişilmeye çalışıldığında üretilen exception türü.
+> * *try block* → hata çıkarma ihtimali olan satırların yazıldığı ve Python'ın çalıştırmayı denediği kod bloğu.
+> * *except block* → `try` içerisinde beklenen hata gerçekleştiğinde devreye giren ve hatayı yöneten kod bloğu.
+
+---
