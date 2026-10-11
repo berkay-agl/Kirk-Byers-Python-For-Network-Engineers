@@ -638,3 +638,283 @@ In [13]: print(ca_routers)
 
 ---
 
+### 4.8 Dictionaries are Mutable
+
+Kirk Byers, daha önce listeler ve mutability konusunda konuşulan tüm temel fikirlerin genel olarak dictionary yapıları için de birebir geçerli olduğunu belirtir. 
+Dictionaries **mutable** yani değiştirilebilir veri yapılarıdır.
+
+---
+
+#### 4.8.1 Bellek Referansı ve İsim Ataması
+
+Bir dictionary başka bir değişkene doğrudan eşitlendiğinde (`ca_routers = routers`), bellekte yeni bir dictionary nesnesi türetilmez. 
+Yalnızca bellekte var olan aynı dictionary nesnesine işaret eden yeni bir isim atanmış olur.
+
+```python
+In [1]: routers = {
+   ...: "rtr1": "10.100.1.1",
+   ...: "rtr2": "10.100.1.2",
+   ...: "rtr3": "10.100.100.1"
+   ...: }
+
+In [2]: ca_routers = routers
+
+In [3]: ca_routers is routers
+Out[3]: True
+
+In [4]: id(ca_routers)
+Out[4]: 139690765953344
+
+In [5]: id(routers)
+Out[5]: 139690765953344
+```
+
+* `ca_routers = routers` ataması yapıldığında bellekte tek bir dictionary nesnesi bulunur; hem `routers` hem de `ca_routers` değişkenleri bu nesneye işaret eder.
+* `ca_routers is routers` ifadesi kimlik denetimi yapar ve her iki değişken de aynı nesneyi gösterdiği için `True` evaluate edilir.
+* `id()` fonksiyonu ile kontrol edildiğinde her iki değişkenin bellekteki adres numarasının tamamen aynı olduğu doğrulanır.
+* Bu değişkenlerden birinde yapılacak herhangi bir değişiklik, doğrudan diğer değişkenin içeriğine de yansır.
+
+---
+
+#### 4.8.2 Shallow Copy ve Deep Copy Durumu
+
+Listelerdeki kopyalama mekanizmaları dictionary'ler için de geçerlidir:
+
+* Bir dictionary'nin değerleri başka dictionary veya listeler barındırabilir.
+* Nested yapılar kopyalanırken shallow copy veya deep copy davranışlarına dikkat edilmelidir.
+
+> * *mutable (dict)* → dictionary yapılarının sonradan doğrudan modifiye edilebilir olması özelliği. 
+> * *identifier (id)* → bir nesnenin bellekteki benzersiz kimlik adresi.
+> * *is* → iki değişkenin bellekte tamamen aynı nesneye işaret edip etmediğini denetleyen kimlik operatörü.
+> * *shallow copy / deep copy* → karmaşık veya iç içe dictionary yapılarında referansların kopyalanma derinliğini belirleyen mekanizma.
+
+---
+
+### 4.9 Nested Dictionaries
+
+Kirk Byers, sözlüklerin değer value alanlarında başka veri yapılarının saklanabildiğini ve bu yapıların iç içe geçebildiğini belirtir. 
+Ağ mühendisliğinde cihaz envanterlerini, bağlantı parametrelerini ve konfigürasyon verilerini modellemek için nested veri yapıları yaygın olarak kullanılır.
+
+---
+
+#### 4.9.1 Nested Dictionaries Tanımlama ve Key Zincirleme 
+
+En dıştaki sözlükte yer alan key'lerin karşılığı, kendi içinde key-value çiftleri barındıran başka bir sözlük olabilir.
+
+```python
+In [4]: my_devices = {
+   ...: "rtr1": {
+   ...: "host": "device1.domain.com",
+   ...: "device_type": "cisco_xe",
+   ...: "username": "cisco",
+   ...: "password": "cisco123"
+   ...: },
+   ...: 
+   ...: "rtr2": {
+   ...: "host": "device2.domain.com",
+   ...: "device_type": "juniper_junos",
+   ...: "username": "junos",
+   ...: "password": "vmx123!"
+   ...: }}
+
+In [5]: print(my_devices)
+{'rtr1': {'host': 'device1.domain.com', 'device_type': 'cisco_xe', 'username': 'cisco', 'password': 'cisco123'}, 'rtr2': {'host': 'device2.domain.com', 'device_type': 'juniper_junos', 'username': 'junos', 'password': 'vmx123!'}}
+```
+
+* En dıştaki sözlük (`my_devices`) üzerinde döngü kurulduğunda, varsayılan olarak yalnızca en dıştaki key'ler (`"rtr1"`, `"rtr2"`) elde edilir:
+
+```python
+In [6]: for key in my_devices:
+   ...:      print(key)
+   ...: 
+rtr1
+rtr2
+```
+
+* En dıştaki key'lerden birine erişildiğinde, value olarak içteki sözlüğün tamamı döner:
+
+
+```python
+In [7]: print(my_devices["rtr1"])
+{'host': 'device1.domain.com', 'device_type': 'cisco_xe', 'username': 'cisco', 'password': 'cisco123'}
+```
+
+* İçteki sözlüğün belirli bir alanına ulaşmak için key'ler soldan sağa doğru arka arkaya zincirlenir:
+
+```python
+In [8]: my_devices["rtr1"]["device_type"]
+Out[8]: 'cisco_xe'
+
+In [9]: my_devices["rtr2"]["device_type"]
+Out[9]: 'juniper_junos'
+
+In [10]: my_devices["rtr2"]
+Out[10]: 
+{'host': 'device2.domain.com',
+ 'device_type': 'juniper_junos',
+ 'username': 'junos',
+ 'password': 'vmx123!'}
+
+In [11]: my_devices["rtr2"]["device_type"]
+Out[11]: 'juniper_junos'
+```
+
+İlk indeksleme (`["rtr2"]`) içteki sözlüğü getirir; hemen ardından gelen ikinci indeksleme (`["device_type"]`) ise ilgili iç key'in value bilgisini teslim eder.
+
+---
+
+#### 4.9.2 Dictionaries İçinde Liste Saklama 
+
+İçteki veri yapısının mutlaka bir sözlük olması gerekmez; key'lerin karşılığı bir liste de olabilir:
+
+```python
+In [12]: sf1 = {
+    ...: "routers": ["192.168.1.1", "192.168.1.1"],
+    ...: "switches": ["192.168.1.20", "192.168.1.21"]
+    ...: }
+
+In [13]: print(sf1)
+{'routers': ['192.168.1.1', '192.168.1.1'], 'switches': ['192.168.1.20', '192.168.1.21']}
+
+In [14]: for key in sf1:
+    ...:      print(key)
+    ...: 
+routers
+switches
+```
+
+Bu yapıda `"routers"` key'i router IP adreslerinden oluşan bir listeyi, `"switches"` key'i ise switch IP adreslerinden oluşan bir listeyi tutar.
+
+---
+
+#### 4.9.3 Liste İçinde Dictionaries Saklama 
+
+Tersine bir hiyerarşi kurularak en dıştaki yapı bir liste haline getirilebilir ve her bir liste elemanı ayrı bir sözlük olarak tanımlanabilir:
+
+```python
+[
+    {
+        'host': 'device1.domain.com',
+        'device_type': 'cisco_xe',
+        'username': 'cisco',
+        'password': 'cisco123'
+    },
+    {
+        'host': 'device2.domain.com',
+        'device_type': 'juniper_junos',
+        'username': 'junos',
+        'password': 'vmx123!'
+    }
+]
+
+```
+
+* En dıştaki veri yapısı 2 elemanlı bir listedir.
+* Listenin birinci elemanı Cisco cihazının sözlüğü, ikinci elemanı ise Juniper cihazının sözlüğüdür.
+* Bu iç içe geçme mekanizması, çözülmek istenen problemin gerektirdiği derinlik seviyesine kadar ilerletilebilir.
+
+---
+
+#### 4.9.4 Veri Yapısı Tasarımı ve Modelleme Tercihleri
+
+Kirk Byers, programlama ilerledikçe veriyi yapılandırma tercihlerinin kritik önem kazandığını vurgular:
+
+* Çözülmek istenen probleme ve verinin doğasına göre bir "list of dictionaries" mi yoksa bir "dictionary of dictionaries" mi kurulacağına karar verilmelidir.
+* Veriyi doğru modellemek zaman zaman deneme-yanılma ve tecrübe gerektirir.
+
+> * *nested dictionary* → bir sözlüğün value alanında başka bir sözlük barındırmasıyla oluşan hiyerarşik yapı.
+> * *chaining keys* → nested sözlüklerde hedef veriye erişmek için `dict[k1][k2]` şeklinde key'lerin ardışık dizilmesi.
+> * *list of dictionaries* → elemanları ayrı ayrı sözlüklerden oluşan liste veri modeli.
+> * *dictionary of lists* → değerleri listelerden oluşan sözlük veri modeli.
+> * *data structuring* → çözülecek probleme uygun olarak liste ve sözlük hiyerarşisinin en doğru biçimde kurgulanması.
+
+---
+
+## 5. Dictionary Comprehensions
+
+Dictionary comprehensions konusu, list comprehensions ve generator expressions yapılarına oldukça benzeyen, opsiyonel ve orta seviye bir konudur. 
+Bir `for` loop ve opsiyonel conditional ifadeler kullanarak dinamik olarak yeni bir dictionary oluşturmanın pratik yoludur.
+
+---
+
+### 5.1 Syntax Yapısı ve Dinamik Dictionary Üretimi
+
+Dictionary comprehension syntax'ında en dışta süslü parantezler `{}` kullanılır. 
+Set comprehensions'tan farklı olarak, en başta yer alan expression kısmı aralarında iki nokta üst üste bulunan bir `key: value` çiftinden oluşur.
+
+İçerisinde bir `for` loop bulunur; list comprehensions'ta olduğu gibi multiple loops veya döngü sonuna eklenen koşullar kullanılabilir.
+
+```python
+In [1]: {f"rtr{x}": f"192.168.1.{x+20}" for x in range(1, 5)}
+Out[1]: 
+{'rtr1': '192.168.1.21',
+ 'rtr2': '192.168.1.22',
+ 'rtr3': '192.168.1.23',
+ 'rtr4': '192.168.1.24'}
+```
+
+* `for x in range(1, 5)` döngüsü ile 1'den 4'e kadar sayılar taranır ve her adımda `x` loop variable'ına atanır.
+* Expression kısmındaki `f"rtr{x}"` ifadesi dinamik olarak dictionary key'ini oluşturur.
+* İki noktadan sonra gelen `f"192.168.1.{x+20}"` ifadesi ise bu key'e karşılık gelen value değerini üretir.
+* Sonuçta 4 adet key-value çiftinden oluşan yeni bir dictionary dinamik olarak oluşturulur.
+
+---
+
+### 5.2 Key ve Value Yer Değiştirme 
+
+Dictionary comprehensions için yaygın bir use case, mevcut bir dictionary içerisindeki key ve value değerlerinin yerini değiştirmektir.
+Kirk Byers bu işlemin sağlıklı çalışabilmesi için mevcut value değerlerinin **unique** ve **immutable** olması gerektiğini önceden varsaydığımızı belirtir:
+
+```python
+In [2]: routers = {
+   ...: "rtr1": "192.168.1.1",
+   ...: "rtr2": "192.168.1.2",
+   ...: "rtr3": "192.168.1.3"
+   ...: }
+
+In [3]: ip_addr = {value: key for key, value in routers.items()}
+
+In [4]: print(ip_addr)
+{'192.168.1.1': 'rtr1', '192.168.1.2': 'rtr2', '192.168.1.3': 'rtr3'}
+```
+
+* `routers.items()` üzerinden döngü kurulur ve unpacking ile router isimleri `key`, IP adresleri `value` değişkenine alınır.
+* Expression bölümünde `{value: key ...}` syntax'ı kullanılarak IP adresi yeni key, router ismi ise yeni value haline getirilip tersine çevrilmiş yeni bir dictionary üretilir.
+
+---
+
+### 5.3 Duplicate Key Durumu 
+
+Sözlüklerde key'lerin benzersiz olması zorunludur. 
+Eğer swap işlemi sırasında orijinal dictionary'de tekrarlayan value'lar varsa, yeni dictionary oluşturulurken bunlar duplicate key yani yinelenen bir key haline gelir.
+
+Kirk Byers bu senaryoda "Hangi değer kazanacak?" sorusunun yanıtını net olarak verir: **En son eklenen değer kazanır**; son gelen değer bir öncekini ezer:
+
+```python
+In [6]: routers = {
+   ...: "rtr1": "192.168.1.1",
+   ...: "rtr2": "192.168.1.2",
+   ...: "rtr3": "192.168.1.3",
+   ...: "dup_rtr": "192.168.1.3"
+   ...: }
+
+In [7]: ip_addr = {value: key for key, value in routers.items()}
+
+In [8]: print(ip_addr)
+{'192.168.1.1': 'rtr1', '192.168.1.2': 'rtr2', '192.168.1.3': 'dup_rtr'}
+
+In [9]: print(routers)
+{'rtr1': '192.168.1.1', 'rtr2': '192.168.1.2', 'rtr3': '192.168.1.3', 'dup_rtr': '192.168.1.3'}
+```
+
+* `routers` dictionary'sinde hem `"rtr3"` hem de `"dup_rtr"` aynı IP adresine (`'192.168.1.3'`) sahiptir.
+* Swap comprehension çalışırken döngü önce `'192.168.1.3': 'rtr3'` çiftini oluşturur.
+* Döngü bir sonraki adımda `"dup_rtr"` anahtarına geldiğinde, aynı IP key'i için bu kez `'dup_rtr'` değeri atanır ve önceki `'rtr3'` değerinin üzerine yazılır.
+* Sonuç olarak yeni `ip_addr` dictionary'sinde `'192.168.1.3'` key'inin karşılığı olarak yalnızca son eklenen `'dup_rtr'` kalır.
+
+> * *dictionary comprehension* → süslü parantezler `{}` içinde `key: value` ifadesi ve `for` döngüsü kullanarak dinamik olarak yeni bir sözlük üreten syntax yapısı.
+> * *key: value expression* → comprehension başında iki nokta ile ayrılan, yeni dictionary'nin key ve value'sını eşleyen ifade. 
+> * *swapping key and value* → `.items()` üzerinden dönerek mevcut sözlüğün key ve value rollerini yer değiştirme işlemi.
+> * *duplicate key behavior* → bir sözlük oluşturulurken aynı key tekrar geldiğinde sonuncu değerin geçerli olması kuralı.
+
+---
