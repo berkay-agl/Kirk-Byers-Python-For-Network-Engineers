@@ -1247,3 +1247,198 @@ Kirk Byers genel kural olarak şunu önerir:
 
 ---
 
+### 6.9 Finally Clause
+
+Bir `try` / `except` bloğu opsiyonel olarak bir **`finally`** ifadesi de barındırabilir. 
+Kirk Byers, `finally` ifadesinin `try` bloğu içerisinde bir hata oluşup oluşmamasından tamamen bağımsız olarak **her zaman çalıştırılan** bir ifade olduğunu belirtir.
+
+---
+
+#### 6.9.1 Hata Oluştuğunda ve Oluşmadığında `finally` Davranışı
+
+Kirk Byers bu durumu iki farklı senaryo üzerinden inceler:
+
+**1) Hata Meydana Geldiğinde:**
+
+```python
+In [1]: my_list = []
+
+In [2]: try:
+   ...:      my_list[0]
+   ...: except IndexError:
+   ...:      print("Index hatası.")
+   ...: finally:
+   ...:      print("bu her zaman olur")
+   ...: 
+Index hatası.
+bu her zaman olur
+```
+
+* `my_list` boş olduğu için `my_list[0]` satırında bir `IndexError` meydana gelir.
+* Python `except IndexError:` bloğuna atlar ve `"Index hatası."` mesajını basar.
+* Hata yönetimi tamamlandıktan sonra kod `finally:` bloğuna geçer ve `"bu her zaman olur"` ifadesini yazdırır.
+
+**2) Hata Meydana Gelmediğinde:**
+
+```python
+In [3]: my_list = ["192.168.1.1"]
+
+In [4]: try:
+   ...:      my_list[0]
+   ...: except IndexError:
+   ...:      print("Index hatası.")
+   ...: finally:
+   ...:      print("bu her zaman olur")
+   ...: 
+bu her zaman olur
+
+```
+
+* `my_list` içerisinde eleman bulunduğu için `try` bloğu hatasız şekilde tamamlanır.
+* `except IndexError:` bloğu tamamen atlanır ve hiçbir zaman çalıştırılmaz.
+* `try` bloğu biter bitmez Python doğrudan `finally:` bloğuna atlar ve `"bu her zaman olur"` çıktısını verir.
+
+---
+
+#### 6.9.2 Cleanup Operasyonları 
+
+Kirk Byers, `finally` bloğunun tipik olarak kaynak temizleme işlemleri için kullanıldığını ifade eder:
+
+* Örneğin bir veritabanı bağlantısı açıldığında, çeşitli işlemler yapılıp hata yönetimi kurgulanabilir.
+
+* Süreçte bir hata çıksın ya da çıkmasın, açılan bu veritabanı bağlantısının her koşulda düzgün bir şekilde kapatılması ve sistem kaynaklarının temizlenmesi istenir.
+
+* Bu tür kapanış ve kaynak temizleme işlemleri doğrudan `finally` bloğu içerisine yerleştirilir.
+
+> * *finally* → `try` bloğunda hata çıksın ya da çıkmasın her koşulda mutlaka çalıştırılan kod bloğu.
+> * *cleanup operation* → açık kalan dosya veya veritabanı bağlantılarını kapatmak gibi sistem kaynaklarını serbest bırakma işlemleri.
+ 
+---
+
+### 6.10 Raising an Exception
+
+Kirk Byers, program içinde kontroller yaparken programın durumu olması gerektiği gibi değilse, kendi exception'larımızı kasıtlı olarak fırlatabileceğimizi belirtir.
+
+Buradaki temel amaç; bir hata gerçekleştiğinde hatayı bildirmek ve programın çalışmayı sürdürmesini engelleyip çökmesini sağlamaktır.
+
+---
+
+#### 6.10.1 Network Senaryosu ve `raise ValueError` Kullanımı
+
+Kirk Byers network üzerinden somut bir use case sunar: Bir cihaza SSH bağlantısı kurmak üzereyken, bağlanılacak IP adresinin beklediğimiz formata veya aralığa uygun olup olmadığını kontrol ederiz. 
+Eğer IP adresi beklenen değeri taşımıyorsa, yanlış cihaza bağlanmaya çalışmak yerine derhal bir exception fırlatıp programı durdurmak isteriz.
+
+```python
+In [1]: ip_addr = "192.168.1.1"
+
+In [2]: if "101.108" not in ip_addr:
+   ...:      raise ValueError(f"Geçersiz IP adresi kullanıldı: {ip_addr}")
+   ...: 
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+Cell In[2], line 2
+      1 if "101.108" not in ip_addr:
+----> 2      raise ValueError(f"Geçersiz IP adresi kullanıldı: {ip_addr}")
+
+ValueError: Geçersiz IP adresi kullanıldı: 192.168.1.1
+```
+
+* `if "101.108" not in ip_addr:` kontrolü `True` döner çünkü verilen IP adresi beklenen deseni içermez.
+* `raise ValueError(...)` ifadesi manuel olarak bir **`ValueError`** exception tetikler ve içine verilen açıklama mesajını hata çıktısına ekler.
+* Program traceback vererek anında çöker ve yürütmeyi durdurur.
+
+---
+
+#### 6.10.2 `raise` Sonrası Kod Yürütülmesi
+
+`raise` satırı çalıştığı anda Python işlemi kestiği için, hemen sonrasında gelen satırlar hiçbir zaman yürütülmez:
+
+```python
+In [3]: if "101.108" not in ip_addr:
+   ...:      raise ValueError(f"Geçersiz IP adresi kullanıldı: {ip_addr}")
+   ...: print("raise sayesinde çalışmaz.")
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+Cell In[3], line 2
+      1 if "101.108" not in ip_addr:
+----> 2      raise ValueError(f"Geçersiz IP adresi kullanıldı: {ip_addr}")
+      3 print("raise sayesinde çalışmaz.")
+
+ValueError: Geçersiz IP adresi kullanıldı: 192.168.1.1
+```
+
+* `raise` ifadesi tetiklendiğinde program çöktüğünden dolayı 3. satırdaki `print("raise sayesinde çalışmaz.")` ifadesi asla ekrana basılmaz.
+
+---
+
+#### 6.10.3 Özel Exception Tipleri Oluşturma 
+
+Kirk Byers, slaytında ve konuşmasında önemli bir ek not düşer:
+
+* Python'da standart hata türlerinin (`ValueError`, `IndexError` vb.) yanı sıra kendi özel exception türlerimizi tanımlamak mümkündür.
+
+* Bu yöntem genellikle yeniden kullanılabilir Python modülleri, paketleri veya kütüphaneleri geliştirirken yaygın olarak kullanılır.
+
+> * *raise* → kod akışında kasıtlı olarak bir exception fırlatarak programı durduran ifade. 
+> * *ValueError* → bir fonksiyona veya operasyona doğru veri tipinde ancak uygunsuz/geçersiz bir değer verildiğinde kullanılan exception türü.
+> * *custom exception types* → Python kütüphaneleri veya paketleri geliştirirken özel durumları raporlamak amacıyla tanımlanan kullanıcıya özel exception sınıfları.
+
+---
+
+### 6.11 Understanding a Stack Trace
+
+Kirk Byers, Python'da stack trace (traceback) çıktılarını okuyabilmenin debugging sürecinde son derece kritik ve faydalı olduğunu belirtir. 
+Çok fazla satır içerdikleri için ilk bakışta bunaltıcı ve kafa karıştırıcı gelebilir; ancak stack trace üzerinde gezinmeyi öğrendiğinizde hatanın tam olarak nerede patladığını tespit etmek oldukça kolaylaşır.
+
+Kirk Byers, GitHub üzerindeki gerçek bir Netmiko issue'sundan aldığı ve orta kısımlarını basitleştirdiği şu örnek traceback çıktısı üzerinden stack hiyerarşisini adım adım açıklar:
+
+```text
+Traceback (most recent call last):
+  File "/Users/user/test_netmiko/netmiko_ssh.py", line 10, in <module>
+    with ConnectHandler(**device) as ssh:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "./site-packages/netmiko/ssh_dispatcher.py", line 365, in ConnectHandler
+    return ConnectionClass(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  # I simplified this, by eliminating some sections...
+
+  File "./site-packages/netmiko/base_connection.py", line 904, in _try_session_preparation
+    self.session_preparation()
+
+  File "./site-packages/netmiko/tplink/tplink_jetstream.py", line 30, in session_preparation
+    self._test_channel_read(pattern=r"[>#]")
+
+  File "./site-packages/netmiko/base_connection.py", line 1144, in _test_channel_read
+    return self.read_until_pattern(pattern=pattern, read_timeout=20)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "./site-packages/netmiko/base_connection.py", line 672, in read_until_pattern
+    raise ReadTimeout(msg)
+```
+
+---
+
+#### 6.11.1 Stack Trace Boyunca Gezinme 
+
+Kirk Byers, stack trace'in temel olarak bir hata anında gerçekleşen ardışık çağrılar dizisini baştan sona izlediğini ifade eder:
+
+* **1. Çağrı (Kullanıcı Kodu - En Üst Seviye):** Stack trace'in en tepesinde kullanıcının kendi yazdığı kod yer alır. `netmiko_ssh.py` dosyasının 10. satırında `ConnectHandler(**device)` çağrısı yapılmış ve bir ağ cihazına SSH bağlantısı başlatılmaya çalışılmıştır.
+
+* **2. Çağrı (Netmiko Kütüphanesine Giriş):** Bu satır Netmiko kütüphanesini tetikler. Bir alt satıra inildiğinde hatanın Netmiko içerisindeki `ssh_dispatcher.py` dosyasının 365. satırındaki `ConnectHandler` tanımına dallandığı görülür.
+
+* **3. Çağrı (Base Connection ve Platform Sürücüsü):** Buradan `base_connection.py` dosyasındaki `_try_session_preparation` fonksiyonu çağrılır.
+
+* **4. Çağrı (Cihaz Platformu - TP-Link JetStream):** Kullanılan platform özelinde `tplink_jetstream.py` dosyasının 30. satırındaki `session_preparation` fonksiyonuna ve ardından `_test_channel_read` metoduna inilir.
+
+* **5. Çağrı ve Hatanın Patladığı Nokta (`ReadTimeout`):** `session_preparation` aşamasında Netmiko, SSH kanalı üzerinden cihaz prompt'unun sonunu gösteren karakterleri (düzenli ifade olarak `>` veya `#`) okumaya çalışır. Ancak SSH bağlantısı kurulduktan hemen sonra bu prompt karakterleri gelmediği için `read_timeout=20` süresi aşılır ve en altta `ReadTimeout(msg)` exception'ı fırlatılır.
+
+Kirk Byers, buradaki TP-Link JetStream veya SSH detaylarının genel mantık açısından ikincil olduğunu vurgular; asıl anlaşılması gereken şey, programımızın satır 10'da bir kütüphaneyi çağırması, o kütüphanenin satır 365'te başka bir parçayı çağırması ve bu çağrı zincirinin adım adım aşağıya doğru takip edilebilmesidir.
+
+Bu mantık, ilerleyen derslerde Python functions ve classes işlendiğinde (fonksiyonların birbirini çağırdığı senaryolarda) çok daha net anlaşılacak ve kod hatalarını debugging yaparken geliştiricinin en büyük yardımcısı olacaktır.
+
+> * *stack trace / traceback* → program çökene kadar hangi fonksiyonların ve kod satırlarının sırayla birbirini çağırdığını kronolojik olarak listeleyen hata raporu.
+> * *traversing (stack trace)* → en üstteki kendi çağırdığımız kod satırından başlayıp en altta hatanın fiilen patladığı satıra kadar çağrı zincirini adım adım aşağıya doğru takip etme süreci.
+> * *series of calls* → bir fonksiyonun diğerini, onun da başka bir kütüphane fonksiyonunu tetiklemesiyle oluşan ardışık işlem hiyerarşisi.
+> * *debugging* → stack trace ipuçlarını, dosya yollarını ve satır numaralarını kullanarak programdaki hataların kök nedenini bulup düzeltme faaliyeti.
