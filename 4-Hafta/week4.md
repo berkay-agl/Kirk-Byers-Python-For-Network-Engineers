@@ -1120,3 +1120,130 @@ Dışarıda kalan print.
 > * *first error match* → `try` bloğunda ilk hatayla karşılaşıldığı anda sonraki satırların durdurulup eşleşen ilk exception handler'a atlanması kuralı.
 
 ---
+
+### 6.7 Capturing ve Reraising Exceptions
+
+Kirk Byers, exception handling sırasında hata nesnesinin bir değişkene kaydedilebileceğini ve gerektiğinde bir exception'ın kasıtlı olarak tekrar fırlatılabileceğini yani **reraise** kavramını belirtir.
+
+---
+
+#### 6.7.1 Exception Nesnesini Değişkene Yakalama (`as e`)
+
+Oluşan hataya dair detayları incelemek veya ekrana yazdırmak için exception nesnesi `as` anahtar kelimesiyle bir değişkene atanabilir (`except IndexError as e:`):
+
+```python
+In [1]: my_list = []
+
+In [5]: try:
+   ...:    my_list[0]
+   ...: except IndexError as e:
+   ...:     print(f"Çok kötü bir hata: {str(e)}")
+   ...: print("raise yok çalışır...")
+Çok kötü bir hata: list index out of range
+raise yok çalışır...
+
+In [6]: 
+```
+
+* `except IndexError as e:` ifadesi, meydana gelen hata nesnesini `e` isimli değişkene kaydeder.
+* `str(e)` fonksiyonu kullanılarak hatanın doğrudan açıklaması (`list index out of range`) elde edilir ve ekrana basılır.
+* Hata yönetildiği için program kırılmaz; blok dışındaki print satırı da normal şekilde çalışır.
+
+---
+
+#### 6.7.2 Exception'ı Yeniden Fırlatma (`raise`)
+
+Kirk Byers buradaki temel use case'i şöyle açıklar: Programda bir hata olduğunda ekrana mesaj basmak, log kaydı oluşturmak veya bir bildirim tetiklemek isteyebiliriz; ancak bu işlemlerden sonra programın yine de çökmesini istiyor olabiliriz.
+
+Bu senaryoda, hata yakalandıktan sonra blok içinde tek başına **`raise`** ifadesi kullanılır:
+
+```python
+In [3]: try:
+   ...:    my_list[0]
+   ...: except IndexError as e:
+   ...:     print(f"Çok kötü bir hata: {str(e)}")
+   ...:     raise
+   ...: print("Burası çalışmaz (raise farkı)")
+Çok kötü bir hata: list index out of range
+---------------------------------------------------------------------------
+IndexError                                Traceback (most recent call last)
+Cell In[3], line 2
+      1 try:
+----> 2    my_list[0]
+      3 except IndexError as e:
+      4     print(f"Çok kötü bir hata: {str(e)}")
+
+IndexError: list index out of range
+
+In [4]:
+```
+
+* `except` bloğu içerisindeki loglama/mesaj satırı (`print(f"Info about exception: {str(e)}")`) çalıştırılır.
+* Ardından gelen `raise` ifadesi, arkasında herhangi bir exception türü belirtilmese dahi yakalanan orijinal hatayı (`IndexError`) yeniden fırlatır.
+* Program çöker, terminalde `IndexError` traceback çıktısı oluşur ve `try`/`except` dışındaki satıra asla geçilemez.
+* Kirk Byers, burada istenirse orijinal hata yerine farklı bir exception türünün de `raise` edilebileceğini ekler.
+
+> * *capturing exception (`as e`)* → oluşan hata nesnesini `as` anahtar kelimesiyle bir değişkene kaydedip hatanın detaylarına erişme yöntemi.
+> * *str(e)* → exception nesnesinin hata açıklamasını string olarak döndüren ifade. 
+> * *reraise (`raise`)* → hatayı yakalayıp loglama veya bildirim işlemlerini tamamladıktan sonra programın çökmesini sağlamak amacıyla exception'ı tekrar fırlatma mekanizması.
+
+---
+
+### 6.8 Broad Exception Handling
+
+Kirk Byers, exception handling yaparken çok genel yaklaşımların kullanılabileceğini (`except Exception:` veya yalın `except:`); ancak bu durumun **hataları gizleme** riski taşıdığı konusunda çok dikkatli olunması gerektiğini belirtir.
+
+Bir exception handler yazdığımızda örtük olarak *"Burada ne tür hataların çıkabileceğini biliyorum ve bunları nasıl yöneteceğimin farkındayım"* demiş oluruz. 
+`try` bloğunda çok sayıda kod satırı olduğunda veya çeşitli fonksiyonlar çağrıldığında, çok geniş kapsamlı bir handler koymak programda en az iki kritik soruna yol açar:
+
+1. **Program Durumunun Bozulması:** Beklemediğimiz bir hata oluştuğunda genel handler bunu sessizce yakalayabilir; ancak bu işlem programı gerçekten düzeltmez. Program yürütülmeye devam eder fakat iç durumu tamamen beklenmeyen bir hale gelir ve ilerleyen aşamalarda asıl bozulma yüzünden çöker.
+
+2. **Bilgi Kaybı ve Debugging Zorluğu:** Hatanın asıl kaynağı `try` bloğunun içinde gizlendiği için, ekranda beliren hata mesajı çok daha sonraki bir adıma ait olur. Geliştirici hatanın nerede başladığını anlamakta zorlanır ve geriye doğru çalışarak kök sebebi bulmak zorunda kalır.
+
+---
+
+#### 6.8.1 Genel Exception Yakalama ve Hata Türünün Belirsizleşmesi
+
+```python
+In [1]: my_list = []
+
+In [2]: try:
+   ...:      my_list[0]
+   ...: except Exception:
+   ...:      print("Genel exception yakalama.")
+   ...: 
+Genel exception yakalama.
+
+In [3]: my_dict = {}
+
+In [4]: try:
+   ...:      my_list[0]
+   ...:      my_dict["key_123"]
+   ...: except Exception:
+   ...:      print("Ne tür bir hata oldu?")
+Ne tür bir hata oldu?
+```
+
+* İlk blokta `my_list[0]` erişimi bir `IndexError` üretir. Ancak yakalayıcı olarak genel `Exception` sınıfı tanımlandığı için hata türü ayırt edilmeksizin yakalanır ve `"Genel exception yakalama."` yazdırılır.
+
+* İkinci blokta `try` altında hem liste hem sözlük erişimi yer alır. `except Exception:` veya yalın `except:` kullanıldığında, hatanın bir `IndexError` mı yoksa `KeyError` mı olduğu anlaşılmaz; hata türüne dair bilgi kaybolur.
+
+---
+
+#### 6.8.2 Kirk Byers'ın Genel Kuralı 
+
+Kirk Byers genel kural olarak şunu önerir:
+
+* Yalnızca **belirli ve somut nedenlerle ortaya çıkacağını bildiğin hataları** (`IndexError`, `KeyError` veya bağlantı hataları gibi) spesifik olarak yakala.
+
+* Tıpkı SSH bağlantı senaryosunda olduğu gibi; sınırları net çizilmiş durumlarda, cihaz çevrimdışı olduğunda log basıp bir sonrakine geçmek doğru bir yöntemdir.
+
+* Programın durumu olması gerektiği gibi değilse, o hatayı gizlemek yerine **programın çökmesine izin vermek çoğu zaman çok daha sağlıklıdır**.
+
+> * *broad / generic exception handling* → `except Exception:` veya doğrudan `except:` yazarak tüm hata türlerini ayrım gözetmeksizin yakalama yaklaşımı.
+> * *hiding errors* → beklemediğimiz kritik hataların genel handler tarafından yakalanarak gizlenmesi ve programın bozuk bir durum ile yürütülmeye devam etmesi problemi.
+> * *loss of information* → hatanın asıl türünün ve kaynağının gizlenmesi sonucu debugging sürecinin zorlaşması durumu.
+> * *specific handling* → yalnızca oluşacağı önceden öngörülen ve nasıl çözüleceği bilinen spesifik hata sınıflarını yakalama kuralı.
+
+---
+
