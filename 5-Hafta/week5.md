@@ -190,3 +190,162 @@ Köşeli parantezler `[]` kullanılarak kendi karakter sınıfımızı tanımlay
 > * *re.MULTILINE* → çıpaların tüm metin yerine satır bazlı çalışmasını sağlayan regex seçeneği/flag'i.
 
 ---
+
+## 4. Regular Expressions: Pratikte Regex Kullanımı ve Basit Örnekler
+
+Kirk Byers bu bölümde, bir önceki videoda teorisini anlattığı metakarakterleri ve karakter sınıflarını `show_version.txt` dosyası üzerinden canlı IPython REPL ortamında adım adım denemektedir.
+
+---
+
+### 4.1 `re.search()` Fonksiyon Yapısı ve Parametre Detayları
+
+`re.search()` fonksiyonunun arka plandaki tam imzası şu şekildedir:
+
+$$\text{re.search(pattern, string, flags=0)}$$
+
+* **`pattern`:** Metin içinde aranacak regex desen ifadesi.
+* **`string`:** Aramanın yapılacağı raw veri değişkeni.
+* **`flags` (Opsiyonel):** Arama davranışını değiştiren bayraklar (Varsayılan değer: `0`).
+
+---
+
+### 4.2 Veri Hazırlığı: `show_version.txt` Dosyasını Okuma ve Satır Seçimi
+
+Kirk Byers ilk olarak dosyayı okur ve `splitlines()` ile satırlara böler:
+
+```python
+In [1]: f = open("show_version.txt")
+
+In [2]: data = f.read()
+
+In [3]: line = data.splitlines()[0]
+
+In [4]: line
+Out[4]: 'Cisco IOS XE Software, Version 16.12.03'
+
+In [5]: print(line)
+Cisco IOS XE Software, Version 16.12.03
+
+In [6]: line = data.splitlines()[1]
+
+In [7]: print(line)
+Cisco IOS Software [Gibraltar], ISR Software (ARMV8EL_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.12.3, RELEASE SOFTWARE (fc5)
+
+```
+
+> **Kirk'ün Mantık Açıklaması:** Kirk ilk olarak 0. indeksteki ilk satırı alır (`line = data.splitlines()[0]`). Ancak daha zengin bir metin üzerinde regex denemeleri yapmak için fikrini değiştirip 1. indeksteki ikinci satırı (`line = data.splitlines()[1]`) seçer.
+
+---
+
+### 4.3 Nokta (`.`) ve Quantifier (`*`, `+`) Deneyleri: Greedy vs. Non-Greedy
+
+#### Tekil Karakter Eşleşmesi Mantığı (`.` ve `..`)
+
+```python
+In [8]: import re
+
+In [9]: re.search(".", line)
+Out[9]: <re.Match object; span=(0, 1), match='C'>
+
+In [10]: re.search("..", line)
+Out[10]: <re.Match object; span=(0, 2), match='Ci'>
+```
+
+* **Neden sadece 'C' yakalandı?** Kirk Byers burada kritik bir noktayı vurgular: `.` tek bir karakter şartı koşar. Regex motoru metnin en başından başlar, ilk karakter olan `'C'` ile karşılaşır, pattern şartı doğrulandığı an aramayı sonlandırır (devamındaki karakterleri taramaz).
+
+* `".."` yazıldığında ise yan yana iki karakter şartı arandığı için en baştaki `'Ci'` bloğunu yakalar.
+
+#### Greedy `.*` Eşleşmesi ve IPython Ekran Kırpma Detayı
+
+```python
+In [11]: re.search(".*", line)
+Out[11]: <re.Match object; span=(0, 124), match='Cisco IOS Software [Gibraltar], ISR Software (ARM>
+
+In [12]: m = re.search(".*", line)
+
+In [13]: m.group(0)
+Out[13]: 'Cisco IOS Software [Gibraltar], ISR Software (ARMV8EL_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.12.3, RELEASE SOFTWARE (fc5)'
+```
+
+* `.*` ifadesi "0 veya daha fazla her karakter" anlamına gelir ve varsayılan olarak **greedy** davrandığı için satırın başından sonuna kadar olabilecek en uzun metni (124 karakter) yakalar.
+
+* **IPython REPL Kırpma Davranışı:** `Out[11]` çıktısında metnin sonu `ARM>` şeklinde kırpılmıştır. Kirk, IPython ekranının çıktıyı göstermek için kısaltma yaptığını, ancak `m.group(0)` çağrıldığında yakalanan 124 karakterlik metnin **tamamının** eksiksiz olarak döndürüldüğünü gösterir.
+
+#### Non-Greedy (Lazy) `.*?` ve `.+?` Farkı
+
+```python
+In [14]: line
+Out[14]: 'Cisco IOS Software [Gibraltar], ISR Software (ARMV8EL_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.12.3, RELEASE SOFTWARE (fc5)'
+
+In [15]: m = re.search(".*?", line)
+
+In [16]: m.group(0)
+Out[16]: ''
+
+In [17]: m = re.search(".+?", line)
+
+In [18]: m.group(0)
+Out[18]: 'C'
+```
+
+* **`.*?` Durumu:** `*` işareti 0 veya daha fazla tekrar demektir. Arkasındaki `?` non-greedy moda geçirir (en az karakteri yakala). 0 karakter (boş metin `''`) deseni doğruladığı için sonuç boş string olur.
+
+* **`.+?` Durumu:** `+` işareti "en az 1 karakter bulunmalı" şartı koşar. Non-greedy mod en az sayıda karakter aradığı için `null string` üretemez, en küçük geçerli blok olan tek bir karakteri (`'C'`) yakalar.
+
+---
+
+### 4.4 Karakter Sınıfları (`\s`, `\S`, `\w`), Raw String (`r""`) ve Çoklu Boşluk Testi
+
+Regex pattern'larında ters eğik çizgilerin (`\`) Python tarafından özel kaçış karakteri olarak yorumlanmasını engellemek için **Raw String (`r"..."`)** notasyonu kullanılır.
+
+#### `\s` (Whitespace) ile Kelime Arası Arama
+
+```python
+In [27]: line
+Out[27]: 'Cisco IOS Software [Gibraltar], ISR Software (ARMV8EL_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.12.3, RELEASE SOFTWARE (fc5)'
+
+In [28]: m = re.search(r"Cisco\s.*Gibraltar", line)
+
+In [29]: m.group(0)
+Out[29]: 'Cisco IOS Software [Gibraltar'
+```
+
+* `r"Cisco\s.*Gibraltar"` pattern `"Cisco"` ile başlar, arada tek bir boşluk (`\s`) arar ve ardından `Gibraltar` kelimesine kadar olan tüm bloğu yutar.
+
+#### Çoklu Boşluk İçeren Test Satırı (`alt_line`)
+
+Kirk, `\s+` yapısının greedy şekilde birden fazla boşluğu nasıl yuttuğunu göstermek için 3 adet boşluk içeren özel bir alternatif satır tanımlar (`alt_line = "Cisco   Fuji"`):
+
+```python
+In [30]: alt_line = "Cisco   Fuji"
+
+In [31]: m = re.search(r"Cisco\s+Fuji", alt_line)
+
+In [32]: m.group(0)
+Out[32]: 'Cisco   Fuji'
+
+In [33]: m = re.search(r"\S+\s+Fuji", alt_line)
+
+In [34]: m.group(0)
+Out[34]: 'Cisco   Fuji'
+
+In [35]: m = re.search(r"\w+\s+Fuji", alt_line)
+
+In [36]: m.group(0)
+Out[36]: 'Cisco   Fuji'
+```
+
+1. **`r"Cisco\s+Fuji"`:** `"Cisco"` ile `"Fuji"` arasındaki 3 adet boşluğun tamamı `\s+` (greedy boşluk kümesi) tarafından yutulur.
+
+2. **`r"\S+\s+Fuji"`:** `"Cisco"` ismi sabit yazılmak yerine `\S+` (boşluk olmayan karakterler dizisi) ile esnekleştirilir, ardından 3 boşluk ve `"Fuji"` yakalanır.
+
+3. **`r"\w+\s+Fuji"`:** `"Cisco"` kelimesi `\w+` (word characters dizisi) ile yakalanır, ardından 3 boşluk ve `"Fuji"` eşleştirilir.
+
+> * *re.search(pattern, string, flags=0)* → regex arama fonksiyonu ve varsayılan parametre yapısı.
+> * *raw string (r"...")* → ters eğik çizgi (`\`) kaçışlarını etkisiz kılan string biçimi.
+> * *IPython Output Truncation* → uzun regex çıktılarının REPL ekranında `...` ile kısaltılması; `.group(0)` ile verinin tamamının çekilmesi.
+> * *\s+* → bir veya daha fazla ardışık boşluk karakterinin greedy şekilde tamamının yakalanması.
+> * *\S+* → bir veya daha fazla boşluk olmayan (non-whitespace) karakter bloğu.
+> * *\w+* → harf, rakam ve alt çizgiden oluşan kelime bloğu.
+
+---
