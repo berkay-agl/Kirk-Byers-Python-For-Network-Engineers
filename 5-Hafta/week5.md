@@ -230,7 +230,6 @@ In [6]: line = data.splitlines()[1]
 
 In [7]: print(line)
 Cisco IOS Software [Gibraltar], ISR Software (ARMV8EL_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.12.3, RELEASE SOFTWARE (fc5)
-
 ```
 
 > **Kirk'ün Mantık Açıklaması:** Kirk ilk olarak 0. indeksteki ilk satırı alır (`line = data.splitlines()[0]`). Ancak daha zengin bir metin üzerinde regex denemeleri yapmak için fikrini değiştirip 1. indeksteki ikinci satırı (`line = data.splitlines()[1]`) seçer.
@@ -345,7 +344,180 @@ Out[36]: 'Cisco   Fuji'
 > * *raw string (r"...")* → ters eğik çizgi (`\`) kaçışlarını etkisiz kılan string biçimi.
 > * *IPython Output Truncation* → uzun regex çıktılarının REPL ekranında `...` ile kısaltılması; `.group(0)` ile verinin tamamının çekilmesi.
 > * *\s+* → bir veya daha fazla ardışık boşluk karakterinin greedy şekilde tamamının yakalanması.
-> * *\S+* → bir veya daha fazla boşluk olmayan (non-whitespace) karakter bloğu.
+> * *\S+* → bir veya daha fazla boşluk olmayan karakter bloğu.
 > * *\w+* → harf, rakam ve alt çizgiden oluşan kelime bloğu.
+
+---
+
+## 5. Regular Expressions: Ek Örnekler (Gelişmiş Pattern Oluşturma & Greedy Davranış Tuzakları)
+
+Kirk Byers bu bölümde, digit karakter sınıfı (`\d`), özel karakter sınıfı (`[]`), parantez grupları (`()`), satır başı/sonu çıpaları (`^`, `$`) ve regex yazarken en sık karşılaşılan "greedy (açgözlü) `.*` tuzağını" canlı terminal uygulamaları üzerinden anlatmaktadır.
+
+---
+
+### 5.1 Sayısal Karakter Sınıfı (`\d`) ve Rakam Yakalama
+
+Örnekler üzerinde çalışılan Cisco yazılım sürümü satırı şu şekildedir:
+
+```python
+In [1]: line = "Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.8.1, RELEASE SOFTWARE (fc3)"
+
+In [2]: import re
+```
+
+#### Greedy `.*` Tuzağı ve Tekil Rakam (`\d+`) Arama
+
+Satır başı çıpası (`^`) ve `"Cisco"` ile başlayan, ardından `.*` ve `\d+` gelen ilk pattern denenir:
+
+```python
+In [3]: m = re.search(r"^Cisco.*\d+", line)
+
+In [4]: m.group(0)
+Out[4]: 'Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.8.1, RELEASE SOFTWARE (fc3'
+```
+
+* **Kirk Byers'ın Mantık Açıklaması ve Kendi Hatasını İtirafı:** Kirk, bu deseni ilk yazdığında `.*` ifadesinin sürüm numarası olan `16.8.1` kısmındaki `1` rakamında duracağını düşündüğünü ancak bunun yanlış olduğunu vurgular.
+
+* **Regex Motorunun Öncelik Kuralı:** Regex motoru öncelikle tüm pattern'ı `True` kılacak durumları arar; ardından soldan sağa doğru greedy parçaları **maksimuma çıkarır**.
+
+* Araya konan `.*` açgözlü olduğu için metnin sonundaki `fc3` kısmında bulunan `3` rakamına kadar olan tüm karakterleri yutar. `\d+` ise sadece sondaki `3` rakamıyla eşleşir.
+
+#### Ardışık İki Rakam (`\d\d`) ile Sürüm Yakalama
+
+```python
+In [5]: line
+Out[5]: 'Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.8.1, RELEASE SOFTWARE (fc3)'
+
+In [6]: m = re.search(r"^Cisco.*\d\d", line)
+
+In [7]: m.group(0)
+Out[7]: 'Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16'
+```
+
+* Metinde yan yana iki rakamın (`\d\d`) bulunduğu tek yer `Version 16` kısmındaki `16` sayısıdır (`fc3` kısmında tek rakam vardır).
+
+* Regex motoru pattern'ı `True` tutabilmek adına `.*` ifadesini `16` sayısına kadar genişletmek zorunda kalır ve eşleşme `Version 16` ile sonlanır.
+
+---
+
+### 5.2 Tam Sürüm Formatı ve Parantez ile Yakalama 
+
+Literal nokta (`\.`) ve rakamlar birleştirilerek sürüm yapısı tam olarak hedeflenir:
+
+```python
+In [8]: m = re.search(r"^Cisco.*\d\d\.\d\.\d", line)
+
+In [9]: m.group(0)
+Out[9]: 'Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.8.1'
+```
+
+#### Parantez `()` ile Grubun Hafızaya Alınması
+
+Tüm eşleşen metni değil, sadece versiyon numarasını ayıklayıp kaydetmek için ilgili kısım parantez içine alınır:
+
+```python
+In [10]: m = re.search(r"^Cisco.*(\d\d\.\d\.\d)", line)
+
+In [11]: m.group(0)
+Out[11]: 'Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.8.1'
+
+In [12]: m.group(1)
+Out[12]: '16.8.1'
+```
+
+* `m.group(0)` → Pattern'ın eşleştiği başından sonuna kadar olan **tüm metni** verir.
+
+* `m.group(1)` → Parantez ile oluşturulan **1. yakalama grubunu** yani `'16.8.1'` değerini döndürür.
+
+#### Satır Sonu Çıpası (`$`) Kullanımı
+
+İstenirse desene satır sonu çıpası (`.*$`) eklenerek arama satırın en sonuna kadar uzatılabilir:
+
+```python
+In [13]: m = re.search(r"^Cisco.*(\d\d\.\d\.\d).*$", line)
+
+In [14]: m.group(1)
+Out[14]: '16.8.1'
+```
+
+---
+
+### 5.3 Özel Karakter Sınıfları (`[]`), Hata Analizi ve Doğru Pattern Kurgusu
+
+Rakam ve noktaları kapsayan özel bir karakter sınıfı (`[\d\.]`) tanımlanarak dinamik veri çekilmeye çalışılır.
+
+#### Sınıf Tanımlama ve Greedy Davranış Sorunu
+
+```python
+In [16]: m = re.search(r"^Cisco.*([\d\.]+)", line)
+
+In [17]: m.group(0)
+Out[17]: 'Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.8.1, RELEASE SOFTWARE (fc3'
+
+In [18]: m = re.search(r"^Cisco.*[\d\.]", line)
+
+In [19]: m.group(0)
+Out[19]: 'Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.8.1, RELEASE SOFTWARE (fc3'
+```
+
+* `[\d\.]` sınıfı tüm rakamlar ve literal nokta karakteriyle eşleşir.
+
+* Ancak öndeki `.*` greedy olduğu için yine `fc3` içindeki `3` rakamına kadar ilerler.
+
+#### Pattern Sınırlandırma ve `IndexError` Hata Analizi
+
+Sürüm numarasından sonra gelen `", REL"` ifadesi desene eklenerek aramanın duracağı yer sınırlandırılmak istenir:
+
+```python
+In [20]: m = re.search(r"^Cisco.*[\d\.]+, REL", line)
+
+In [21]: m.group(0)
+Out[21]: 'Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.8.1, REL'
+
+In [22]: m.group(1)
+---------------------------------------------------------------------------
+IndexError                                Traceback (most recent call last)
+Cell In[22], line 1
+----> 1 m.group(1)
+
+IndexError: no such group
+```
+
+* **Traceback Satır Analizi:**
+* `Cell In[22], line 1`: Hata 1. satırdaki `m.group(1)` çağrısında meydana geldi.
+
+* `IndexError: no such group`: Eşleşme başarılı olsa da regex deseninde parantez `()` ile tanımlanmış herhangi bir grup olmadığı için 1. grup çağrılamaz.
+
+#### Yanlış Capturing vs. Tam Çözüm
+
+1. **Parantez Eklendi Ama `.*` Hâlâ Greedy (`group(1)` '1' Döndü):**
+```python
+In [23]: m = re.search(r"^Cisco.*([\d\.]+), REL", line)
+
+In [24]: m.group(1)
+Out[24]: '1'
+```
+
+* **Kirk Byers'ın Uyarısı:** `.*` ifadesi o kadar açgözlüdür ki, `Version 16.8.` kısmına kadar olan metni kendisi yutar. `([\d\.]+)` grubuna sadece sürümün son rakamı olan `'1'` kalır.
+
+2. **Dışarıya Sınır Koyarak Tam Çözüm:**
+```python
+In [25]: m = re.search(r"^Cisco.*ion ([\d\.]+), REL", line)
+
+In [26]: m.group(1)
+Out[26]: '16.8.1'
+```
+
+* Parantezin hemen dışına `"ion "` (yani `"Version "` kelimesinin sonu) sabitleyicisi konur.
+
+* `.*` açgözlülüğü `"ion "` ifadesini görünce durmak zorunda kalır.
+
+* Parantez içi `([\d\.]+)` sürüm numarasının tamamı olan `'16.8.1'` değerini eksiksiz yakalar.
+
+> * *digit character class (\d)* → 0-9 arası tüm sayısal karakterlerle eşleşen sınıf.
+> * *capturing group ()* → regex deseni içinde istenen metin parçalarını gruplayıp `.group(1)`, `.group(2)` şeklinde çekmeyi sağlayan parantez yapısı.
+> * *IndexError: no such group* → regex aramasında parantez grubu tanımlanmadığı halde `m.group(1)` çağrıldığında alınan hata.
+> * *greedy prefix problem* → `.*` ifadesinin parantez içindeki deseni daraltacak şekilde metnin büyük kısmını yutması durumu.
+> * *anchor/boundary constraint* → `.*` açgözlülüğünü dizginlemek için parantez öncesine (`ion `) veya sonrasına (`RELEASE`) eklenen sabit karakter sınırları. 
 
 ---
