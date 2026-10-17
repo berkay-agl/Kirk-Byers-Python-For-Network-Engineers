@@ -665,3 +665,117 @@ In [25]:
 > * *non-greedy wildcard (.*?) * → karşılaşacağı ilk sınır karakterine kadar olan en kısa metin bloğunu yakalayan lazy arama deseni.
 
 ---
+
+## 7. Regular Expressions: Anchors ve `re.MULTILINE` Flag'i
+
+Kirk Byers bu bölümde, satır başı (`^`) ve satır sonu (`$`) çıpalarının (anchors) varsayılan davranışlarını, çok satırlı veriler üzerinde çalışırken neden başarısız olduklarını ve **`re.MULTILINE` (`re.M`)** flag'ı ile bu çıpaların satır bazlı çalışacak şekilde nasıl dönüştürüldüğünü anlatmaktadır.
+
+---
+
+### 7.1 Anchors Varsayılan Davranışı
+
+Regular expression dilinde kullanılan iki temel konum çıpası bulunur:
+
+* **`^` (Carrot):** Satır başı çıpası.
+
+* **`$` (Dollar):** Satır sonu çıpası.
+
+> **Kritik Varsayılan Davranış:**
+> Python regex motorunda `^` ve `$`, varsayılan olarak **tüm metin bloğunun** en başını ve en sonunu temsil eder. Metnin içerisinde `\n` ile ayrılmış yüzlerce satır bulunsa dahi, `^` yalnızca ilk satırın en başı, `$` ise en son satırın en sonu anlamına gelir.
+
+---
+
+### 7.2 Çok Satırlı Veride Başarısız Arama ve `AttributeError` Analizi
+
+Çok satırlı Cisco `show version` çıktısı barındıran `data` değişkeni üzerinde, metnin sonlarında yer alan `Configuration register is 0x2102` satırı çıpalarla hedeflenir:
+
+```python
+In [1]: import re
+
+In [2]: f = open("show_version.txt")
+
+In [3]: data = f.read()
+
+In [4]: f.close()
+
+In [5]: data
+Out[5]: 'Cisco IOS XE Software, Version 16.12.03\nCisco IOS Software [Gibraltar], ISR Software (ARMV8EL_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.12.3, RELEASE SOFTWARE (fc5)\nTechnical Support: http://www.cisco.com/techsupport\nCopyright (c) 1986-2020 by Cisco Systems.....ISTERED/AUTHORIZED\ncisco.\nProcessor board ID FGL222290LB\n1 Virtual Ethernet interface\n6 Gigabit Ethernet interfaces\n32768K bytes of non-volatile configuration memory.\n4194304K bytes of physical memory.\n2863103K bytes of flash memory at bootflash:.\n0K bytes of WebUI ODM Files at webui:.\nConfiguration register is 0x2102\n'
+
+In [6]: 
+```
+
+#### Çıpalar Yüzünden Aramanın `None` Dönmesi
+
+Aynı arama `Configuration register` satırı için yapıldığında da eşleşme sağlanamaz:
+
+```python
+In [6]: m = re.search(r"^Config.*2102$", data)
+
+In [7]: print(m)
+None
+
+In [8]: 
+```
+
+* **Nedeni:** `r"^Config.*2102$"` pattern; metnin **en başının** `"Config"` ile başlamasını ve metnin **en sonunun** `"2102"` ile bitmesini şart koşar. Oysa `data` metni `"Cisco IOS XE..."` ile başlamakta ve `"...Configuration register is 0x2102"` ile bitmektedir. Aradaki satırlar varsayılan çıpalarla eşleşmez.
+
+---
+
+### 7.3 `re.MULTILINE` (`re.M`) Flag'i ile Satır Bazlı Çıpa Değişimi
+
+Bu davranışı değiştirip çıpaları metindeki her bir satır başında (`\n` sonrası) ve satır sonunda geçerli kılmak için **`flags=re.MULTILINE`** veya kısaltması olan **`flags=re.M`** parametresi verilir:
+
+```python
+In [8]: m = re.search(r"^Config.*2102$", data, flags=re.MULTILINE)
+
+In [9]: print(m)
+<re.Match object; span=(3436, 3468), match='Configuration register is 0x2102'>
+
+In [10]: m = re.search(r"^Config.*2102$", data, flags=re.M)
+
+In [11]: print(m)
+<re.Match object; span=(3436, 3468), match='Configuration register is 0x2102'>
+
+In [12]: 
+```
+
+* **`re.MULTILINE` Mekanizması:** Flag aktif edildiğinde `^` ve `$`, metin içindeki her yeni satır karakterinde (`\n`) yeniden değerlendirilir.
+* Böylece `Configuration register is 0x2102` satırı, kendi satır başı ve satır sonu çıpalarına uyum sağladığı için match object başarıyla elde edilir.
+
+---
+
+### 7.4 Çıpalar ve Capturing Group Kombinasyonu
+
+Kirk'in Slaytta gösterilen örnek uygulamada, satır başı (`^`) ve satır sonu (`$`) çıpaları, `re.M` bayrağı ve `\S+` (boşluk olmayan karakter kümesi) parantez grubu ile birleştirilerek hex değeri tek adımda ayıklanır:
+
+```python
+In [45]: pattern = "^License Info"
+
+In [46]: re.search(pattern, data, flags=re.MULTILINE)
+Out[46]: <re.Match object; span=(1640, 1652), match='License Info'>
+
+---
+
+In [25]: pattern = r"^Configuration register is (\S+)$"
+
+In [26]: m = re.search(pattern, data, flags=re.M)
+
+In [27]: m.group(1)
+Out[27]: '0x2102'
+
+In [28]:
+```
+
+1. **`^Configuration register is `:** Satırın en başında `"Configuration register is "` ifadesi aranır.
+
+2. **`(\S+)`:** Boşluk içermeyen hex karakter bloğu (`0x2102`) parantez içine alınarak 1. gruba kaydedilir.
+
+3. **`$`:** Hex değerinden hemen sonra satırın bitmesi şart koşulur.
+
+4. **`m.group(1)`:** Tüm `show version` çıktısı taranarak tek bir regex sorgusuyla `'0x2102'` değeri çekilmiş olur.
+
+> * *anchor* → aramanın konumunu satır başına (`^`) veya satır sonuna (`$`) sabitleyen çıpa simgesi.
+> * *re.MULTILINE (re.M)* → `^` ve `$` çıpalarının tüm string yerine satır bazlı (`line-by-line`) çalışmasını sağlayan bayrak.
+> * *line-by-line matching* → çok satırlı metinlerde her `\n` karakterinin yeni bir satır başı/sonu kabul edilerek taranması. 
+
+---
