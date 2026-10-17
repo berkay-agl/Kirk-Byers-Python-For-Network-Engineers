@@ -521,3 +521,147 @@ Out[26]: '16.8.1'
 > * *anchor/boundary constraint* → `.*` açgözlülüğünü dizginlemek için parantez öncesine (`ion `) veya sonrasına (`RELEASE`) eklenen sabit karakter sınırları. 
 
 ---
+
+## 6. Regular Expressions: Capture Groups ve Raw Strings
+
+Kirk Byers bu bölümde, parantez ile veri yakalama gruplarını, Python'da **Raw String (`r"..."`)** kullanımının temel sebebini ve greedy aramalarda virgül gibi ayırıcı sınırlandırmaların ek virgül senaryolarında nasıl patladığını `.*?` (non-greedy) çözümüyle ele almaktadır.
+
+---
+
+### 6.1 Configuration Register Örneği ve Capturing Group (`group(1)`)
+
+Cisco IOS/IOS-XE cihaz çıktılarında konfigürasyon kaydını gösteren `Configuration register is 0x2102` satırından hex değerinin ayıklanması örneği incelenir:
+
+```python
+In [3]: import re
+
+In [4]: data = """
+   ...: License Information for 'c880-data'
+   ...:   License Level: advipservices    Type: Permanent
+   ...:   Next reboot license Level: advipservices
+   ...: 
+   ...: Configuration register is 0x2102
+   ...: """
+
+In [5]: print(data)
+
+License Information for 'c880-data'
+  License Level: advipservices    Type: Permanent
+  Next reboot license Level: advipservices
+
+Configuration register is 0x2102
+
+In [6]: m = re.search(r"Configuration register is (.*)", data)
+
+In [7]: m.group(0)
+Out[7]: 'Configuration register is 0x2102'
+
+In [8]: m.group(1)
+Out[8]: '0x2102'
+
+In [9]:
+```
+
+* **`m.group(0)`:** Desenin metinde eşleştiği tüm bloğu (`'Configuration register is 0x2102'`) teslim eder.
+
+* **`m.group(1)`:** Parantez `(.*)` içine alınan ilk **capturing group** alanını yani doğrudan ayıklamak istediğimiz hex değerini (`'0x2102'`) döndürür.
+
+---
+
+### 6.2 Python'da Raw String (`r"..."`) Kullanım Mantığı ve Nedeni
+
+Kirk Byers, regex yazarken string ifadelerinin başına neden ısrarla `r` karakteri (Raw String) konulması gerektiğini şu şekilde açıklar:
+
+1. **Python Special Characters:** Python'ın kendi string mekanizmasında özel kaçış dizilimleri bulunur. Örneğin `"\n"` ifadesi ters eğik çizgi ve 'n' harfi değil, tek başına "yeni satır" karakteridir. Benzer şekilde `"\t"` bir tab karakteridir.
+
+2. **Regex Special Characters:** Regular expression dilinin de kendine ait özel metakarakterleri (`\s`, `\d`, `\w`, `\S` vb.) vardır.
+
+3. **Çakışma Problemi & Çözüm:** Regex pattern yazarken Python'ın kaçış karakterlerinin regex metakarakterleriyle çakışmasını engellemek esastır.
+
+4. **Raw String (`r"..."`):** String ifadesinin başına `r` eki getirildiğinde Python'a *"Metin içindeki kaçış karakterlerinin yorumlanmasını kapat, string'i olduğu gibi ham/raw teslim et ve sadece Regex motorunun özel anlamları çalışsın"* talimatı verilir. Bu nedenle regex kalıplarında istisnasız raw string kullanılması standart bir disiplindir.
+
+---
+
+### 6.3 Greedy Arama vs. Virgül Sınırlandırması
+
+Bir cihaz çıktısındaki OS versiyon bilgisini ayıklarken `.*` ifadesinin greedy davranışı yeniden gözlemlenir:
+
+```python
+In [12]: line = "Cisco IOS Software, C880 Software (C880DATA-UNIVERSALK9-M), Version 15.4(2)T1, RELEASE SOFTWARE (fc3)"
+
+In [13]: line
+Out[13]: 'Cisco IOS Software, C880 Software (C880DATA-UNIVERSALK9-M), Version 15.4(2)T1, RELEASE SOFTWARE (fc3)'
+
+In [14]: m = re.search(r"Version (.*)", line)
+
+In [15]: m.group(0)
+Out[15]: 'Version 15.4(2)T1, RELEASE SOFTWARE (fc3)'
+
+In [16]: m.group(1)
+Out[16]: '15.4(2)T1, RELEASE SOFTWARE (fc3)'
+
+In [17]:
+```
+
+* `r"Version (.*)"` yazıldığında parantez içindeki `.*` satır sonuna kadar açgözlü şekilde ilerlediği için versiyon numarasıyla birlikte `, RELEASE SOFTWARE (fc3)` kısmını da yutar.
+
+#### Virgül Sınırı Ekleyerek Yakalamayı Durdurma
+
+Aramayı tam versiyon numarasının bittiği yerdeki virgülde durdurmak için parantezin dışına virgül `,` eklenir:
+
+```python
+In [17]: m = re.search(r"Version (.*),", line)
+
+In [18]: m.group(1)
+Out[18]: '15.4(2)T1'
+
+In [19]: 
+```
+
+* Parantez dışındaki virgül `,` bir sınır görevi görür. `.*` ifadesi virgüle kadar olan kısmı yakalar, virgül ise capturing group `m.group(1)` dışında kaldığı için tam olarak `'15.4(2)T1'` versiyonu çekilmiş olur.
+
+---
+
+### 6.4 Çift Virgül Senaryosu ve Non-Greedy (`.*?`) Çözümü
+
+Ancak metnin ilerleyen kısımlarında fazladan bir virgül daha bulunuyorsa (örneğin satır sonunda `,` varsa) parantez dışına tek başına virgül koymak greedy tuzağını çözmeye yetmez:
+
+```python
+In [19]: line = "Cisco IOS Software, C880 Software (C880DATA-UNIVERSALK9-M), Version 15.4(2)T1, RELEASE SOFTWARE (fc3),"
+
+In [20]: line
+Out[20]: 'Cisco IOS Software, C880 Software (C880DATA-UNIVERSALK9-M), Version 15.4(2)T1, RELEASE SOFTWARE (fc3),'
+
+In [21]: m = re.search(r"Version (.*),", line)
+
+In [22]: m.group(1)
+Out[22]: '15.4(2)T1, RELEASE SOFTWARE (fc3)'
+
+In [23]:
+```
+
+* **Problem:** Satır sonuna eklenen ikinci virgül nedeniyle `.*` açgözlü yapısı gereği metindeki **en son virgüle** kadar uzanır ve aradaki tüm metni yine yutar.
+
+#### Non-Greedy (Lazy) Modifikatörü (`.*?`) ile Çözüm
+
+`.*` joker karakterinin arkasına `?` modifikatörü eklendiğinde açgözlülük kapatılır:
+
+```python
+In [23]: m = re.search(r"Version (.*?),", line)
+
+In [24]: m.group(1)
+Out[24]: '15.4(2)T1'
+
+In [25]:
+```
+
+* **Mekanizma:** `.*?` ifadesi koşulu doğrulayan **en kısa** metin bloğunu arar. `Version ` kelimesinden sonra karşılaştığı **ilk virgülde** durarak yakalamayı sonlandırır ve `'15.4(2)T1'` değerini mükemmel şekilde ayıklar.
+
+> **Kritik Uyarım:** Eğer `.*?` kullanılırken desendeki virgül `,` kaldırılırsa (`r"Version (.*?)"`), non-greedy mod en az karakteri yakalamaya çalışacağı için `m.group(1)` boş string (`''`) döndürür. Dolayısıyla non-greedy ifadelerin arkasında durabileceği somut bir sınır karakteri (virgül, boşluk vb.) bulunmalıdır.
+
+> * *capturing group* → regex deseninde `()` ile çevrelenerek hafızaya alınan ve `.group(1)` ile çekilen veri grubu.
+> * *raw string (r"...")* → Python'ın string kaçış dizilimlerini (`\n`, `\t`) devreden çıkarıp Regex metakarakterlerinin yorumlanmasını sağlayan ön takı.
+> * *delimiter boundary* → greedy `.*` karakterini belirli bir simgede (örneğin virgül `,`) durdurmak için parantez dışına konan sınır karakteri.
+> * *non-greedy wildcard (.*?) * → karşılaşacağı ilk sınır karakterine kadar olan en kısa metin bloğunu yakalayan lazy arama deseni.
+
+---
