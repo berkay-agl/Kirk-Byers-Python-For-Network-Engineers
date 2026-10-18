@@ -779,3 +779,149 @@ In [28]:
 > * *line-by-line matching* → çok satırlı metinlerde her `\n` karakterinin yeni bir satır başı/sonu kabul edilerek taranması. 
 
 ---
+
+## 8. Regular Expressions: `re.findall()` ve f-string ile Okunabilir Pattern'lar
+
+Kirk Byers bu bölümde, metin içerisinde tekrarlayan verileri (örneğin Cisco ARP tablosundaki IP ve MAC adresi eşleşmelerini) tek adımda topluca ayıklamak için kullanılan **`re.findall()`** fonksiyonunu ve karmaşıklaşan regex desenlerini **f-string** kullanarak modüler ve okunabilir hale getirme tekniklerini anlatmaktadır.
+
+---
+
+### 8.1 Tekrarlayan Veriler ve `re.findall()` Fonksiyonu
+
+Cisco IOS / IOS-XE cihazlarından alınan örnek ARP tablosu çıktısı (`show ip arp`) şu şekildedir:
+
+```python
+In [2]: print(data)
+
+Protocol  Address          Age (min)  Hardware Addr   Type   Interface
+Internet  10.220.88.1            15   0062.ec29.70fe  ARPA   FastEthernet4
+Internet  10.220.88.20            -   c89c.1dea.0eb6  ARPA   FastEthernet4
+Internet  10.220.88.21          142   1c6a.7aaf.576c  ARPA   FastEthernet4
+Internet  10.220.88.28           21   5254.aba8.9aea  ARPA   FastEthernet4
+Internet  10.220.88.29           28   5254.abbe.5b7b  ARPA   FastEthernet4
+Internet  10.220.88.30           74   5254.ab71.e119  ARPA   FastEthernet4
+Internet  10.220.88.32           47   5254.abc7.26aa  ARPA   FastEthernet4
+Internet  10.220.88.37           10   0001.00ff.0001  ARPA   FastEthernet4
+Internet  10.220.88.38          201   0002.00ff.0001  ARPA   FastEthernet4
+Internet  10.220.88.39            3   6464.9be8.08c8  ARPA   FastEthernet4
+Internet  10.220.88.40          177   001c.c4bf.826a  ARPA   FastEthernet4
+Internet  10.220.88.41           65   001b.7873.5634  ARPA   FastEthernet4
+
+
+In [3]:
+```
+
+* **Arama Amacı:** Başlık satırı hariç, `Internet` kelimesiyle başlayan tüm satırlardaki IP adreslerini ve karşılık gelen MAC (Hardware Addr) adreslerini ayıklamak.
+
+* **`re.search()` Sınırı:** `re.search()` fonksiyonu metinde karşılaştığı ilk tekil eşleşmeyi döndürür. Tüm satırları döngüye girmeden tek seferde çekmek için `re.findall()` kullanılır.
+
+---
+
+### 8.2 Tekli Capture Group ile IP Adreslerini Listeleme
+
+İlk aşamada sadece IP adreslerini hedefleyen pattern oluşturulur:
+
+```python
+In [33]: pattern = "Internet\s+(\d+\.\d+\.\d+\.\d+)\s+"
+
+In [35]: re.findall(pattern, data)
+Out[35]: 
+['10.220.88.1',
+ '10.220.88.20',
+ '10.220.88.21',
+ '10.220.88.28',
+ '10.220.88.29',
+ '10.220.88.30',
+ '10.220.88.32',
+ '10.220.88.37',
+ '10.220.88.38',
+ '10.220.88.39',
+ '10.220.88.40',
+ '10.220.88.41']
+```
+
+* **Pattern Yapısı:**
+* `"Internet\s+"`: `"Internet"` kelimesi ve ardından gelen bir veya daha fazla boşluk (`\s+`).
+* `"(\d+\.\d+\.\d+\.\d+)"`: Dört adet sayı grubunun noktalarla ayrıldığı IP adresi yapısı parantez `()` içine alınarak 1. yakalama grubu yapılır.
+* `"\s+"`: IP adresinden sonra gelen boşluklar.
+
+* **`re.findall()` Davranışı:** Pattern içinde **tek bir capture group** varsa, metindeki tüm eşleşmeleri bulur ve bu gruptaki değerleri **string öğelerden oluşan bir liste (`list`)** halinde döndürür.
+
+```python
+In [6]: find_all = re.findall(pattern, data)
+In [7]: print(type(find_all))
+<class 'list'>
+```
+
+---
+
+### 8.3 Çoklu Capture Group: IP ve MAC Adreslerini Tuple Olarak Bağlama
+
+IP adresiyle birlikte MAC adresini de aynı anda çekmek için desene ikinci bir parantez grubu ve aradaki `Age` sütunu için karakter sınıfı eklenir:
+
+```python
+In [54]: pattern = "Internet\s+(\d+\.\d+\.\d+\.\d+)\s+[-_\d]+\s+(\w+\.\w+\.\w+)\s+"
+
+In [55]: re.findall(pattern, data)
+Out[55]: 
+[('10.220.88.1', '0062.ec29.70fe'),
+ ('10.220.88.20', 'c89c.1dea.0eb6'),
+ ('10.220.88.21', '1c6a.7aaf.576c'),
+ ('10.220.88.28', '5254.aba8.9aea'),
+ ('10.220.88.29', '5254.abbe.5b7b'),
+ ('10.220.88.30', '5254.ab71.e119'),
+ ('10.220.88.32', '5254.abc7.26aa'),
+ ('10.220.88.37', '0001.00ff.0001'),
+ ('10.220.88.38', '0002.00ff.0001'),
+ ('10.220.88.39', '6464.9be8.08c8'),
+ ('10.220.88.40', '001c.c4bf.826a'),
+ ('10.220.88.41', '001b.7873.5634')]
+```
+
+* **`Age` Sütunu Esnekliği (`[-_\d]+`):** `Age` sütununda rakamlar (`15`, `142`) olabileceği gibi bazı satırlarda tire (`-`) işareti bulunmaktadır. Bu yüzden `[-\d]+` (tire veya rakam) özel karakter sınıfı kullanılır. Kirk Byers, buradaki `[-\d]+` yerine `\S+` (boşluk olmayan her şey) kullanılmasının da daha pratik bir alternatif olduğunu belirtir.
+  
+* **MAC Adresi Yapısı (`(\w+\.\w+\.\w+)`):** MAC adresi hex karakterlerden oluştuğu için alfayı ve rakamları kapsayan `\w+` (word character) sınıfı kullanılır. Noktalarla ayrılmış üç öbek parantez içine alınarak 2. yakalama grubu oluşturulur.
+
+* **`re.findall()` Çıktı Formatı:** Pattern içinde **birden fazla capture group** tanımlandığında, `re.findall()` her bir satırdaki eşleşen grupları birbirine bağlar ve geriye **tuple tiplerinden oluşan bir liste (`list of tuples`)** döndürür. `('10.220.88.1', '0062.ec29.70fe')` şeklinde iki veri ayrılmaz bir çift haline gelir.
+
+---
+
+### 8.4 Pattern'ı f-string ile Modüler ve Okunabilir Hale Getirme
+
+Giderek karmaşıklaşan ve okunması zorlaşan regex ifadelerini daha temiz kurgulamak için IP ve MAC kalıpları ayrı değişkenlere atanarak f-string ile birleştirilir:
+
+```python
+In [24]: ip_addr = r"(\d+\.\d+\.\d+\.\d+)"
+
+In [25]: mac_addr = r"(\w+\.\w+\.\w+)"
+
+In [26]: pattern = rf"Internet\s+{ip_addr}\s+[-\d]+\s+{mac_addr}\s+"
+
+In [27]: re.findall(pattern, data)
+Out[27]: 
+[('10.220.88.1', '0062.ec29.70fe'),
+ ('10.220.88.20', 'c89c.1dea.0eb6'),
+ ('10.220.88.21', '1c6a.7aaf.576c'),
+ ('10.220.88.28', '5254.aba8.9aea'),
+ ('10.220.88.29', '5254.abbe.5b7b'),
+ ('10.220.88.30', '5254.ab71.e119'),
+ ('10.220.88.32', '5254.abc7.26aa'),
+ ('10.220.88.37', '0001.00ff.0001'),
+ ('10.220.88.38', '0002.00ff.0001'),
+ ('10.220.88.39', '6464.9be8.08c8'),
+ ('10.220.88.40', '001c.c4bf.826a'),
+ ('10.220.88.41', '001b.7873.5634')]
+
+In [28]: 
+```
+
+* **`rf"..."` Notasyonu:** Raw String (`r`) ile f-string (`f`) notasyonları birleştirilerek `rf"..."` şeklinde yazılır.
+
+* Değişkenler süslü parantez `{ip_addr}` ve `{mac_addr}` içinde pattern'a gömülerek kodun okunabilirliği ve yeniden kullanılabilirliği artırılır.
+
+> * *re.findall(pattern, string)* → pattern'a uyan tüm eşleşmeleri metin içinden çekip bir liste olarak döndüren fonksiyon.
+> * *single capture group return* → pattern'da 1 parantez grubu varsa `re.findall()` sonucunun düz string listesi (`['ip1', 'ip2']`) olması.
+> * *multiple capture group return* → pattern'da 2+ parantez grubu varsa `re.findall()` sonucunun tuple listesi (`[('ip1', 'mac1'), ('ip2', 'mac2')]`) olması.
+> * *rf-string (rf"...")* → raw string ve f-string niteliklerini birleştirip modüler regex desenleri yazmayı sağlayan notasyon. 
+
+---
