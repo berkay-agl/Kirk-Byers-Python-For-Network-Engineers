@@ -925,3 +925,69 @@ In [28]:
 > * *rf-string (rf"...")* → raw string ve f-string niteliklerini birleştirip modüler regex desenleri yazmayı sağlayan notasyon. 
 
 ---
+
+## 9. Regular Expressions: Match Logic ve Koşullu Durum Denetimi
+
+Kirk Byers bu bölümde, `re.search()` fonksiyonunun döndürdüğü **Match Object** ile **`None`** değerinin mantıksal denetimlerde nasıl kullanıldığını ve hata almadan güvenli veri ayıklama akışının nasıl kurgulandığını anlatmaktadır.
+
+---
+
+### 9.1 Match Object vs. `None` Davranışı
+
+`re.search()` fonksiyonu ile bir arama yapıldığında iki olası sonuç elde edilir:
+
+1. **Arama Başarılı Olduğunda:** Fonksiyon geriye bir **`re.Match object`** döndürür. Python boolean değerlendirmesinde `Match object` nesnesi **`True`** olarak kabul edilir.
+
+2. **Arama Başarısız Olduğunda:** Aranan pattern metin içerisinde bulunamazsa fonksiyon geriye **`None`** döndürür. `None` değeri boolean değerlendirmede **`False`** olarak kabul edilir.
+
+
+---
+
+### 9.2 `if match:` Mantıksal Denetimi ile Güvenli Veri Ayıklama
+
+Başarısız bir aramadan sonra doğrudan `.group()` metodunu çağırmak `AttributeError: 'NoneType' object has no attribute 'group'` hatasına yol açar. Bu hatayı önlemek için arama sonucu bir `if` koşul kontrolüne tabi tutulur:
+
+```python
+In [38]: file = open("show_version.txt", mode="r")
+
+In [39]: data = file.read()
+
+In [40]: m = re.search("^Configuration register is (\S+)$", data, flags=re.M)
+<>:1: SyntaxWarning: invalid escape sequence '\S'
+<ipython-input-40-7ddac5ab4db5>:1: SyntaxWarning: invalid escape sequence '\S'
+  m = re.search("^Configuration register is (\S+)$", data, flags=re.M)
+
+In [41]: m = re.search(r"^Configuration register is (\S+)$", data, flags=re.M)
+
+In [42]: if m:
+    ...:     print(m.group(0))
+    ...: 
+Configuration register is 0x2102
+
+In [43]: 
+```
+
+* **Başarılı Arama Akışı:** `In [40]` işleminde pattern metinde bulunduğu için `m` değişkenine `Match object` atanır. `In [42]` satırındaki `if match:` kontrolü `True` olarak değerlendirilir ve blok içine girilerek `match.group(0)` güvenle yazdırılır.
+
+---
+
+### 9.3 Başarısız Arama ve `None` Değerinin Değerlendirilmesi
+
+Arama pattern'ı metinle eşleşmediğinde gerçekleşen davranış şu şekildedir:
+
+```python
+In [64]: m = re.search("^Configuration FAIL register is (\S+)$", data, flags=re.M)
+
+In [65]: print(m)
+None
+```
+
+* **Başarısız Arama Akışı:** `In [64]` satırında pattern metinde bulunmayan `"FAIL"` kelimesini içerdiği için eşleşme sağlanamaz. `match` değişkeninin değeri `None` olur.
+
+* Eğer bu sonuç `if m:` bloğuna verilirse, `None` değeri `False` üreteceği için `if` bloğunun içindeki kod çalıştırılmadan atlanır ve script'in çökmesi engellenmiş olur.
+
+> * *match logic* → regex arama sonucunun `True` (`Match object`) veya `False` (`None`) olarak koşullu ifadelerde denetlenmesi.
+> * *NoneType* → regex aramasının başarısızlık durumunda döndürdüğü özel Python veri tipi (`None`).
+> * *conditional parsing* → veriyi ayıklamadan önce `if m:` ile eşleşmenin varlığının kontrol edilmesi disiplini.
+
+---
