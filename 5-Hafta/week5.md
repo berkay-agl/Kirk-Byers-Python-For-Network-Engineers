@@ -991,3 +991,60 @@ None
 > * *conditional parsing* → veriyi ayıklamadan önce `if m:` ile eşleşmenin varlığının kontrol edilmesi disiplini.
 
 ---
+
+## 10. Regular Expressions: `re.DOTALL` Flag'i
+
+Kirk Byers bu bölümde, nokta (`.`) metakarakterinin varsayılan davranışı olan "yeni satır (`\n`) karakterini kapsamama" özelliğini, bu durumun çıpalarla (`^`, `$`) çakıştığında neden aramayı başarısız kıldığını ve **`re.DOTALL` (`re.S`)** flag'ı ile noktanın yeni satır dahil tüm karakterlerle eşleşmesinin nasıl sağlandığını anlatmaktadır.
+
+---
+
+### 10.1 Nokta (`.`) Karakterinin Varsayılan Sınırı ve Eşleşmeme Davranışı
+
+Regular expression dilinde nokta (`.`) metakarakteri "herhangi bir tekil karakter" anlamına gelir.
+
+> **Kritik Varsayılan Kural:**
+> Nokta (`.`) karakteri varsayılan olarak **yeni satır (`\n`) karakteri hariç** her şeyle eşleşir. Metin içerisinde bir `\n` ile karşılaştığında durur ve `\n` karakterini yutamaz.
+
+#### `re.MULTILINE` Olmadan Çıpalar ve Nokta Çakışması
+
+Aşağıdaki örnekte `re.MULTILINE` bayrağı kullanılmadığı için `^` çıpası tüm metin bloğunun en başını, `$` çıpası ise tüm metin bloğunun en sonunu temsil etmektedir. Metin ise içinde `\n` barındıran `"simple test\nhello"` string'idir:
+
+```python
+In [24]: m = re.search("^.*$", "simple test\nhello")
+
+In [25]: print(m)
+None
+```
+
+* **Aramanın Başarısız Olma (`None`) Nedeni:**
+1. `^` çıpası metnin en başındaki `"simple..."` kısmına sabitlenir.
+2. `$` çıpası metnin en sonundaki `"...hello"` kısmına sabitlenir.
+3. Aradaki `.*` pattern'ı `^` konumundan `$` konumuna kadar olan tüm karakterleri yutmaya çalışır.
+4. Ancak `.` karakteri `\n` simgesini kapsayamadığı için `"simple test"` kısmından sonra tıkanır ve metnin sonundaki `$` noktasına ulaşamaz.
+5. Pattern genel olarak doğrulanamadığı (`True` kılınamadığı) için `re.search()` geriye **`None`** döndürür.
+
+---
+
+### 10.2 `re.DOTALL` (`re.S`) Flag'i ile `\n` Engelinin Aşılması
+
+Nokta (`.`) karakterinin `\n` dahil metindeki istisnasız tüm karakterleri kapsamasını sağlamak için aramaya **`flags=re.DOTALL`** (veya kısa notasyon olarak **`flags=re.S`**) bayrağı eklenir:
+
+```python
+In [26]: m = re.search("^.*$", "simple test\nhello", flags=re.DOTALL)
+
+In [27]: print(m)
+<re.Match object; span=(0, 17), match='simple test\nhello'>
+
+In [28]: m.group(0)
+Out[28]: 'simple test\nhello'
+```
+
+* **`re.DOTALL` Mekanizması:** Flag aktif edildiğinde `.` karakterinin `\n` istisnası kalkar.
+* `.*` ifadesi `\n` engelini aşarak metnin en başından (`^`) en sonuna (`$`) kadar olan tüm bloğu (17 karakter) yutar.
+* `m.group(0)` çağrıldığında `'simple test\nhello'` metni eksiksiz bir şekilde elde edilir.
+
+> * *re.DOTALL (re.S)* → nokta (`.`) karakterinin yeni satır (`\n`) dahil tüm karakterlerle eşleşmesini sağlayan regex flag.
+> * *dot character limitation* → nokta metakarakterinin varsayılan olarak `\n` karakterini kapsamaması durumu.
+> * *re.S shorthand* → `re.DOTALL` flag'ın kısa yazım biçimi.
+
+---
