@@ -1182,5 +1182,3 @@ Bu yaklaşım, özellikle birden fazla verinin ayıklandığı uzun regex yapıl
 > * *?P* → Python regex motorunda isimlendirilmiş grup tanımlamak için kullanılan özel syntax.
 > * *.groupdict()* → eşleşen tüm isimlendirilmiş grupları key-value çiftlerinden oluşan bir dict olarak döndüren metot.
 > * *.group("name")* → belirlenen grup ismine karşılık gelen yakalanmış metni döndüren metot.
-
----
