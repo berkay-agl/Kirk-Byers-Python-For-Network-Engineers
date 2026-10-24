@@ -43,7 +43,7 @@ Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklay
   - `if/elif/else`, `for`, `while` döngüleri ve Generator ifadeleri.
 - [x] [**Hafta 4: Kümeler (Sets), Dictionaries ve Exceptions**](/4-Hafta/)
   - Veri yapıları arasında geçişler, dict kullanımları ve `try/except` blokları.
-- [ ] [**Hafta 5: Regular Expressions - RegEx**](/5-Hafta)
+- [x] [**Hafta 5: Regular Expressions - RegEx**](/5-Hafta)
   - Özel karakterler, Capture Groups, Anchors ve `re` kütüphanesi.
 - [ ] **Hafta 6: Fonksiyonlar**
   - Fonksiyon tanımlama ve Lambda ifadeleri.
