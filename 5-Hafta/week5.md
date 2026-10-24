@@ -1103,3 +1103,84 @@ In [7]: print(prompt_literal)
 > * *re.escape(pattern)* → metin içindeki tüm özel regex karakterlerinin önüne ters eğik çizgi koyarak deseni yalın karakter dizilimine dönüştüren fonksiyon.
 
 ---
+
+## 12. Regular Expressions: Named Capture Groups
+
+Kirk Byers bu bölümde, regular expression desenleri içerisindeki yakalama gruplarına özel isimler atamamızı sağlayan **Named Capture Groups** yapısını, bu yapının yazım kurallarını ve ayıklanan verilerin dictionary mantığıyla nasıl çekildiğini anlatmaktadır.
+
+---
+
+### 12.1 İsimlendirilmiş Yakalama Grupları Neden Kullanılır?
+
+Geleneksel regex yakalama gruplarında ayıklanan verilere erişmek için `.group(1)`, `.group(2)` gibi indeks numaraları kullanılır.
+
+Ancak karmaşık ve çok sayıda parantez grubu içeren desenlerde hangi indeksin hangi veriye karşılık geldiğini takip etmek zorlaşır. 
+İsimlendirilmiş gruplar, indeks numaraları yerine anlamlı değişken isimleri kullanmamıza olanak tanıyarak kodun okunabilirliğini ve bakımını ciddi oranda kolaylaştırır.
+
+---
+
+### 12.2 Yazım Kuralları ve Syntax
+
+İsimlendirilmiş bir grup tanımlanırken standart parantez yapısının hemen başına **`?P<grup_adı>`** belirteci eklenir:
+
+$$\text{(?P<grup\_adı>pattern)}$$
+
+* **`?P` Belirteci:** Regular expression diline eklenmiş Python spesifik bir uzantıyı temsil eder.
+
+* **`<grup_adı>`:** Açılı parantezler `<>` arasına gruba verilmek istenen isim yazılır.
+
+* **`pattern`:** Gruba dahil edilip eşleştirilmesi istenen standart regex kalıbıdır (örneğin `\S+`).
+
+#### Örnek Uygulama
+
+Cisco konfigürasyon kaydını isim vererek yakalama:
+
+```python
+In [1]: import re
+
+In [2]: data = "Configuration register is 0x2102"
+
+In [3]: pattern = r"^Configuration register is (?P<confreg>\S+)$"
+
+In [4]: m = re.search(pattern, data, flags=re.M)
+
+In [5]: m
+Out[5]: <re.Match object; span=(0, 32), match='Configuration register is 0x2102'>
+
+In [6]:
+```
+
+Bu örnekte `(?P<confreg>\S+)` yapısı sayesinde `0x2102` hex değeri doğrudan **`confreg`** ismiyle hafızaya alınır.
+
+---
+
+### 12.3 Yakalanan Verilere Erişim Yöntemleri
+
+İsimlendirilmiş gruplar kullanıldığında elde edilen `Match object` üzerinden veriler iki farklı yolla çekilebilir:
+
+#### 1. `.groupdict()` Metodu ile Sözlük Olarak Alma
+
+`.groupdict()` metodu, pattern içindeki tüm isimlendirilmiş grupları ve bunlara karşılık gelen eşleşmiş değerleri bir Python `dict` olarak döndürür:
+
+```python
+In [5]: m.groupdict()
+Out[5]: {'confreg': '0x2102'}
+```
+
+#### 2. `.group("grup_adı")` Metodu ile Doğrudan İsimle Çağırma
+
+İndeks numarası (`1`, `2` vb.) yerine doğrudan gruba verilen isim `.group()` metoduna parametre olarak iletilir:
+
+```python
+In [6]: m.group("confreg")
+Out[6]: '0x2102'
+```
+
+Bu yaklaşım, özellikle birden fazla verinin ayıklandığı uzun regex yapılarında sıra takip etme zorunluluğunu tamamen ortadan kaldırır.
+
+> * *named capture group* → yakalama gruplarına indeks numarası yerine metinsel isim atanmasını sağlayan regex yapısı.
+> * *?P* → Python regex motorunda isimlendirilmiş grup tanımlamak için kullanılan özel syntax.
+> * *.groupdict()* → eşleşen tüm isimlendirilmiş grupları key-value çiftlerinden oluşan bir dict olarak döndüren metot.
+> * *.group("name")* → belirlenen grup ismine karşılık gelen yakalanmış metni döndüren metot.
+
+---
