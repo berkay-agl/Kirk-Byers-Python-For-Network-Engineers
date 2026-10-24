@@ -1123,7 +1123,7 @@ Ancak karmaşık ve çok sayıda parantez grubu içeren desenlerde hangi indeksi
 
 İsimlendirilmiş bir grup tanımlanırken standart parantez yapısının hemen başına **`?P<grup_adı>`** belirteci eklenir:
 
-$$\text{(?P<<grup\_adı>>pattern)}$$
+$$\text{(?P<grup\_adı>pattern)}$$
 
 * **`?P` Belirteci:** Regular expression diline eklenmiş Python spesifik bir uzantıyı temsil eder.
 
