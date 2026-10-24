@@ -1048,3 +1048,58 @@ Out[28]: 'simple test\nhello'
 > * *re.S shorthand* → `re.DOTALL` flag'ın kısa yazım biçimi.
 
 ---
+
+## 11. Regular Expressions: `re.escape()` Fonksiyonu ve Dinamik Prompt Yakalama
+
+Kirk Byers bu bölümde, ağ cihazlarından veya kullanıcı girdilerinden çekilen metinlerin regex deseni olarak kullanılmasında karşılaşılan özel karakter çakışmalarını ve **`re.escape()`** fonksiyonu ile bu metinlerin otomatik olarak yalın karakterlere dönüştürülmesini anlatmaktadır.
+
+---
+
+### 11.1 Dış Kaynaklardan Gelen Prompt İfadeleri ve Regex Çakışması
+
+Ağ otomasyonunda cihazlarla etkileşime girerken en yaygın kullanılan yöntemlerden biri, cihaza komut gönderdikten sonra veri akışının bittiğini anlamak için cihazın komut prompt'unu bitiş deseni olarak kullanmaktır.
+
+Ancak dışarıdan alınan bu dinamik metinler, regex dilinde özel anlam taşıyan metakarakterler içerebilir.
+
+* **Örnek Linux Komut Prompt'u:**
+`'[lp] ktbyers@pydev2 $'`
+
+* **Pattern İçindeki Özel Karakter Çakışmaları:**
+1. **Köşeli Parantezler (`[` ve `]`):** Regex motoru tarafından özel karakter sınıfı olarak yorumlanır.
+
+2. **Dolar Simgesi (`$`):** Satır sonu çıpası olarak değerlendirilir.
+
+3. **Boşluklar:** Karakter dizilimini doğrudan etkiler.
+
+#### Doğrudan Kullanım Riski (`re.search(prompt, output)`)
+
+Bu prompt ifadesi doğrudan `re.search(prompt, output)` şeklinde arama desenine verildiğinde:
+
+* Regex motoru `[` ve `]` karakterlerini özel bir karakter kümesi sanır.
+
+* `$` karakterini satırın bittiği konum olarak yorumlar.
+
+* Farklı cihaz modellerinde değişkenlik gösteren komut prompt'ları yüzünden arama süreci beklenmeyen hatalarla veya eşleşmeme sorunlarıyla sonuçlanır.
+
+---
+
+### 11.2 `re.escape()` Fonksiyonu ile Otomatik Kaçış
+
+Dışarıdan alınan bir metindeki tüm özel simgelerin regex anlamından arındırılıp birebir doğrudan karakter dizilimi olarak aranmasını sağlamak için **`re.escape()`** kullanılır:
+
+```python
+In [5]: prompt = '[lp] ktbyers@pydev2 $'
+
+In [6]: prompt_literal = re.escape(prompt)
+
+In [7]: print(prompt_literal)
+\[lp\]\ ktbyers@pydev2\ \$
+```
+
+* **`re.escape()` Çalışma Mantığı:** Kendisine verilen metin içerisindeki tüm özel regex metakarakterlerinin (`[`, `]`, `$`, boşluklar vb.) önüne otomatik olarak ters eğik çizgi (`\`) ekler.
+
+* **Elde Edilen Sonuç:** Regex motoru pattern içindeki simgeleri metakarakter olarak değil, birebir yalın string karakterleri olarak arar. Böylece arama işlemi tüm cihaz prompt'larında hatasız ve tutarlı şekilde tamamlanır.
+
+> * *re.escape(pattern)* → metin içindeki tüm özel regex karakterlerinin önüne ters eğik çizgi koyarak deseni yalın karakter dizilimine dönüştüren fonksiyon.
+
+---
