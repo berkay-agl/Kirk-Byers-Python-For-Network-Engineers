@@ -29,7 +29,7 @@ Bu metinlerin içerisine gömülmüş olan IP adresleri, seri numaraları veya k
 
 * **Geleneksel Yöntemlerin Sınırı:** Daha önce öğrenilen `.split()` metodu veya `in` koşul kontrolleri basit senaryolarda iş görse de, daha karmaşık ve değişken metin yapılarından veri çıkarmak için yetersiz kalır.
 
-* **Regex Dili:** Regular expressions, string ifadelerin içine özel karakterler yerleştirerek desenler (patterns) oluşturmamızı sağlayan özel bir "dildir".
+* **Regex Dili:** Regular expressions, string ifadelerin içine özel karakterler yerleştirerek pattern'lar oluşturmamızı sağlayan özel bir "dildir".
 
 * **Kirk Byers'ın Uyarısı & Aforizması:** Kirk Byers, regex yazarken aşırı karmaşık yapılardan kaçınılması gerektiği konusunda esprili ve kritik bir uyarıda bulunur: *"The road to hell is paved with good intentions and complex regular expressions"* (Cehenneme giden yol iyi niyetler ve karmaşık düzenli ifadelerle döşelidir). Koda gereksiz karmaşıklık katmamak esastır.
 
@@ -41,7 +41,7 @@ Regular expression işlemlerini kullanabilmek için öncelikle Python'ın dahili
 
 `re.search()` fonksiyonu iki temel argüman ile çalışır:
 
-1. **Pattern (Desen):** Aranan özel karakter dizilimi.
+1. **Pattern:** Aranan özel karakter dizilimi.
 
 2. **Data:** Arama yapılacak metin veya değişken.
 
@@ -57,7 +57,7 @@ Out[3]: <re.Match object; span=(0, 22), match='Configuration register'>
 ```
 
 * `re.search()` fonksiyonu bir eşleşme bulduğunda geriye bir **`re.Match object`** döndürür.
-* Eşleşme nesnesi, eşleşmenin metindeki başlangıç ve bitiş indekslerini (`span=(0, 22)`) ve yakalanan metni (`match='Configuration register'`) gösterir.
+* Match object, eşleşmenin metindeki başlangıç ve bitiş indekslerini (`span=(0, 22)`) ve yakalanan metni (`match='Configuration register'`) gösterir.
 * **Boolean Değerlendirme:** Bu match object bir `if` koşuluna verildiğinde; eşleşme varsa `True`, eşleşme yoksa (`None` döndüğünde) `False` olarak değerlendirilir.
 
 ---
@@ -89,9 +89,9 @@ Out[11]: 'Configuration register'
 ```
 
 * `match_result.group(0)` ifadesi, regex pattern'ı tarafından yakalanan metnin tamamını string olarak teslim eder.
-* Birebir string araması - literal matching regex'in en yalın halidir; ilerleyen adımlarda özel karakterler ile dinamik pattern'lar kurgulanacaktır.
+* Literal matching regex'in en yalın halidir; ilerleyen adımlarda özel karakterler ile dinamik pattern'lar kurgulanacaktır.
 
-> * *pattern* → arama yapmak veya veri ayıklamak için tanımlanan karakter dizilimi deseni. 
+> * *pattern* → arama yapmak veya veri ayıklamak için tanımlanan karakter dizilimi pattern'ı. 
 > * *literal characters* → özel bir anlam taşımayan, metinde birebir aynısı aranan yalın karakterler.
 > * *span* → match object içinde eşleşmenin başladığı ve bittiği indeks aralığını belirten nitelik.
 > * *group(0)* → yakalanan eşleşmenin tamamını string olarak döndüren metot.
