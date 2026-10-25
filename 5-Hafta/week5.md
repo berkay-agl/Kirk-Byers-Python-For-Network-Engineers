@@ -8,9 +8,9 @@ Kirk Byers bu derste sırasıyla aşağıdaki konuları işleyeceğini belirtmek
 
 * **Regular Expressions:** Regex nedir, ağ otomasyonundaki veri ayıklama problemlerini çözmek için neden gereklidir ve temel kullanım ilkeleri.
 
-> * *regular expressions (regex)* → metinler içerisinden belirli desenlere (pattern) göre veri aramayı ve ayıklamayı sağlayan özel desen dili.
+> * *regular expressions (regex)* → metinler içerisinden belirli pattern'lara göre veri aramayı ve ayıklamayı sağlayan özel pattern dili.
 > * *re module* → Python'da regular expression işlemlerini yürüten dahili standart kütüphane.
-> * *re.search()* → verilen deseni metin içerisinde arayan ve ilk eşleşmede bir match object döndüren fonksiyon.
+> * *re.search()* → verilen pattern'ı metin içerisinde arayan ve ilk eşleşmede bir match object döndüren fonksiyon.
 > * *match object* → regex eşleşmesine dair konum (`span`) ve eşleşen metin bilgilerini barındıran nesne.
 > * *.group(0)* → match object içerisinden eşleşen metnin tamamını elde etmeyi sağlayan metot.
 
