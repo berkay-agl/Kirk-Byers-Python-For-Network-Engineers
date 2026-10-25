@@ -100,24 +100,23 @@ Out[11]: 'Configuration register'
 
 ## 3. Regular Expressions: Special Characters 
 
-Kirk Byers, regular expression dilinde pattern kurgularken kullandığımız özel metakarakterlerin (special characters) çalışma mantığını ve kritik detaylarını derinleştirmektedir.
+Kirk Byers, regular expression dilinde pattern kurgularken kullandığımız özel metakarakterlerin çalışma mantığını ve kritik detaylarını derinleştirmektedir.
 
 ---
 
-### 3.1 Nicelik Belirteçleri (Quantifiers): Greedy vs. Non-Greedy (Lazy) Match
+### 3.1 Quantifiers: Greedy vs. Non-Greedy (Lazy) Match
 
 Metakarakterlerin arkasına eklenen quantifier'lar, ilgili karakterin kaç kez tekrarlanacağını ve regex motorunun metni tarama davranışını belirler.
 
-* **`.` (Any single character):** Herhangi bir tekil karakterle eşleşir. Boş karakter (`null string`) ile eşleşmez; ortamda mutlaka en az 1 karakter bulunmalıdır.
+* **`.` (Any single character):** Herhangi bir tekil karakterle eşleşir. Null string ile eşleşmez; ortamda mutlaka en az 1 karakter bulunmalıdır.
 
-* **`.*` (Zero or more times):** Önündeki karakterin **0 veya daha fazla** tekrarlanmasıdır. Boş metin (`null string`) ile eşleşebildiği gibi, metindeki karakter dizilimini yakalar.
+* **`.*` (Zero or more times):** Önündeki karakterin **0 veya daha fazla** tekrarlanmasıdır. Null string ile eşleşebildiği gibi, metindeki karakter dizilimini yakalar.
 
 * **`.+` (One or more times):** Önündeki karakterin **en az 1 veya daha fazla** tekrarlanmasıdır. `.*` ifadesinden farklı olarak `null string` ile eşleşmez.
 
 * **`?` Modifikatörü ve `.?` Yapısı:** `?` işareti, kendinden önce gelen karakteri veya grubu opsiyonel hale getirir (`a?` ifadesi `"a"` harfiyle veya `null string` ile eşleşir). `.?` ifadesi ise 0 veya 1 karakter yakalar; greedy yapısı gereği imkan varsa 1 karakteri eşleştirmeyi tercih eder.
 
-
-#### Greedy (Açgözlü) Davranış
+#### Greedy Davranış
 
 * Python regex motoru varsayılan olarak **greedy** çalışır.
 
@@ -127,7 +126,7 @@ Metakarakterlerin arkasına eklenen quantifier'lar, ilgili karakterin kaç kez t
 
 * Quantifier'ların arkasına `?` eklendiğinde (`*?` veya `+?`), regex motoru **non-greedy (lazy)** moda geçer.
 
-* Non-greedy yapı, genel deseni `True` tutacak şekilde koşulu sağlayan **en az sayıda karakteri (mümkün olan en kısa metin bloğunu)** eşleştirmeyi hedefler.
+* Non-greedy yapı, genel pattern'ı `True` tutacak şekilde koşulu sağlayan **en az sayıda karakteri (mümkün olan en kısa metin bloğunu)** eşleştirmeyi hedefler.
 
 ---
 
