@@ -14,7 +14,7 @@ Kirk Byers bu derste sırasıyla aşağıdaki konuları işleyeceğini belirtmek
 
 ---
 
-## 2. Function Basics: Temel Kavramlar ve Sözdizimi
+## 2. Function Basics: Temel Kavramlar ve Syntax
 
 Kirk Byers, programlamanın sunduğu iki büyük güce dikkat çekerek fonksiyonların neden vazgeçilmez olduğunu açıklamaktadır:
 
