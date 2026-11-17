@@ -45,7 +45,7 @@ Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklay
   - Veri yapıları arasında geçişler, dict kullanımları ve `try/except` blokları.
 - [x] [**Hafta 5: Regular Expressions - RegEx**](/5-Hafta)
   - Özel karakterler, Capture Groups, Anchors ve `re` kütüphanesi.
-- [ ] **Hafta 6: Fonksiyonlar**
+- [ ] [**Hafta 6: Fonksiyonlar**](/6-Hafta)
   - Fonksiyon tanımlama ve Lambda ifadeleri.
 - [ ] **Hafta 7: Bölüm 1 Classes and Objects**
   - Nesne Yönelimli Programlamaya (OOP) giriş, `__init__` metodu, Attributes ve Metotlar.
