@@ -297,3 +297,121 @@ Output 3: Selam
 > * *optional parameter* → varsayılan değere sahip olduğu için fonksiyon çağrılırken gönderilmesi zorunlu olmayan parametre.
 
 ---
+
+## 5. Functions: Return Values
+
+Kirk Byers bu bölümde, fonksiyonların işledikleri verileri çağrıldıkları noktaya geri döndürmelerini sağlayan `return` mekanizmasını ve dönen bu değerlerin fonksiyon dışındaki değişkenlere atanarak programın geri kalanında nasıl kullanıldığını anlatmaktadır.
+
+---
+
+### 5.1 `return` İfadesi ve Dönen Değerin Yakalanması
+
+Fonksiyonlar varsayılan olarak hiçbir `return` deyimi içermediklerinde geriye örtük olarak `None` döndürürler. Ancak fonksiyon içerisinde üretilen bir sonucu dış dünyaya aktarmak istediğimizde `return` anahtar kelimesini kullanırız.
+
+* **Dış Dünyaya Veri Aktarımı:** `return` ifadesi, fonksiyonun local kapsamında hesaplanan sonucu fonksiyonun çağrıldığı satıra geri gönderir.
+
+* **Değişkene Atama:** Fonksiyondan dönen bu değer doğrudan bir değişkene atanabilir ve programın ilerleyen aşamalarında farklı işlemler için tekrar kullanılabilir.
+  
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın derste gösterdiği yapı ve benim IPython REPL ortamındaki uygulamam:
+
+```python
+In [1]: def toplama_function(x, y, z):
+   ...:     return x + y + z
+   ...: 
+
+In [2]: sonuc = toplama_function(10, 20, 30)
+
+In [3]: sonuc
+Out[3]: 60
+```
+
+* `toplama_function` çağrıldığında `10`, `20` ve `30` değerleri positional olarak sırasıyla `x`, `y` ve `z` parametrelerine atanır.
+* Fonksiyon içerisindeki `return x + y + z` satırı bu üç sayının toplamını hesaplayarak çağrıldığı noktaya geri döndürür.
+* Dönen `60` değeri `sonuc` değişkenine kaydedilir ve fonksiyon dışında erişilebilir hale gelir.
+
+> * *return value* → fonksiyonun çalışmasını tamamladıktan sonra çağrıldığı yere geri gönderdiği sonuç verisi.
+> * *variable assignment* → fonksiyondan dönen değerin daha sonra kullanılmak üzere bir değişkene kaydedilmesi.
+> * *implicit return None* → içinde `return` ifadesi bulunmayan fonksiyonların varsayılan olarak `None` döndürmesi.
+
+---
+
+## 6. Functions: LEGB Rules ve Resolving Names
+
+Kirk Byers bu bölümde, Python'ın bir fonksiyon içerisinde karşılaştığı değişken ve fonksiyon isimlerini hangi arama sırasıyla bulduğunu belirleyen **LEGB Rule** hiyerarşisini ve local ile global değişkenlerin birbirinden tamamen izole çalışma mantığını anlatmaktadır.
+
+---
+
+### 6.1 LEGB Arama Sırası Nedir?
+
+Python, bir fonksiyon bloğu çalıştırılırken içeride kullanılan bir değişkenin değerini bulmak için isim alanlarını soldan sağa doğru **L → E → G → B** sırasıyla tarar:
+
+1. **L — Local (Yerel Kapsam):** Python ilk olarak mevcut fonksiyonun kendi içine bakar. Fonksiyon parametreleri ve fonksiyon gövdesi içerisinde tanımlanan değişkenler local kapsamdadır.
+
+2. **E — Enclosed (Kapsayan / Nested Fonksiyonlar):** Değişken local alanda bulunamazsa ve bu fonksiyon başka bir fonksiyonun içinde tanımlanmışsa, Python bir dışarıdaki enclosed fonksiyonun içine bakar. Eğer nested fonksiyon yapısı yoksa bu adım doğrudan atlanır.
+
+3. **G — Global (Ana Program Kapsamı):** Değişken localde ve enclosed fonksiyonlarda bulunamazsa, Python fonksiyonların dışındaki ana programın **global isim** alanına bakar.
+
+4. **B — Built-ins (Python Yerleşik Yapıları):** Global alanda da bulunamayan isimler için Python dilinin kendi çekirdeğinde yer alan anahtar kelimelere ve built-in fonksiyonlara (`__builtins__`) bakılır. Örneğin `print()` fonksiyonu bu katmandan çözümlenir.
+
+> **Kirk Byers'ın İpuçları ve Linter Uyarısı:**
+> * REPL ortamında **`help("keywords")`** komutu çalıştırılarak Python'ın built-in anahtar kelimeleri, **`dir(__builtins__)`** komutuyla da built-in fonksiyon ve objectleri listelenebilir.
+> * Kod yazarken **linter** araçları kullanmak, Python'ın built-in isimlerinin (`print`, `list`, `str` vb.) üzerine yanlışlıkla değişken atayarak onları ezmeniz önler.
+
+---
+
+### 6.2 Local vs. Global İsim İzolasyonu
+
+Kirk Byers, aynı isme sahip değişkenlerin hem global alanda hem de fonksiyonun local alanında bulunması durumundaki kritik kuralı vurgular:
+
+* **Tam İzolasyon:** Global alanda tanımlı bir `msg1` veya `msg2` değişkeni ile fonksiyon içerisindeki `msg1` ve `msg2` değişkenleri birbirinden tamamen bağımsız varlıklardır.
+
+* Fonksiyon içerisindeki değişkenleri zihninizde `fonksiyon_adi.msg1` şeklinde düşünebilirsiniz.
+
+* Fonksiyon gövdesi içerisinde `msg2` değişkenine yeni bir değer atanması, dışarıdaki global `msg2` değişkenini hiçbir şekilde etkilemez; fonksiyon çalışmasını bitirdiğinde global alandaki değişken ilk değerini aynen korur.
+
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın derste gösterdiği yapı ve benim IPython REPL ortamındaki uygulamam:
+
+```python
+In [1]: IP_ADRES = "192.168.1.1"
+
+In [2]: def output_function(msg1):
+   ...:     print()
+   ...:     msg2 = "Local bir değişken"
+   ...:     print("#" * 10)
+   ...:     print(f"msg1 -> {msg1}")
+   ...:     print(f"msg2 -> {msg2}")
+   ...:     # Global Değişkenler Kısmı
+   ...:     print(f"IP Adresi -> {IP_ADRES}")
+   ...:     print("#" * 10)
+   ...:     print()
+   ...: 
+
+In [3]: output_function("msg1 için bir şeyler")
+
+##########
+msg1 -> msg1 için bir şeyler
+msg2 -> Local bir değişken
+IP Adresi -> 192.168.1.1
+##########
+```
+
+* **`msg1` ve `msg2` (Local):** `msg1` parametre olarak tanımlandığı, `msg2` ise fonksiyon içinde atandığı için Python her ikisini de doğrudan **L (Local)** adımında bulur.
+
+* **`IP_ADRES` (Global):** Fonksiyon içinde tanımlı olmadığı ve nested bir fonksiyon yapısı bulunmadığı için Python **L** ve **E** adımlarını geçip **G (Global)** alanda tanımlı olan `"192.168.1.1"` değerine ulaşır.
+
+* **`print()` (Built-in):** Local ve global alanlarda bulunmadığı için **B (Built-ins)** katmanından çekilerek çalıştırılır.
+
+> * *LEGB rule* → Python'ın bir isim ararken sırasıyla Local, Enclosed, Global ve Built-ins kapsamlarını tarama hiyerarşisi.
+> * *enclosed scope* → Nested fonksiyonlarda, içteki fonksiyonun kendisini çevreleyen dış fonksiyona ait değişkenlere erişebildiği kapsam.
+> * *global namespace* → herhangi bir fonksiyon bloğunun dışında, ana program seviyesinde tanımlanan değişkenlerin bulunduğu isim alanı.
+> * ***builtins*** → `print()`, `len()` gibi Python dilinin kendi çekirdeğinde yerleşik olarak bulunan fonksiyon ve nesneleri barındıran modül.
+
+---
