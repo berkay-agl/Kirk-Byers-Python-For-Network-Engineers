@@ -252,3 +252,48 @@ TypeError: output_function() got multiple values for argument 'msg2'
 > * *TypeError: got multiple values for argument* → positional olarak zaten değer atanmış bir parametreye aynı çağrıda tekrar named argument ile değer verilmeye çalışıldığında alınan hata.
 
 ---
+
+## 4. Functions: Default Values
+
+Kirk Byers bu bölümde, fonksiyon tanımlanırken parametrelere varsayılan değer atanmasını, bu sayede çağrı sırasında ilgili argümanın opsiyonel hale gelmesini ve mevcut kodları bozmadan fonksiyonların zaman içinde nasıl genişletilebildiğini anlatmaktadır.
+
+---
+
+### 4.1 Parametrelere Varsayılan Değer Atama ve Opsiyonel Argüman Mantığı
+
+Fonksiyon tanımında bir parametreye eşittir operatörü ile doğrudan bir başlangıç değeri verilebilir.
+
+* **Opsiyonel Hale Gelme:** Varsayılan değere sahip olan bir parametreye, fonksiyon çağrılırken argüman gönderilmesi artık zorunlu değildir. Eğer çağrı sırasında bu parametre için bir değer belirtilmezse, Python tanımlama aşamasında atanan varsayılan değeri otomatik olarak kullanır.
+
+* **Override Davranışı:** Fonksiyon çağrılırken ilgili parametreye yeni bir argüman gönderilirse, gönderilen bu yeni değer tanımlı olan varsayılan değerin üzerine yazılır ve onu geçersiz kılar.
+
+* **Fonksiyonları Zaman İçinde Genişletme:** Kirk Byers, varsayılan değerlerin mevcut kod tabanını kırmadan fonksiyonlara yeni özellikler ve parametreler eklemek için son derece faydalı bir yöntem olduğunu vurgular. Eski çağrılar yeni eklenen parametreyi göndermese dahi varsayılan değer üzerinden sorunsuz çalışmaya devam eder.
+
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın derste gösterdiği yapı ve benim IPython REPL ortamındaki uygulamam:
+
+```python
+In [1]: def output_function(msg1, msg2, msg3="Selam"):
+   ...:     print(f"Output 1: {msg1}")
+   ...:     print(f"Output 2: {msg2}")
+   ...:     print(f"Output 3: {msg3}")
+   ...: 
+
+In [2]: output_function(msg2="nasılsın?", msg1="hey!")
+Output 1: hey!
+Output 2: nasılsın?
+Output 3: Selam
+```
+
+* `output_function` tanımlanırken `msg3` parametresine `"Selam"` varsayılan değeri atanmıştır.
+
+* Çağrı sırasında yalnızca `msg1` ve `msg2` için named arguments gönderildiğinden, boşta kalan `msg3` parametresi otomatik olarak varsayılan `"Selam"` değerini almıştır.
+
+> * *default value* → fonksiyon tanımında parametreye atanan ve çağrı sırasında argüman gönderilmediğinde devreye giren varsayılan değer.
+> * *override* → fonksiyon çağrısında yeni bir argüman gönderilerek parametrenin varsayılan değerinin geçersiz kılınması.
+> * *optional parameter* → varsayılan değere sahip olduğu için fonksiyon çağrılırken gönderilmesi zorunlu olmayan parametre.
+
+---
