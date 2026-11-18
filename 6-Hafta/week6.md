@@ -466,3 +466,68 @@ In [4]: def output_function(var1, var2, var3=None):
 > * *None sentinel pattern* → mutable object'lerin kalıcı olarak büyümesini engellemek için varsayılan değeri `None` yapıp içeride `if var is None:` kontrolüyle object'i başlatma tekniği.
 
 ---
+
+## 8. Functions: `*args` Kullanarak Argüman Aktarımı
+
+Kirk Byers bu bölümde, orta seviye bir konu olarak bir liste veya tuple içerisindeki öğeleri tek bir bütün olarak değil, kendi içlerindeki sırayla ayrıştırıp fonksiyona positional arguments olarak aktarmayı sağlayan **`*args`** yapısını anlatmaktadır.
+
+---
+
+### 8.1 Listeyi Doğrudan Gönderme Sorunu ve `TypeError` Analizi
+
+İki adet parametre bekleyen bir fonksiyona, içinde iki adet öğe barındıran bir liste doğrudan parametre olarak verildiğinde Python beklediğimiz eşleştirmeyi yapamaz.
+
+* **Tek Argüman Olarak Algılanma:** Listeyi doğrudan parantez içine yazdığımızda Python tüm listeyi tek bir bütün olarak ele alır ve birinci parametreye bağlar.
+
+* İkinci parametreye hiçbir argüman aktarılmadığı için çağrı başarısız olur ve `TypeError` hatası fırlatılır.
+
+---
+
+### 8.2 `*` Operatörü ile Liste veya Tuple Öğelerini Ayrıştırma
+
+Listeler ve tuple'lar doğaları gereği sıralı veri yapılarıdır; içlerinde birinci, ikinci ve üçüncü öğe gibi net bir sıra bulunur. 
+Fonksiyon çağrısında liste veya tuple değişkeninin başına **`*`** karakteri eklendiğinde Python'a *"Bu yapıyı tek bir liste olarak değil, içindeki öğeleri sırasıyla çıkararak ayrı birer positional argument olarak gönder"* talimatı verilir.
+
+* **Sıralı Eşleşme:** Listenin ilk öğesi birinci parametreye, ikinci öğesi ise ikinci parametreye positional olarak bağlanır.
+
+* **Sayı Uyumu Şartı:** Bu yöntemin hatasız çalışabilmesi için liste veya tuple içerisindeki öğe sayısı ile fonksiyon tanımındaki parametre sayısının birbirine karşılık gelmesi gerekir.
+
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın derste gösterdiği yapı ve benim IPython REPL ortamındaki uygulamam:
+
+```python
+In [1]: def output_ipaddr(ip_addr1, ip_addr2):
+   ...:     print(f"{ip_addr1=}")
+   ...:     print(f"{ip_addr2=}")
+   ...: 
+
+In [2]: ip_list = ["192.168.1.1", "192.168.0.1"]
+
+In [3]: output_ipaddr(ip_list)
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+Cell In[3], line 1
+----> 1 output_ipaddr(ip_list)
+
+TypeError: output_ipaddr() missing 1 required positional argument: 'ip_addr2'
+
+In [4]: output_ipaddr(*ip_list)
+ip_addr1='192.168.1.1'
+ip_addr2='192.168.0.1'
+```
+
+* **Traceback Satır Analizi:**
+* `Cell In[3], line 1`: Hata `output_ipaddr(ip_list)` çağrısında meydana geldi.
+* `TypeError: output_ipaddr() missing 1 required positional argument: 'ip_addr2'`: `ip_list` listesi tek bir argüman gibi davranıp doğrudan `ip_addr1` parametresine bağlandığı için `ip_addr2` boşta kalmış ve eksik argüman hatası alınmıştır.
+  
+* `output_ipaddr(*ip_list)` çağrısında ise `*` öneki listenin içindeki iki IP adresini sırasıyla açarak `ip_addr1` ve `ip_addr2` parametrelerine başarıyla yerleştirmiştir.
+
+> * **args unpacking* → fonksiyon çağrısında liste veya tuple önüne `*` konularak içindeki öğelerin sırasıyla positional arguments olarak aktarılması.
+> * *ordered sequence* → liste ve tuple gibi öğelerin belirli bir indeks sırasına göre tutulduğu veri yapıları.
+> * *TypeError: missing required positional argument* → zorunlu bir parametreye karşılık gelen argüman gönderilmediğinde alınan hata. 
+
+---
+
