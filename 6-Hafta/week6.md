@@ -415,3 +415,54 @@ IP Adresi -> 192.168.1.1
 > * ***builtins*** → `print()`, `len()` gibi Python dilinin kendi çekirdeğinde yerleşik olarak bulunan fonksiyon ve nesneleri barındıran modül.
 
 ---
+
+## 7. Functions: Ek Özellikler ve Mutable Default Value Tuzağı
+
+Kirk Byers bu bölümde, fonksiyonların ilk bakışta aşikar olmayan temel davranışlarını ve varsayılan parametre değerlerinde mutable veri yapıları kullanıldığında ortaya çıkan kritik hatayı ele almaktadır.
+
+---
+
+### 7.1 Veri Tipi Esnekliği ve Zorunlu Return Davranışı
+
+Fonksiyonların çalışma prensiplerine dair gözden kaçırılmaması gereken iki temel nokta vardır:
+
+* **Her Türden Veri Aktarımı:** Fonksiyon parametreleri ve argümanları yalnızca string ifadelerle sınırlı değildir. 'Sayı'lar, 'liste'ler, 'dictionary'ler veya daha ileri seviye senaryolarda doğrudan başka bir fonksiyonun kendisi dahi argüman olarak geçirilebilir.
+
+* **Her Zaman Bir Dönüş Değeri Vardır:** Bir fonksiyonun içinde açıkça `return` deyimi yer almasa bile fonksiyon mutlaka bir sonuç üretir. Python bu durumlarda varsayılan olarak geriye **`None`** döndürür.
+
+---
+
+### 7.2 Mutable Default Value Tuzağı ve Çözüm Yöntemi
+
+Python'da fonksiyon tanımlanırken parametrelere doğrudan **mutable** bir varsayılan değer atanmamalıdır. Listeler ve dictionary'ler mutable veri tipleri oldukları için doğrudan `var3=[]` veya `var3={}` şeklinde tanımlanmaları ciddi mantık hatalarına yol açar.
+
+* **Hatanın Arka Planındaki Neden:** Python, fonksiyon tanımındaki varsayılan değeri yalnızca fonksiyon ilk kez parse edilip belleğe tanımlandığı anda bir kere oluşturur. Fonksiyon her çağrıldığında bu object sıfırdan yeniden yaratılmaz. Bu nedenle fonksiyon içinde listeye veri eklendikçe, aynı liste her yeni çağrıda büyümeye devam eder ve beklenmeyen sonuçlar doğurur.
+
+* **Doğru Yaklaşım:** Parametrenin varsayılan değeri her zaman **`None`** olarak belirlenmeli, ardından fonksiyon gövdesi içerisinde basit bir `if var3 is None:` kontrolü ile boş liste veya boş dictionary oluşturulmalıdır. Böylece fonksiyon her çağrıldığında temiz ve yeni bir veri yapısı başlatılır.
+
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın derste gösterdiği yapı ve benim IPython REPL ortamındaki uygulamam:
+
+```python
+In [1]: # Bunu Yapma
+
+In [2]: def output_function(var1, var2, var3=[]):
+   ...:     print(var3)
+   ...: 
+
+In [3]: # Bunu Yap
+
+In [4]: def output_function(var1, var2, var3=None):
+   ...:     if var3 is None:
+   ...:         var3 = []
+   ...: 
+```
+
+> * *mutable default argument* → fonksiyon tanımında varsayılan değer olarak liste veya dictionary gibi değiştirilebilir veri yapılarının verilmesi durumu.
+> * *parse-time evaluation* → varsayılan parametre değerlerinin fonksiyon her çağrıldığında değil, yalnızca ilk tanımlandığı anda bir kez bellekte oluşturulması.
+> * *None sentinel pattern* → mutable object'lerin kalıcı olarak büyümesini engellemek için varsayılan değeri `None` yapıp içeride `if var is None:` kontrolüyle object'i başlatma tekniği.
+
+---
