@@ -531,3 +531,64 @@ ip_addr2='192.168.0.1'
 
 ---
 
+## 9. Functions: `**kwargs` Kullanarak Keyword Arguments Aktarımı
+
+Kirk Byers bu bölümde, bir dictionary içerisindeki key-value çiftlerini fonksiyon çağrısına named arguments olarak aktarmamızı sağlayan **`**kwargs`** yapısını ve tek yıldız ile çift yıldız operatörlerinin dictionary üzerindeki davranış farklarını anlatmaktadır.
+
+---
+
+### 9.1 Dictionary Aktarımında Üç Farklı Senaryo
+
+İki parametre bekleyen bir fonksiyona, bu parametrelerle aynı key isimlerine sahip bir dictionary gönderildiğinde kullanılan öneke göre üç farklı durum ortaya çıkar:
+
+1. **Önek Olmadan Doğrudan Gönderim (`func(dict)`):** Python tüm dictionary yapısını tek bir positional argument olarak ele alır ve birinci parametreye bağlar. İkinci parametre boşta kaldığı için `TypeError` hatası fırlatılır.
+
+2. **Tek Yıldız Kullanımı (`func(*dict)`):** `for` döngülerinde olduğu gibi, dictionary üzerinde tek yıldız `*` kullanıldığında Python yalnızca dictionary içerisindeki **key** isimlerini çıkarır ve bunları sırasıyla positional arguments olarak gönderir. 'Value'lar ise aktarılmaz.
+
+3. **Çift Yıldız Kullanımı (`func(**dict)`):** Dictionary önüne **`**`** eklendiğinde, yapı içerisindeki her bir key-value çifti doğrudan `key=value` biçiminde keyword arguments olarak açılır ve ilgili parametrelere bağlanır.
+
+> **Kritik Eşleşme Kuralı:**
+> `**kwargs` tekniğinin hatasız çalışabilmesi için dictionary içerisindeki **key isimlerinin fonksiyon tanımındaki parametre isimleriyle birebir aynı olması** zorunludur. 
+
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın derste gösterdiği yapı ve benim IPython REPL ortamındaki uygulamam:
+
+```python
+In [1]: def output_ipaddr(ip_addr1, ip_addr2):
+   ...:     print(f"{ip_addr1=}")
+   ...:     print(f"{ip_addr2=}")
+   ...: 
+
+In [2]: ip_addr = {"ip_addr1": "192.168.1.1", "ip_addr2": "192.168.0.1"}
+
+In [3]: output_ipaddr(ip_addr)
+---------------------------------------------------------------------------
+TypeError                                 Traceback (most recent call last)
+Cell In[3], line 1
+----> 1 output_ipaddr(ip_addr)
+
+TypeError: output_ipaddr() missing 1 required positional argument: 'ip_addr2'
+
+In [4]: output_ipaddr(*ip_addr)
+ip_addr1='ip_addr1'
+ip_addr2='ip_addr2'
+
+In [5]: output_ipaddr(**ip_addr)
+ip_addr1='192.168.1.1'
+ip_addr2='192.168.0.1'
+```
+
+* `output_ipaddr(ip_addr)` çağrısında `ip_addr` dictionary'si tek bir bütün olarak `ip_addr1` parametresine atandığından `ip_addr2` eksik kalmış ve `TypeError` hatası alınmıştır.
+
+* `output_ipaddr(*ip_addr)` çağrısında tek yıldız yalnızca `"ip_addr1"` ve `"ip_addr2"` key'lerini string olarak göndermiştir.
+
+* `output_ipaddr(**ip_addr)` çağrısında ise çift yıldız operatörü dictionary içerisindeki key-value çiftlerini named arguments olarak açmış ve IP adreslerini doğru parametrelere yerleştirmiştir.
+
+> * *kwargs unpacking* → fonksiyon çağrısında dictionary önüne `**` konularak key-value çiftlerinin named arguments olarak aktarılması.
+> * *single star on dictionary* → dictionary önüne tek `*` konulduğunda yalnızca key isimlerinin positional arguments olarak gönderilmesi.
+> * *key-parameter correspondence* → `**kwargs` kullanımında dictionary key'lerinin fonksiyon parametre adlarıyla birebir örtüşme zorunluluğu.
+
+---
