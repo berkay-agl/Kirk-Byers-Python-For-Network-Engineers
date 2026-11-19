@@ -776,7 +776,7 @@ Out[9]:
 ```python
 In [11]: [f"192.168.{x}.{y}"
     ...: for x in range(10)
-    ...: for y in range(5)
+    ...: for y in range(5)]
 Out[11]: 
 ['192.168.0.0',
  '192.168.0.1',
