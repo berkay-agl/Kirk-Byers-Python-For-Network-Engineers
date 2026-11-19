@@ -695,9 +695,9 @@ In [3]: lambda_func(x=2, y=4)
 Out[3]: 16
 ```
 
-* `my_func(2, 3)` çağrısında `x` parametresine `2`, `y` parametresine `3` değeri positional olarak atanır ve `2 ** 3` işleminin sonucu olan `8` döndürülür.
+* `lambda_func(2, 3)` çağrısında `x` parametresine `2`, `y` parametresine `3` değeri positional olarak atanır ve `2 ** 3` işleminin sonucu olan `8` döndürülür.
 
-* `my_func(x=2, y=4)` çağrısında ise named arguments kullanılarak `16` sonucu elde edilir.
+* `lambda_func(x=2, y=4)` çağrısında ise named arguments kullanılarak `16` sonucu elde edilir.
 
 ---
 
