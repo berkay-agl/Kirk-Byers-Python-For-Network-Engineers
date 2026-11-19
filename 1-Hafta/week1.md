@@ -1,4 +1,4 @@
-Lesson1 Hakkında
+# Lesson1 Hakkında
 ## 1. Giriş / Neden Python?
 
 ### 1.1 Eğitmen Hakkında 
