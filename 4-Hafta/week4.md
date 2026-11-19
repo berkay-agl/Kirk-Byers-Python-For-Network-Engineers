@@ -1178,7 +1178,7 @@ IndexError: list index out of range
 In [4]:
 ```
 
-* `except` bloğu içerisindeki loglama/mesaj satırı (`print(f"Info about exception: {str(e)}")`) çalıştırılır.
+* `except` bloğu içerisindeki loglama/mesaj satırı (`print(f"Çok kötü bir hata: {str(e)}")`) çalıştırılır.
 * Ardından gelen `raise` ifadesi, arkasında herhangi bir exception türü belirtilmese dahi yakalanan orijinal hatayı (`IndexError`) yeniden fırlatır.
 * Program çöker, terminalde `IndexError` traceback çıktısı oluşur ve `try`/`except` dışındaki satıra asla geçilemez.
 * Kirk Byers, burada istenirse orijinal hata yerine farklı bir exception türünün de `raise` edilebileceğini ekler.
