@@ -592,3 +592,203 @@ ip_addr2='192.168.0.1'
 > * *key-parameter correspondence* → `**kwargs` kullanımında dictionary key'lerinin fonksiyon parametre adlarıyla birebir örtüşme zorunluluğu.
 
 ---
+
+## 10. Functions: Fonksiyon Tanımında `*args` ve `**kwargs` Kullanımı
+
+Kirk Byers bu bölümde, bir önceki konulardaki fonksiyon çağırma yöntemlerinin tam tersi yönünü; yani fonksiyon tanımlanırken parametrelerin başına `*` ve `**` eklenerek sınırsız sayıda positional veya keyword arguments kabul eden esnek fonksiyonların nasıl inşa edildiğini anlatmaktadır.
+
+---
+
+### 10.1 Fonksiyon Tanımında `*args` ile Sınırsız Positional Arguments
+
+Fonksiyon tanımlanırken bir parametrenin önüne tek yıldız `*` konulduğunda, fonksiyon çağrılırken gönderilen istenilen sayıda positional argument tek bir yapı altında toplanır.
+
+* **Tuple Paketleme:** Python, çağrı sırasında gönderilen tüm positional argümanları gönderilme sırasına göre tek bir **tuple** object'i içerisine yerleştirir.
+
+* **İsimlendirme Geleneği:** Parametre adı olarak `args` kullanmak Python topluluğunda yaygın bir standarttır; ancak buradaki asıl işi yapan isim değil, başındaki `*` operatörüdür. İstenirse `*my_ips` gibi farklı bir isim de verilebilir.
+
+---
+
+### 10.2 Fonksiyon Tanımında `**kwargs` ile Sınırsız Keyword Arguments
+
+Fonksiyon tanımlanırken bir parametrenin önüne çift yıldız `**` konulduğunda, çağrı sırasında gönderilen istenilen sayıda key-value çifti tek bir yapıda birleştirilir.
+
+* **Dictionary Paketleme:** Python, gönderilen tüm keyword arguments çiftlerini tek bir **dictionary** object'i haline getirerek fonksiyon gövdesine aktarır.
+
+* **İsimlendirme Geleneği:** Tıpkı `*args` yapısında olduğu gibi `kwargs` ismi de bir gelenektir; Python'a bu değişkenin bir dictionary olarak paketleneceğini söyleyen şey başındaki `**` operatörüdür.
+
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın derste gösterdiği yapı ve benim IPython REPL ortamındaki uygulamam:
+
+```python
+In [1]: def output_ipaddr(*args):
+   ...:     print(type(args))
+   ...:     print(args)
+   ...: 
+
+In [2]: output_ipaddr("192.168.1.1", "192.168.1.2", "192.168.1.3")
+<class 'tuple'>
+('192.168.1.1', '192.168.1.2', '192.168.1.3')
+
+In [3]: def output_ipaddr(**kwargs):
+   ...:     print(type(kwargs))
+   ...:     print(kwargs)
+   ...: 
+
+In [4]: output_ipaddr(ip_addr1="192.168.1.1", ip_addr2="192.168.1.2", ipaddr_3="192.168.1.3")
+<class 'dict'>
+{'ip_addr1': '192.168.1.1', 'ip_addr2': '192.168.1.2', 'ipaddr_3': '192.168.1.3'}
+```
+
+* İlk fonksiyonda `*args` kullanıldığı için gönderilen üç IP adresi sırasıyla tek bir `tuple` içerisine paketlenmiştir.
+
+* İkinci fonksiyonda `**kwargs` kullanıldığı için isimlendirilmiş üç parametre çifti tek bir `dict` yapısına dönüştürülerek fonksiyona teslim edilmiştir.
+
+> * **args in definition* → fonksiyon tanımında kullanılarak sınırsız sayıda positional argument kabul eden ve bunları bir tuple içinde toplayan parametre yapısı.
+> * *kwargs in definition* → fonksiyon tanımında kullanılarak sınırsız sayıda keyword argument kabul eden ve bunları bir dictionary içinde toplayan parametre yapısı.
+> * *argument packing* → çağrı sırasında gönderilen birden fazla argümanın fonksiyon içerisinde tek bir tuple veya dictionary değişkeni altında paketlenmesi.
+
+---
+
+## 11. Functions: Lambda Expressions
+
+Kirk Byers bu bölümde, orta seviye bir konu olarak Python'da tek satırlık anonim fonksiyonlar oluşturmamızı sağlayan **Lambda Expressions** yapısını, bu yapının syntax kurallarını, sınırlarını ve özellikle sıralama işlemlerindeki pratik kullanım alanlarını anlatmaktadır.
+
+---
+
+### 11.1 Lambda Expressions Nedir ve Syntax Yapısı
+
+Lambda expressions, kendi başına bir isme sahip olmayan ve tek bir satırda tanımlanabilen anonim fonksiyonlardır.
+
+$$\text{lambda parametreler: expression}$$
+
+* **Zihinsel Çeviri Mantığı:** Kirk Byers, lambda yapısını daha kolay kavramak için sol taraftaki parametrelerin parantez içinde olduğunu, sağ taraftaki ifadenin ise başında gizli bir `return` deyimi barındırdığını düşünmeyi önerir. Yani `lambda x: x**2` ifadesi zihinde `lambda (x): return x**2` şeklinde okunabilir.
+
+* **Expression Zorunluluğu:** İki nokta üst üste `:` işaretinin sağ tarafında yer alan kısım mutlaka tek bir Python **expression** olmak zorundadır. Bu alana döngüler veya koşullu bloklar gibi tam kapsamlı statement yapıları yazılamaz.
+
+* **Çoklu Parametreler:** Virgülle ayrılarak `lambda x, y: x**y` şeklinde birden fazla parametre tanımlanabilir.
+
+---
+
+### 11.2 Değişkene Bağlama ve Çağırma Kuralları
+
+Anonim bir lambda ifadesini tekrar çağırabilmek için onu bir değişkene atayabiliriz.
+
+* **Standart Çağırma Kuralları:** Bir değişkene bağlanan lambda fonksiyonu çağrılırken normal fonksiyonlardaki tüm kurallar birebir geçerlidir. Argümanlar hem positional olarak hem de named arguments biçiminde gönderilebilir.
+
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın derste gösterdiği ve benim test ettiğim örnek kod yapısı ve çıktıları:
+
+```python
+In [1]: lambda_func = lambda x, y: x ** y
+
+In [2]: lambda_func(2 ,3)
+Out[2]: 8
+
+In [3]: lambda_func(x=2, y=4)
+Out[3]: 16
+```
+
+* `my_func(2, 3)` çağrısında `x` parametresine `2`, `y` parametresine `3` değeri positional olarak atanır ve `2 ** 3` işleminin sonucu olan `8` döndürülür.
+
+* `my_func(x=2, y=4)` çağrısında ise named arguments kullanılarak `16` sonucu elde edilir.
+
+---
+
+### 11.3 `sorted()` Fonksiyonu ile Lambda Kullanımı
+
+Lambda ifadelerinin en yaygın ve pratik kullanım alanı, `sorted()` fonksiyonunun varsayılan sıralama davranışını `key` parametresi üzerinden özelleştirmektir.
+
+#### 1. String Listelerinde Büyük/Küçük Harf Duyarlılığını Aşma
+
+`sorted()` fonksiyonu string öğeleri varsayılan olarak en düşük ASCII değerine göre sıralar. ASCII tablosunda büyük harflerin sayısal değerleri küçük harflerden daha düşük olduğu için büyük harfle başlayan kelimeler her zaman listenin en başına yerleşir.
+
+* **Fonksiyon Referansı vs. Lambda:** `key` parametresine fonksiyon gönderilirken sonuna parantez konulmaz; fonksiyonun kendisi çağrılmaz, yalnızca referansı iletilir (`key=str.lower`). Aynı işlem anlık bir lambda fonksiyonu ile `key=lambda word: word.lower()` şeklinde de yazılabilir.
+
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın kelime listesi sıralama örneği ve çıktıları:
+
+```python
+In [1]: words = ['Selam', 'kanka', 've', 'sen', 'Neredesin', 'Gel', 'Artık', 'alacağım', 'Zordayım', 'ok']
+
+In [2]: sorted(words)
+Out[2]: 
+['Artık',
+ 'Gel',
+ 'Neredesin',
+ 'Selam',
+ 'Zordayım',
+ 'alacağım',
+ 'kanka',
+ 'ok',
+ 'sen',
+ 've']
+
+In [3]: sorted(words, key=str.lower)
+Out[3]: 
+['alacağım',
+ 'Artık',
+ 'Gel',
+ 'kanka',
+ 'Neredesin',
+ 'ok',
+ 'Selam',
+ 'sen',
+ 've',
+ 'Zordayım']
+
+In [4]: sorted(words, key=lambda word: word.lower())
+Out[4]: 
+['alacağım',
+ 'Artık',
+ 'Gel',
+ 'kanka',
+ 'Neredesin',
+ 'ok',
+ 'Selam',
+ 'sen',
+ 've',
+ 'Zordayım']
+```
+
+#### 2. Tuple Listelerini İstenen İndekse Göre Sıralama
+
+İçinde isim ve yaş bilgisini tutan tuple öğelerinden oluşan bir liste varsayılan olarak sıralandığında, Python her bir tuple'ın sıfırıncı indeksindeki ilk öğeye yani isme göre ASCII sıralaması yapar.
+
+* **Yaşa Göre Sıralama:** Sıralamayı isim yerine yaşa göre yapmak için `key=lambda kisiler_tuple: kisiler_tuple[1]` ifadesi kullanılır.
+
+* **Değişken İsimlendirme Esnekliği:** `lambda` kelimesinden sonra gelen `kisiler_tuple` ismi tamamen geliştiricinin seçtiği bir parametre adıdır; yerine `x` veya başka bir isim de yazılabilir.
+  
+---
+
+#### IPython Uygulaması
+
+Kirk Byers'ın tuple listesi sıralama mantığı ve benim test ettiğim şekilde çıktıları:
+
+```python
+In [1]: kisiler = [('Berkay', 20), ('Irem', 18), ('Berk', 10)]
+
+In [2]: sorted(kisiler)
+Out[2]: [('Berk', 10), ('Berkay', 20), ('Irem', 18)]
+
+In [3]: sorted(kisiler, key=lambda kisiler_tuple: kisiler_tuple[1])
+Out[3]: [('Berk', 10), ('Irem', 18), ('Berkay', 20)]
+```
+
+> **Kirk Byers'ın Önerisi:** Lambda ifadeleri yalnızca basit tek satırlık işlemler için pratik bir kısayoldur. Eğer bir lambda ifadesi gözünüze karmaşık veya kafa karıştırıcı görünüyorsa, her zaman klasik `def` anahtar kelimesiyle normal ve isimli bir fonksiyon tanımlamayı tercih edebilirsiniz.
+
+> * *lambda expression* → tek satırda tanımlanan, kendi ismi bulunmayan ve tek bir expression sonucu döndüren anonim fonksiyon.
+> * *callable reference* → `sorted(words, key=str.lower)` örneğinde olduğu gibi bir fonksiyonu parantez açıp çalıştırmadan doğrudan referans olarak başka bir fonksiyona iletme.
+> * *ASCII sorting* → metinlerin karakter kodlarındaki sayısal değerlere göre sıralanması ve büyük harflerin küçük harflerden önce gelmesi durumu.
+> * *key parameter* → `sorted()` fonksiyonunda her bir öğenin sıralama karşılaştırmasından önce hangi kurala göre dönüştürüleceğini belirleyen parametre.
+
+---
