@@ -1,3 +1,5 @@
+# Lesson6 Hakkında
+---
 ## 1. Giriş: Table of Contents
 
 Lesson 6 kapsamında Python'da modüler programlamanın temel taşı olan **Functions** ve tek satırlık anonim fonksiyon yapıları olan **Lambda Expressions** konuları ele alınmaktadır.
