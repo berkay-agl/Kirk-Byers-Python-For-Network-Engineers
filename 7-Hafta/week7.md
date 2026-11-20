@@ -99,6 +99,101 @@ class TelnetConn:
 
 > * **blueprint** → Object'lerin oluşturulma kurallarını ve sahip olacağı metotları belirleyen class tanımı. 
 > * **`__init__`** → Bir class'tan yeni bir object türetildiğinde, o object'in başlangıç verilerini (attributes) hazırlayan özel metot.
-> * **concurrent objects** → Aynı class taslağından üretilmiş ve bellekte aynı anda birbirinden bağımsız olarak yaşayabilen object'ler. 
+> * **concurrent objects** → Aynı class taslağından üretilmiş ve bellekte aynı anda birbirinden bağımsız olarak yaşayabilen object'ler.
+
+---
+
+## 4. Class Syntax ve `__init__` (Dunder-Init)
+
+Bir class tanımlarken, oluşturulacak object'lerin blueprint'ini ve sahip olacağı method'ları belirli kurallara göre yazarız.
+
+```python
+class TelnetConn:
+    def __init__(self, host, username, password):
+        self.host = host
+        self.username = username
+        self.password = password
+
+        # Create telnet connection
+        self.telnet_conn = Telnet(self.host)
+```
+
+### 4.1 Class Tanımlama Kuralları
+
+* **`class` Keyword ve İsimlendirme:** Class tanımı `class` anahtar kelimesi ile başlar. İsimlendirme standardı olarak **PascalCase** kullanılır; yani her kelimenin ilk harfi büyük yazılır, geri kalan harfler küçük olur ve kelimeler arasında alt çizgi (`_`) kullanılmaz.
+
+* **Inheritance ve Parantezler:** Class isminden sonra parantez açılarak hangi class'tan inheritance yani kalıtım alınacağı belirtilebilir. Ancak başka bir class'tan inheritance alınmıyorsa, Python'daki temel `object` yapısından varsayılan olarak inheritance alındığı için parantez yazmaya gerek yoktur ve doğrudan `:` (iki nokta) ile blok başlatılır.
+
+* **Method Syntax'ı:** Class içerisindeki method'lar, normal fonksiyonlarla tamamen aynı şekilde `def` anahtar kelimesi ile tanımlanır.
+
+### 4.2 `__init__` Method'u ve Attribute Bağlama 
+
+İki alt çizgi ile başlayıp iki alt çizgi ile biten `__init__` (dunder-init), yeni bir object bellekte oluşturulduktan hemen sonra Python tarafından otomatik olarak çağrılan özel initialization yani başlatma method'udur.
+
+* **`self` Parametresi:** `__init__` (ve diğer tüm standart method'ların) ilk parametresi neredeyse her zaman `self` olur. `self` dışındaki diğer parametreler (`host`, `username`, `password`) normal fonksiyon kurallarına tabidir ve default değerler alabilir.
+
+* **Argümanları Object'e Bağlama:** `__init__` içerisindeki en temel işlem, dışarıdan gönderilen argümanları bellekteki object'in kendisine bağlamaktır. Bunun için **dot notation** (`self.host = host`) kullanılır.
+
+* **Attributes Yapısı:** `self.host`, `self.username` ve `self.password` ifadeleri, bellekteki object'in üzerine yapıştırılmış değişkenler (**attributes**) gibidir. Dışarıdan bu verilere erişmek için object referansı üzerinden `tc.host` veya `tc.username` şeklinde nokta notasyonu kullanılır.
+
+* **Ek Başlatma İşlemleri:** `__init__` içerisinde sadece dışarıdan gelen argümanları bağlamakla kalmayıp, `self.telnet_conn = Telnet(self.host)` örneğinde olduğu gibi uzak sisteme doğrudan bağlantı başlatan yeni attribute'ler de oluşturabiliriz.
+
+> * **PascalCase** → Class isimlendirmelerinde kullanılan, kelimelerin ilk harfinin büyük yazıldığı ve alt çizgi içermeyen yazım standardı.
+> * **`__init__` (dunder-init)** → Object bellekte oluşturulduktan hemen sonra çalışan ve object'in başlangıç attribute'lerini hazırlayan özel method.
+> * **attribute** → Bir object'e nokta notasyonu ile bağlanan ve o object'in durumunu tutan değişken.
+
+---
+
+## 5. Object Oluşturma Süreci
+
+Tanımladığımız class blueprint'ini kullanarak gerçek bir object oluşturmak için class adını tıpkı bir fonksiyon gibi çağırır ve `__init__` method'unun beklediği argümanları göndeririz.
+
+```python
+tc = TelnetConn(
+    host="host1.domain.com",
+    username="admin",
+    password="cisco123",
+)
+```
+
+> **Kritik Python Kuralı:** Object oluştururken parantez içine kesinlikle `self` argümanı **gönderilmez**. `self` referansı Python tarafından arka planda otomatik olarak geçirilir. Diğer tüm argümanlar (`host`, `username`, `password`) fonksiyonlarda olduğu gibi positional, named veya ikisinin karışımı şeklinde gönderilebilir.
+
+### 5.1 Arka Planda `self`, `__new__` ve `__init__` Akışı
+
+Python'da `tc = TelnetConn(...)` satırı çalıştırıldığında bellekte şu adımlar sırasıyla gerçekleşir:
+
+1. **`__new__` Çağrısı:** Python ilk olarak arka planda built-in `__new__` method'unu çağırır. Bu method bellekte boş bir object konteyneri ayırır (genellikle müdahale edilmez ve yeniden yazılmaz).
+
+2. **`__init__` Çağrısı ve `self` Aktarımı:** Python hemen ardından `__init__` method'unu çağırır ve bellekte az önce oluşturduğu o object'in referansını ilk argüman olarak (`self` değişkenine bağlayarak) içeri gönderir. İlk parametrenin adının `self` olması zorunlu bir syntax kuralı değil, çok güçlü bir topluluk standardıdır.
+
+3. **Referans Eşleşmesi (`self` ve `tc`):** `__init__` içindeki tüm atamalar tamamlandığında, dışarıdaki `tc` değişkeni bellekteki aynı object'i işaret etmeye başlar. Yani class içindeki `self` ile dışarıdaki `tc` bellekteki birebir aynı konteynere referans verir.
+
+4. **Verilere Erişim:** İşlem bittiğinde `tc.host` (`"host1.domain.com"`), `tc.username` (`"admin"`), `tc.password` (`"cisco123"`) ve `tc.telnet_conn` attribute'leri üzerinden object'in verilerine doğrudan erişilebilir.
+
+### 5.2 Aynı Anda Birden Fazla Object Yaşatmak
+
+Aynı class blueprint'ini kullanarak bellekte aynı anda birbirinden tamamen bağımsız birden fazla object oluşturabiliriz:
+
+```python
+tc1 = TelnetConn(
+    host="host1.domain.com",
+    username="admin",
+    password="cisco123",
+)
+
+tc2 = TelnetConn(
+    host="host2.domain.com",
+    username="admin",
+    password="cisco123",
+)
+```
+
+* `tc1` ve `tc2` aynı `TelnetConn` blueprint'ini kullanır ancak bellekte tamamen farklı iki ayrı object konteynerini işaret eder.
+
+* Tıpkı listeler ve dictionary'ler gibi object'ler de uzun ömürlüdür ve kod çalıştığı sürece bellekte aynı anda varlıklarını sürdürürler.
+
+> * **`__new__`** → Python'da object oluşturma sürecinin en başında çalışan ve bellekte boş object konteynerini yaratan built-in method.
+> * **`self`** → Class içerisindeki method'lara ilk argüman olarak otomatik gönderilen ve bellekteki o anki object'i işaret eden referans.
+> * **dot notation** → Object'lerin sahip olduğu attribute veya method'lara `object.attribute` şeklinde erişim sağlayan nokta yazımı.
 
 ---
