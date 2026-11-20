@@ -72,15 +72,15 @@ Bunun sağladığı en büyük avantajlar şunlardır:
 
 **1) Sistem seviyesinde çakışmaları önlemek**
 
-Gereken bağımlılıkları sadece bu ortama yüklersiniz. Böylece hem işletim sisteminizin genelinde çalışan uygulamaları bozma riskiniz ortadan kalkar hem de sistem düzeyinde yapılan bir güncellemenin sizin projenizi bozmasının önüne geçersiniz.
+Gereken dependencies'leri yani bağımlılıkları sadece bu ortama yüklersiniz. Böylece hem işletim sisteminizin genelinde çalışan uygulamaları bozma riskiniz ortadan kalkar hem de sistem düzeyinde yapılan bir güncellemenin sizin projenizi bozmasının önüne geçersiniz.
 
-**2) Proje bazlı bağımlılık yönetimi**
+**2) Proje bazlı dependencies yönetimi**
 
-Aynı makinede birden fazla işle uğraşıyor olabilirsiniz. Örneğin API'lerle çalışırken `requests` kütüphanesinin belirli bir sürümüne ihtiyaç duyabilirsiniz; network otomasyonu için ise `netmiko` ve onun gerektirdiği farklı bağımlılıkları kullanmanız gerekebilir. Her iki iş için ayrı sanal ortamlar açarak kütüphane sürümlerinin birbirine girmesini engellersiniz. 
+Aynı makinede birden fazla işle uğraşıyor olabilirsiniz. Örneğin API'lerle çalışırken `requests` kütüphanesinin belirli bir sürümüne ihtiyaç duyabilirsiniz; network otomasyonu için ise `netmiko` ve onun gerektirdiği farklı dependencies'leri kullanmanız gerekebilir. Her iki iş için ayrı virtual environment açarak kütüphane sürümlerinin birbirine girmesini engellersiniz. 
 Bu sayede hem ders için temiz bir ortamınız olur hem de diğer projeleriniz bundan etkilenmez.
 
 > * *virtual environment* → işletim sisteminden izole, projeye özel bağımsız Python çalışma alanı.
-> * *bağımlılıklar/dependencies* → bir script'in veya projenin çalışabilmesi için dışarıdan ihtiyaç duyduğu paket ve kütüphaneler.
+> * *dependencies* → bir script'in veya projenin çalışabilmesi için dışarıdan ihtiyaç duyduğu paket ve kütüphaneler.
 > * *sandbox* → dış dünyayı etkilemeyen ve dışarıdan etkilenmeyen, güvenli ve izole edilmiş çalışma alanı.
 
 ---
