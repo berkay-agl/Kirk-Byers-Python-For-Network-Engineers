@@ -197,3 +197,214 @@ tc2 = TelnetConn(
 > * **dot notation** → Object'lerin sahip olduğu attribute veya method'lara `object.attribute` şeklinde erişim sağlayan nokta yazımı.
 
 ---
+
+## 6. Methods (Metotlar)
+
+Class'ların ve object'lerin bir diğer temel parçası, oluşturduğumuz object'ler üzerinde gerçekleştirebileceğimiz eylemlerdir. 
+Bu eylemlere **Methods** adı verilir. En basit tanımıyla method'lar, bir class bağlamı içerisine yerleştirilmiş fonksiyonlardır.
+
+```python
+class TelnetConn:
+    def __init__(self, host, username, password):
+        self.host = host
+        self.username = username
+        self.password = password
+
+        # Create telnet connection
+        self.telnet_conn = Telnet(self.host)
+
+    def write(self, data):
+        byte_data = data.encode()
+        self.telnet_conn.write(byte_data)
+
+    def read(self, sleep=1.5):
+        time.sleep(sleep)
+        data = self.telnet_conn.read_very_eager().decode()
+        return data
+
+    def login(self):
+        debug = False
+        prompt_terminator = r"#"
+```
+
+### 6.1 Method Syntax ve Çalışma Kuralları
+
+Standart method'ların yazım kuralları `__init__` ve normal fonksiyonlarla aynı temele dayanır:
+
+* **`def` Keyword ve İsimlendirme:** Method tanımları `def` anahtar kelimesi ve method adı ile başlar.
+
+* **`self` Parametresi:** Standart class method'larında ilk parametre her zaman `self` olarak tanımlanır. `self`, method içerisinden o object'e bağlı tüm attribute'lere (`self.telnet_conn`, `self.username`, `self.password`) erişmemizi sağlar.
+
+* **Ek Parametreler ve Default Değerler:** `self` sonrasında tıpkı normal fonksiyonlarda olduğu gibi ek parametreler alabilir (`data`) ve bu parametrelere varsayılan değerler (`sleep=1.5`) atanabilir.
+
+* **Nested Object Erişimi:** `self.telnet_conn` attribute'ü, Python'ın `telnetlib` kütüphanesinden türetilmiş kendi başına ayrı bir Telnet object'idir. Bu nedenle method içerisinde `self.telnet_conn.write(byte_data)` veya `self.telnet_conn.read_very_eager()` yazarak o alt object'in kendi method'larını da çağırabiliriz.
+
+* **`return` Davranışı:** Method'lar tıpkı fonksiyonlar gibi `return` ifadesi ile dışarıya veri döndürebilir (`read` method'unun okuduğu metni döndürmesi gibi). Eğer açıkça bir `return` yazılmazsa (`write` method'undaki gibi), Python arka planda örtük olarak `None` döndürür.
+
+### 6.2 Method'ların Kullanılması: Tekil ve Ardışık Çağrılar
+
+Tanımlanan method'ları çağırmak için oluşturulmuş object değişkeni üzerinden **dot notation** ve parantez (`object_name.method_name()`) kullanılır.
+
+#### Tekil Method Çağrısı ve İlk Okuma
+
+İlk olarak bir `TelnetConn` object'i oluşturup tek başına `tc1.read()` method'unu çağırdığımızda cihazdan ilk gelen karşılama verisini alırız:
+
+```python
+tc1 = TelnetConn(
+    host=host1,
+    username=username,
+    password=password,
+)
+data = tc1.read()
+print(data)
+```
+
+Bu kod çalıştırıldığında elde edilen terminal çıktısı:
+
+```bash
+Enter router password:
+
+User Access Verification
+
+Username:
+```
+
+#### Ardışık Method Çağrıları ile Oturum Açma
+
+Birden fazla `read()` ve `write()` çağrısını art arda kullanarak router'a kullanıcı adı ve parola gönderip oturum açabiliriz:
+
+```python
+tc1 = TelnetConn(
+    host=host1,
+    username=username,
+    password=password,
+)
+data = tc1.read()
+tc1.write(f"{username}\n")
+data += tc1.read()
+tc1.write(f"{password}\n")
+data += tc1.read()
+print(data)
+```
+
+Bu kod çalıştırıldığında tüm çıktının birikmiş hali ekrana yazdırılır:
+
+```bash
+Enter router password:
+
+User Access Verification
+
+Username: pyclass
+Password:
+
+cisco1#
+```
+
+### 6.3 Adım Adım Okuma Dökümü
+
+Yukarıdaki ardışık çağrıların her bir `read()` adımında tam olarak ne okuduğunu izole edip görmek için `read_number` sayacı ile adım adım analiz yapabiliriz:
+
+```python
+tc1 = TelnetConn(
+    host=host1,
+    username=username,
+    password=password,
+)
+
+read_number = 1
+data = tc1.read()
+print(f">>> {read_number=}")
+print(data)
+print(">>>")
+tc1.write(f"{username}\n")
+data = tc1.read()
+read_number += 1
+print(f">>> {read_number=}")
+print(data)
+print(">>>")
+tc1.write(f"{password}\n")
+data = tc1.read()
+read_number += 1
+print(f">>> {read_number=}")
+print(data)
+print(">>>")
+```
+
+Bu kod çalıştırıldığında elde edilen terminal çıktısı:
+
+```bash
+Enter router password:
+>>> read_number=1
+
+User Access Verification
+
+Username:
+>>>
+>>> read_number=2
+pyclass
+Password:
+>>>
+>>> read_number=3
+
+cisco1#
+>>>
+```
+
+Yukarıdaki çıktıda her bir okuma adımının cihaz tarafındaki karşılığı şu şekildedir:
+
+1. **`tc1.read()` (`read_number=1`):** Cihaza ilk bağlanıldığında gelen karşılama ekranını ve kullanıcı adı istemini (`User Access Verification` ve `Username:`) okur.
+
+2. **`tc1.write(f"{username}\n")` ve `tc1.read()` (`read_number=2`):** Kullanıcı adını kanala gönderir. İkinci okuma, gönderdiğimiz kullanıcı adının ekrana yansıyan yankısını (echoed username: `pyclass`) ve hemen ardından gelen `Password:` istemini yakalar.
+
+3. **`tc1.write(f"{password}\n")` ve `tc1.read()` (`read_number=3`):** Parolayı kanala gönderir. Güvenlik nedeniyle parola cihaz tarafından ekrana geri yansıtılmaz (echo edilmez); üçüncü okuma doğrudan oturumun açıldığını gösteren router prompt'unu (`cisco1#`) döndürür.
+
+### 6.4 Method İçinden Başka Method'ları Çağırmak
+
+Bir class method'u kendi içerisinden, `self` referansını kullanarak aynı class'a ait diğer method'ları çağırabilir. 
+Böylece tüm oturum açma etkileşimini tek bir `login()` method'u içerisine sarabiliriz:
+
+```python
+    def login(self):
+        debug = False
+        prompt_terminator = r"#"
+
+        data = self.read()
+        output = data
+        if re.search(r"sername", data):
+            self.write(self.username + "\n")
+            data = self.read()
+            output += data
+        if re.search(r"ssword", data):
+            self.write(self.password + "\n")
+            data = self.read()
+            output += data
+
+        if debug:
+            print(output)
+
+        if re.search(prompt_terminator, data):
+            return True
+        else:
+            return False
+```
+
+* **Nested Method Çağrısı:** `login` method'u içerisinde `self.read()` ve `self.write(...)` çağrıları yapılarak okuma-yazma adımları otomatize edilir.
+
+* **Object Attribute'lerinin Kullanımı:** Method içerisinde dışarıdan tekrar kullanıcı adı veya parola almaya gerek kalmadan, object oluşturulurken bağlanan `self.username` ve `self.password` attribute'leri doğrudan kullanılır.
+
+* **Basitleştirilmiş Kullanım:** Tüm oturum açma mantığı `login` içerisine sarıldığı için dışarıdaki kullanım artık sadece şu iki adıma iner:
+
+```python
+tc1 = TelnetConn(
+    host=host1,
+    username=username,
+    password=password,
+)
+tc1.login()
+```
+
+> * **method** → Bir class içerisinde tanımlanan, ilk parametresi `self` olan ve object'in attribute'leri ile diğer method'larına erişebilen fonksiyon.
+> * **`self.method()`** → Bir method'un kendi içerisinden aynı object'e ait başka bir method'u çağırma yöntemi.
+> * **implicit `None**` → İçerisinde `return` ifadesi bulunmayan method'ların çalışması bittiğinde Python tarafından otomatik döndürülen değer.
+
+---
