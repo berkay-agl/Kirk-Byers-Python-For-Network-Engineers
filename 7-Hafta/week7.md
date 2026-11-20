@@ -408,3 +408,117 @@ tc1.login()
 > * **implicit `None**` → İçerisinde `return` ifadesi bulunmayan method'ların çalışması bittiğinde Python tarafından otomatik döndürülen değer.
 
 ---
+
+## 7. Static Methods (Statik Metotlar)
+
+Class'lar ve object'ler ile çalışırken bazen sınıfın konusuyla ilişkili bir işlem yapmak isteriz ancak bu işlem sırasında bellekteki object'e veya o object'in verilerine (`self`) **hiç ihtiyaç duymayız**.
+Yani class yapısı içerisinde duran ancak tıpkı bağımsız bir fonksiyon gibi çalışan yapılara ihtiyaç duyarız.
+
+```python
+@staticmethod
+def ornek_method(arg1="Nasılsın?"):
+    print(arg1)
+```
+
+### 7.1 `@staticmethod` Decorator ve Syntax Kuralları
+
+Bir method'u static method olarak tanımlamak için Python'ın built-in decorator mekanizması kullanılır:
+
+* **`@staticmethod` Decorator:** Method tanımının hemen bir üst satırına `@staticmethod` ifadesi yazılır. Herhangi bir modül veya kütüphane `import` etmeye gerek yoktur; Python'ın built-in bir özelliğidir.
+
+* **`self` Parametresinin Olmaması:** Standart method'ların aksine parametre listesinde `self` referansı yer almaz. Python bu method çağrıldığında ilk argüman olarak object referansını içeri geçirmez; method yalnızca tanımlanan standart parametreleri alır.
+
+* **Decorator Mantığı:** Decorator'lar, fonksiyonların veya method'ların varsayılan davranışlarını değiştiren özel düzenleyicilerdir. `@staticmethod` decorator'ı, normalde ilk argüman olarak `self` bekleyen bir class method'unun bu varsayılan davranışını değiştirerek onu `self` almayan bir yapıya dönüştürür.
+
+### 7.2 Object'e İhtiyaç Duyulmadığında 3 Tasarım Seçeneği
+
+Bir class ile ilişkili bir eylem gerçekleştirirken `self` referansına ihtiyaç duymadığımız durumlarda önümüzde üç farklı mimari seçenek bulunur:
+
+#### Seçenek 1: Class Dışında Standart Fonksiyon Kullanmak
+
+İşlemi class blueprint'inin tamamen dışında bağımsız bir Python fonksiyonu olarak tanımlayıp doğrudan çağırmak:
+
+```python
+def ornek_func(param):
+    print("Merhaba")
+```
+
+#### Seçenek 2: `self` İçeren Ama Kullanmayan Standart Method Yazmak
+
+İşlemi class blueprint'i içerisinde normal bir method olarak tanımlamak, parametre listesine `self` eklemek ancak method gövdesinde `self` referansını hiç kullanmayıp tamamen görmezden gelmek:
+
+```python
+class MyClass:
+    def ornek(self, param):
+        print("Merhaba")
+```
+
+#### Seçenek 3: `@staticmethod` Kullanmak
+
+İşlemi class blueprint'i içerisinde tutmak ancak `@staticmethod` decorator'ı kullanarak `self` referansını tamamen ortadan kaldırmak:
+
+```python
+class MyClass:
+    @staticmethod
+    def ornek(param):
+        print("merhaba")
+```
+
+### 7.3 Seçenekler Arası Karşılaştırma ve Mimari Tercihler
+
+#### Neden Standart Method Yerine Static Method Seçilir? (Seçenek 3 vs. Seçenek 2)
+
+Class hiyerarşisi içinde kalmaya karar verdiğimizde, kullanılmayan bir `self` parametresi tutmak yerine static method kullanmanın iki temel avantajı vardır:
+
+1. **Daha Temiz Kod:** İçeride hiç kullanılmayacak bir `self` parametresini tanımlamak hem kod okunabilirliğini bozar ("Bu `self` burada neden var?") hem de linter araçlarının kullanılmayan değişken uyarıları üretmesine yol açar.
+
+2. **Daha Düşük Kaynak Tüketimi:** Static method'lar, object'e bağlanan standart method'lara kıyasla arka planda çok küçük bir farkla da olsa daha az sistem kaynağı tüketir.
+
+#### Neden Class Dışında Fonksiyon Yerine Static Method Seçilir? (Seçenek 3 vs. Seçenek 1)
+
+Class dışında standart bir fonksiyon yazmak çoğu senaryoda tamamen geçerli bir seçenek olsa da, static method kullanmayı gerektiren iki önemli mimari neden vardır:
+
+1. **Class Hiyerarşisi ve Inheritance:** Farklı ağ cihazı platformları (Cisco IOS, Juniper Junos, Fortinet vb.) için bir base class ve bu base class'tan türeyen alt driver class'ları oluşturduğumuzda, her platformun kendine özgü davranışını alt class içinde ilgili static method'u yeniden yazarak yönetebiliriz. Class dışında standart fonksiyonlar kullansaydık, platform türüne göre doğru fonksiyonu seçmek için `if/elif` bloklarından oluşan ek bir **dispatcher** fonksiyonu yazmak ve class hiyerarşisini manuel olarak taklit etmek zorunda kalırdık:
+
+```python
+def dispatcher_func(platform):
+    if platform == "cisco_ios":
+        return ios_func()
+    elif platform == "juniper_junos":
+        return junos_func()
+    elif platform == "fortinet":
+        return fortinet_func()
+```
+
+2. **Yapısal Organizasyon:** Halihazırda bir class blueprint'i ve yapısı üzerinde çalışılıyorsa, o class ile doğrudan ilgili yardımcı bir işlemi başka bir dosyaya veya dışarıya taşıyıp tekrar `import` etmek yerine doğrudan kendi class yapısı içinde organize etmek kodu çok daha düzenli hale getirir.
+
+### 7.4 Gerçek Dünya Örneği: Netmiko `BaseFileTransfer`
+
+Network otomasyonu kütüphanesi **Netmiko** içerisinde, Secure Copy (SCP) dosya transferlerini yöneten `BaseFileTransfer` sınıfında uzak cihaza aktarılan dosyanın checksum'unu doğrulamak için `@staticmethod` kullanılır:
+
+```python
+    @staticmethod
+    def process_md5(md5_output, pattern=r"=\s+(\S+)"):
+        """
+        Process the string to retrieve the MD5 hash
+
+        Output from Cisco IOS (ASA is similar)
+        .MD5 of flash:file_name Done!
+        verify /md5 (flash:file_name) = 410db2a7015eaa42b1fe71f1bf3d59a2
+        """
+        match = re.search(pattern, md5_output)
+        if match:
+            return match.group(1)
+        else:
+            raise ValueError(f"Invalid output from MD5 command: {md5_output}")
+```
+
+* **Neden `self` Yok?** `process_md5` method'u yalnızca cihazdan dönen metin çıktısını (`md5_output`) alıp regex ile MD5 hash değerini ayıklar. Bağlantı object'ine veya object attribute'lerine (`self`) hiçbir ihtiyacı yoktur.
+
+* **Platforma Göre Tanımlama:** Bu varsayılan davranış Cisco IOS ve Cisco ASA çıktıları (`verify /md5 ... = <hash>`) için geçerlidir. Farklı çıktı formatlarına sahip diğer vendor'lerin alt class'larında bu static method kendi formatlarına göre yeniden tanımlanır.
+
+> * **`@staticmethod`** → Bir class içerisinde tanımlanan ancak object referansı (`self`) almayan ve bağımsız bir fonksiyon gibi çalışan method'ları tanımlayan built-in decorator.
+> * **decorator** → Fonksiyon veya method'ların varsayılan çalışma davranışını değiştiren özel yapı.
+> * **dispatcher pattern** → Gelen parametreye veya platform türüne göre ilgili alt fonksiyonu koşullu ifadelerle (`if/elif`) seçip yönlendiren fonksiyon yapısı.
+
+---
