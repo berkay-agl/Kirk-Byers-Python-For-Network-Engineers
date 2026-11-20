@@ -791,5 +791,3 @@ Out[3]: [('Berk', 10), ('Irem', 18), ('Berkay', 20)]
 > * *callable reference* → `sorted(words, key=str.lower)` örneğinde olduğu gibi bir fonksiyonu parantez açıp çalıştırmadan doğrudan referans olarak başka bir fonksiyona iletme.
 > * *ASCII sorting* → metinlerin karakter kodlarındaki sayısal değerlere göre sıralanması ve büyük harflerin küçük harflerden önce gelmesi durumu.
 > * *key parameter* → `sorted()` fonksiyonunda her bir öğenin sıralama karşılaştırmasından önce hangi kurala göre dönüştürüleceğini belirleyen parametre.
-
----
