@@ -7,7 +7,7 @@ Kurs, **Kirk Byers** tarafından anlatılıyor. Kendisi uzun yıllardır network
 
 Ayrıca Kirk Byers, network automation dünyasında çok bilinen bir Python library'si olan **Netmiko**'nun yaratıcısıdır. 
 Netmiko, network cihazlarına (router, switch vs.) SSH üzerinden bağlanıp komut çalıştırmayı kolaylaştıran bir library'dir — network automation alanında en çok kullanılan araçlardan biridir. 
-Bunun yanı sıra **NAPALM** ve **NORNIR** gibi diğer popüler open source network automation kütüphanelerinin geliştirilmesine de katkıda bulunmuş.
+Bunun yanı sıra **NAPALM** ve **NORNIR** gibi diğer popüler open source network automation library'lerinin geliştirilmesine de katkıda bulunmuştur.
 
 Şu anda ana mesleği, network automation eğitmenliği — hem Python hem de Ansible ve Nornir konularında eğitimler veriyor.
 
