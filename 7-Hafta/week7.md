@@ -614,3 +614,127 @@ NetDevice Object test1.domain.com:22
 > * **magic / dunder methods (`__method__`)** → Başında ve sonunda çift alt çizgi bulunan, Python tarafından özel durumlarda otomatik tetiklenen built-in method'lar.
 
 ---
+
+## 9. Properties (Özellikler)
+
+Class'larımızda başlangıçta standart attribute'ler (`host`, `username`, `password`) tanımlarız; ancak zamanla bu attribute'lere erişildiğinde veya değerleri değiştirildiğinde arka planda ekstra bir eylemin gerçekleşmesini isteyebiliriz.
+
+Yani bir attribute'ün dışarıdan standart bir veri gibi görünmesini, ancak arka planda bir **method** gibi çalışmasını isteriz.
+
+```python
+class TelnetConn:
+    def __init__(self, host, username, password):
+        self.host = host
+        self.username = username
+        self.password = password
+
+        # Create telnet connection
+        self.telnet_conn = Telnet(self.host)
+```
+
+> **Senaryo:** `host` attribute'üne her erişildiğinde sadece değerinin döndürülmesini değil, aynı zamanda ekrana `"Hello World"` mesajının yazdırılmasını ve ardından `host` attribute değerinin döndürülmesini istiyoruz.
+
+### 9.1 Klasik Çözüm: Getters ve Setters Yaklaşımı
+
+Birçok programlama dilinde bu problem **Getters** (değer okuyan method'lar) ve **Setters** (değer atayan method'lar) pattern'i ile çözülür. Bu yaklaşımda gerçek veri `_host` gibi private bir attribute içerisine gizlenir ve dışarıdan erişim `get_host()` ile `set_host()` method'ları üzerinden sağlanır:
+
+```python
+class TelnetConn:
+    def __init__(self, host, username, password):
+        self._host = host
+        self.username = username
+        self.password = password
+
+        # Create telnet connection
+        self.telnet_conn = Telnet(self._host)
+
+    def get_host(self):
+        print("Hello world")
+        return self._host
+
+    def set_host(self, value):
+        self._host = value
+```
+
+`pdbr` debugger üzerinde getter ve setter davranışı:
+
+```text
+(Pdbr) tc.host
+*** AttributeError: 'TelnetConn' object has no attribute 'host'
+(Pdbr) tc.get_host()
+Hello world
+'rtr2.lasthop.io'
+```
+
+### 9.2 Getters ve Setters Yaklaşımının 2 Büyük Problemi
+
+Python'da getter ve setter method'ları yazmak genellikle tercih edilmeyen bir yöntemdir çünkü iki ciddi soruna yol açar:
+
+1. **Gereksiz Boilerplate Kod:** Sadece ileride ihtiyaç duyulabilir düşüncesiyle her bir attribute (`host`, `username`, `password`) için ayrı ayrı `get_*` ve `set_*` method'ları yazmak ciddi miktarda gereksiz şablon (**boilerplate**) kod üretir.
+
+2. **Mevcut Kodu ve Programatik Arayüzü Kırmak:** Başlangıçta `tc.host` şeklinde doğrudan attribute erişimi sunan bir class veya library sonradan `get_host()` / `set_host()` yapısına geçirilirse, eski arayüzü kullanan tüm dış kodlar bozulur:
+
+* Eski kodlar `tc.host` okumaya çalıştığında `AttributeError` hatası alır.
+
+* Geliştirici `tc.host = "foo"` şeklinde doğrudan atama yapmaya çalışırsa, Python object üzerinde `host` adında yeni ve bağımsız bir attribute oluşturur; içeride kullanılan gerçek `tc._host` attribute'ü (`'rtr2.lasthop.io'`) hiç değişmeden kalır:
+
+```text
+(Pdbr) tc.host = "foo"
+(Pdbr) tc.host
+'foo'
+(Pdbr) tc._host
+'rtr2.lasthop.io'
+```
+
+### 9.3 Python Çözümü: `@property` Decorator
+
+Python bu problemi **Properties** mekanizmasıyla çözer. Properties, veri attribute'lerini aynı programatik arayüzü (`tc.host`) koruyarak getter/setter method'larına dönüştürmemizi sağlar. Böylece en başta gereksiz boilerplate kod yazmadan, sadece gerçekten ihtiyaç duyduğumuz attribute'ü sonradan property'ye çevirebiliriz.
+
+```python
+class TelnetConn:
+    def __init__(self, host, username, password):
+        self._host = host
+        self.username = username
+        self.password = password
+
+        # Create telnet connection
+        self.telnet_conn = Telnet(self._host)
+
+    @property
+    def host(self):
+        print("Hello world")
+        return self._host
+```
+
+#### `@property` Kurulum Adımları
+
+1. **Private Attribute Tanımlama:** `__init__` içerisinde gerçek veriyi tutacak private attribute oluşturulur (`self._host = host`).
+
+2. **Aynı İsimli Method Yazma:** Orijinal attribute ile birebir aynı ada sahip bir method tanımlanır (`def host(self):`).
+
+3. **`@property` Decorator Ekleme:** Method tanımının hemen üstüne `@property` decorator'ı eklenir.
+
+#### Çalışma Davranışı ve Read-Only Özelliği
+
+* **Erişim Anında Otomatik Tetiklenme:** Dışarıdan `tc.host` şeklinde standart attribute erişimi yapıldığında arka plandaki `host(self)` method'u otomatik olarak çalıştırılır:
+
+```text
+(Pdbr) tc.host
+Hello world
+'rtr2.lasthop.io'
+```
+
+* **Read-Only Koruma:** Yalnızca `@property` tanımlandığında (henüz bir setter tanımlanmadığında), bu attribute dışarıdan yanlışlıkla değiştirilemeyen **read-only** bir yapıya dönüşür. Dışarıdan değer atamaya çalışıldığında Python doğrudan `AttributeError` fırlatır:
+
+```text
+(Pdbr) tc.host = "foo"
+*** AttributeError: property 'host' of 'TelnetConn' object has no setter
+```
+
+* **Diğer Attribute'lerin İzolasyonu:** `username`, `password` ve `telnet_conn` gibi diğer standart attribute'ler hiçbir değişikliğe uğramadan klasik dot notation ile okunmaya ve değiştirilmeye devam eder.
+
+> * **`@property`** → Bir class method'unu standart bir attribute gibi erişilebilir hale getiren ve programatik arayüzü bozmadan arka planda kod çalıştırmayı sağlayan built-in decorator.
+> * **boilerplate code** → Gerçek bir işlevsel karşılığı olmadan yalnızca mimari kalıbı doldurmak için yazılan tekrarlı şablon kod.
+> * **read-only property** → Yalnızca `@property` getter'ı tanımlanmış, setter'ı bulunmayan ve dışarıdan üzerine değer yazılmasına izin vermeyen attribute.
+
+---
