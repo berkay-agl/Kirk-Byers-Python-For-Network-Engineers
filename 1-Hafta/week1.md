@@ -180,8 +180,7 @@ Package Version
 pip     25.1.1
 ```
 
-> Alternatif ve güvenli kullanım: `python -m pip list`. Yeni oluşturulan temiz bir sanal ortamda varsayılan olarak yalnızca `pip` ve `setuptools` paketleri yer alır. (Bende setuptools yoktu çıktıdaki gibi.)
-
+> Alternatif ve güvenli kullanım: `python -m pip list`. Yeni oluşturulan temiz bir sanal ortamda varsayılan olarak yalnızca `pip` ve `setuptools` paketleri yer alır. (Not: Çıktıda görüldüğü üzere bende `setuptools` yer almıyordu; bu durum Python 3.12 ve sonraki sürümlerde venv modülünün varsayılan olarak `setuptools` kurmamasından kaynaklanmaktadır.)
 ---
 
 ### 3.2 PIP Aracını Güncelleme 
