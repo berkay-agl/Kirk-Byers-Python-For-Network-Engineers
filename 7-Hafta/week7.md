@@ -809,3 +809,76 @@ Hello world
 > * **sanity check** → Bir setter method'u içerisinde dışarıdan gelen veriyi iç state'e (`self._attr`) kaydetmeden önce geçerlilik kontrolünden geçirme işlemi.
 
 ---
+
+## 11. Property Örneği: Bağlantıyı Dinamik Olarak Yenilemek
+
+Orijinal `TelnetConn` yapımızda uzak cihaza olan Telnet bağlantısı (`self.telnet_conn = Telnet(self._host)`) yalnızca `__init__` aşamasında kurulur. 
+Dolayısıyla object oluşturulduktan sonra dışarıdan `tc.host` attribute'üne yeni bir adres atadığımızda, `self.telnet_conn` güncellenmediği sürece arka planda hâlâ eski cihaza bağlı kalırız.
+
+Gerçekçi bir senaryoda `host` attribute'ü her değiştirildiğinde:
+
+1. Eski Telnet bağlantısının temizlenip kapatılması,
+
+2. Yeni `host` adresine sıfırdan bir Telnet bağlantısı kurulup oturum açılması (`login`) gerekir.
+
+```python
+@property
+def host(self):
+    return self._host
+
+@host.setter
+def host(self, value):
+    if value != self._host:
+        ip_addr = gethostbyname(value)
+        self._host = value
+        del self.telnet_conn
+        self._open()
+
+def _open(self):
+    """Create telnet connection."""
+    self.telnet_conn = Telnet(self._host)
+    self.login()
+```
+
+### 11.1 `@host.setter` ve `_open` Method'unun Adım Adım Akışı
+
+* **Değişiklik Kontrolü (`if value != self._host:`):** Setter method'una gelen yeni değerin (`value`) mevcut `self._host` ile aynı olup olmadığı kontrol edilir. Eğer aynı adres tekrar atanmışsa hiçbir işlem yapılmaz.
+
+* **DNS Doğrulaması (`gethostbyname(value)`):** Değer farklıysa, yeni adresin geçerli bir IP adresine çözümlenip çözümlenmediği kontrol edilir; geçersizse exception fırlatılır ve mevcut bağlantı bozulmaz.
+
+* **Yeni Adresin Kaydedilmesi (`self._host = value`):** Doğrulama geçildiğinde içerideki private `_host` attribute'ü yeni değerle güncellenir.
+
+* **Eski Bağlantının Silinmesi (`del self.telnet_conn`):** Eski cihaza açık olan Telnet bağlantı object'i bellekten silinir (gerçek uygulamalarda silmeden önce `close()` gibi ek temizlik adımları da yapılabilir).
+
+* **Private Yardımcı Method (`def _open(self):`):** Başına tek alt çizgi (`_`) konularak end user'ların doğrudan çağırmaması gerektiği belirtilen, class içine özel bir `_open` method'u tanımlanır. Bu method güncellenmiş `self._host` değerini kullanarak yeni bir `Telnet(self._host)` bağlantısı başlatır ve ardından `self.login()` method'unu çağırarak oturum açma sürecini tamamlar.
+
+### 11.2 `pdbr` Debugger Üzerinde Canlı Bağlantı Geçişi
+
+Aşağıdaki debugger oturumunda önce ilk bağlanılan cihaz (`rtr2.lasthop.io`) doğrulanmakta, ardından `tc.host` attribute'üne yeni değer atanarak otomatik olarak yeni cihaza (`rtr1.lasthop.io`) geçiş yapıldığı görülmektedir:
+
+#### Başlangıç Bağlantısı
+
+```text
+(Pdbr) tc.host
+'rtr2.lasthop.io'
+(Pdbr) tc.write("\n")
+(Pdbr) print(tc.read())
+
+rtr2#
+```
+
+#### `host` Değiştirildikten Sonraki Yeni Bağlantı
+
+```text
+(Pdbr) tc.host = "rtr1.lasthop.io"
+(Pdbr) tc.write("\n")
+(Pdbr) print(tc.read())
+
+rtr1#
+```
+
+> * **state synchronization** → Bir property setter içerisinde ana attribute (`self._host`) değiştiğinde, ona bağımlı olan diğer object durumlarının (`self.telnet_conn`) otomatik olarak güncellenip senkronize edilmesi.
+> * **private helper method (`_open`)** → Class içerisinde birden fazla yerden (örneğin hem `__init__` hem setter içinden) çağrılabilen ancak dış kullanıcıların arayüzüne dahil olmayan iç yardımcı method.
+
+---
+
