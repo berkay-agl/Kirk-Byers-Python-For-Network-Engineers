@@ -522,3 +522,95 @@ Network otomasyonu kütüphanesi **Netmiko** içerisinde, Secure Copy (SCP) dosy
 > * **dispatcher pattern** → Gelen parametreye veya platform türüne göre ilgili alt fonksiyonu koşullu ifadelerle (`if/elif`) seçip yönlendiren fonksiyon yapısı.
 
 ---
+
+## 8. Special İsimlendirmeler
+
+Python'da **Properties** konusuna geçmeden önce, class ve object bağlamında kullanılan üç özel isimlendirme kuralını bilmemiz gerekir:
+
+* `_private_attribute` (Tek alt çizgi ile başlayan private attribute'ler)
+
+* `__name_mangled` (Çift alt çizgi ile başlayan name mangling attribute'leri)
+
+* `__magic__` (Başında ve sonunda çift alt çizgi bulunan dunder/magic method'lar)
+
+```python
+class NetDevice:
+    def __init__(self, device_type, host, username, password, port=22):
+        # Name mangling
+        self.__device_type = device_type
+        self.host = host
+        # private attrs (somewhat private)
+        self._username = username
+        self._password = password
+        self.port = port
+
+    def __str__(self):
+        return f"NetDevice Object {self.host}:{self.port}"
+```
+
+### 8.1 Private Attributes (`_private_attribute`)
+
+Bir attribute adının başına tek bir alt çizgi (`_`) koyduğumuzda (`self._username`, `self._password`), o attribute'ün class'a private olduğunu belirtmiş oluruz.
+
+* **Programlama Niyeti:** Tek alt çizgi ile yapılan bu isimlendirme, diğer geliştiricilere *"Bu attribute class'ın iç işleyişine aittir, dışarıdan doğrudan erişmemelisiniz ve geliştirici istediği zaman bu yapıyı değiştirebilir"* mesajını veren bir niyet beyanıdır.
+
+* **Güvenlik Önlemi Değildir:** Python bu erişimi teknik olarak engellemez; sadece isim değiştiği için doğrudan `nd.username` şeklinde erişmeye çalıştığımızda `AttributeError` alırız, ancak `nd._username` yazdığımızda veriyi yine okuyabilir ve değiştirebiliriz.
+
+```python
+nd = NetDevice(
+    host="test1.domain.com",
+    device_type="cisco_ios",
+    username="admin",
+    password="cisco123",
+)
+import pdbr; pdbr.set_trace()
+```
+
+`pdbr` debugger üzerinde erişim testi:
+
+```text
+(Pdbr) nd.username
+*** AttributeError: 'NetDevice' object has no attribute 'username'
+(Pdbr) nd._username
+'admin'
+```
+
+### 8.2 Name Mangling (`__name_mangled`)
+
+Bir attribute adının başına çift alt çizgi (`__`) koyup sonuna çift alt çizgi koymadığımızda (`self.__device_type`), Python **Name Mangling** (isim bozma/değiştirme) davranışını devreye sokar.
+
+* **Otomatik İsim Dönüşümü:** Python, class içerisinde `__device_type` olarak tanımlanan bu attribute'ün adını arka planda otomatik olarak `_ClassName__attribute_name` formatına (`_NetDevice__device_type`) dönüştürür.
+
+* **Python Resmi Dokümantasyon Kuralı:** En az iki başlangıç alt çizgisi ve en fazla bir bitiş alt çizgisi içeren `__spam` biçimindeki herhangi bir tanımlayıcı, metinsel olarak `_classname__spam` biçimiyle değiştirilir (burada `classname`, başındaki alt çizgiler soyulmuş mevcut class adıdır). (Not: Kirk, konuşmasında "double underscore ve ardından orijinal isim" ifadesini kullanırken, orijinal ismin zaten çift alt çizgi içerdiğini hatırlatarak bu ifadeyi notunda ayrıca netleştirmiştir.)
+
+* **Kullanım Amacı:** Yalnızca niyet belirten tek alt çizginin aksine, name mangling Python'ın attribute adını fiziksel olarak değiştirmesi işlemidir. Buradaki temel amaç, bu class'tan türetilecek alt class'ların yanlışlıkla bu attribute'ün üzerine yazmasını yani **override** etmesini engellemektir. Pratikte çok nadir karşılaşılan uç bir özelliktir.
+
+`pdbr` debugger üzerinde name mangling erişim testi:
+
+```text
+(Pdbr) nd.__device_type
+*** AttributeError: 'NetDevice' object has no attribute '__device_type'
+(Pdbr) nd._NetDevice__device_type
+'cisco_ios'
+
+```
+
+### 8.3 Magic Methods / Dunder Methods (`__magic__`)
+
+Hem başında hem de sonunda çift alt çizgi bulunan method'lara **Magic Methods**, **Special Methods** veya **Dunder Methods** adı verilir. 
+Python'da özel bir anlama sahiptirler ve belirli olaylar gerçekleştiğinde arka planda otomatik olarak çalıştırılırlar.
+
+* **`__init__` (dunder-init):** Yeni bir object oluşturulduğunda otomatik çalışarak object'in başlangıç attribute'lerini hazırlar.
+
+* **`__str__` (dunder-str):** Oluşturulan object `print()` fonksiyonuna verildiğinde veya string'e dönüştürüldüğünde ekrana ne yazdırılacağını belirler. `NetDevice` içerisinde tanımladığımız `__str__` sayesinde `print(nd)` çağrısı doğrudan özelleştirilmiş formatı döndürür:
+
+```text
+(Pdbr) print(nd)
+NetDevice Object test1.domain.com:22
+```
+
+> * **private attribute (`_attr`)** → Başına tek alt çizgi konularak class içi kullanıma özel olduğu belirtilen, ancak teknik bir erişim engeli bulunmayan attribute.
+> * **name mangling (`__attr`)** → Başına çift alt çizgi konulan attribute'lerin Python tarafından otomatik olarak `_ClassName__attr` biçimine dönüştürülerek alt class çakışmalarından korunması.
+> * **magic / dunder methods (`__method__`)** → Başında ve sonunda çift alt çizgi bulunan, Python tarafından özel durumlarda otomatik tetiklenen built-in method'lar.
+
+---
