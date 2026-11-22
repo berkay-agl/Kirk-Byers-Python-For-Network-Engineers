@@ -56,7 +56,7 @@ Bu da özellikle automation script'leri yazan network mühendisleri için, öğr
 ### 2.1 Eğitmenin Kullandığı Ortam
 
 Eğitmen, derslerdeki kodları göstermek için **Python 3.11.0** sürümünü kullanıyor. 
-Kursun ilerleyen kısımlarında küçük güncellemeler olabileceğini ama temel olarak 3.11 sürümü üzerinden ilerleyeceğini belirtiyor. (Bu arada ben 3.13 kullanıyorum.)
+Kursun ilerleyen kısımlarında küçük güncellemeler olabileceğini ama temel olarak 3.11 sürümü üzerinden ilerleyeceğini belirtiyor. (Bu arada ben 3.13.5 kullanıyorum.)
 Bilgisayarınızda Python 3.11 veya nispeten yeni bir Python 3 sürümü — 3.9, 3.10 gibi — kuruluysa bu eğitim için fazlasıyla yeterli. 
 Kurulum için python.org adresine gidip Windows, macOS veya Linux işletim sisteminize uygun paketi indirip kurabilirsiniz.
 
