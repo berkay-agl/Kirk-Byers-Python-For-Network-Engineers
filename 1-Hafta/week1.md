@@ -202,7 +202,7 @@ Installing collected packages: pip
 Successfully installed pip-22.3.1
 ```
 
-> Yine daha güvenli ve tavsiye edilen alternatif yöntem: `python -m pip install pip==22.3.1`. (Bu arada https://pypi.org/project/pip/ - pip 26.2.1 sürümü en son.)
+> Yine daha güvenli ve tavsiye edilen alternatif yöntem: `python -m pip install pip==22.3.1`. (https://pypi.org/project/pip/)
 
 ---
 
