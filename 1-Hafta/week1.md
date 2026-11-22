@@ -76,11 +76,11 @@ Gereken dependencies'leri yani bağımlılıkları sadece bu ortama yüklersiniz
 
 **2) Proje bazlı dependencies yönetimi**
 
-Aynı makinede birden fazla işle uğraşıyor olabilirsiniz. Örneğin API'lerle çalışırken `requests` kütüphanesinin belirli bir sürümüne ihtiyaç duyabilirsiniz; network otomasyonu için ise `netmiko` ve onun gerektirdiği farklı dependencies'leri kullanmanız gerekebilir. Her iki iş için ayrı virtual environment açarak kütüphane sürümlerinin birbirine girmesini engellersiniz. 
+Aynı makinede birden fazla işle uğraşıyor olabilirsiniz. Örneğin API'lerle çalışırken `requests` library'sinin belirli bir sürümüne ihtiyaç duyabilirsiniz; network automation için ise `netmiko` ve onun gerektirdiği farklı dependencies'leri kullanmanız gerekebilir. Her iki iş için ayrı virtual environment açarak library sürümlerinin birbirine girmesini engellersiniz. 
 Bu sayede hem ders için temiz bir ortamınız olur hem de diğer projeleriniz bundan etkilenmez.
 
 > * *virtual environment* → işletim sisteminden izole, projeye özel bağımsız Python çalışma alanı.
-> * *dependencies* → bir script'in veya projenin çalışabilmesi için dışarıdan ihtiyaç duyduğu paket ve kütüphaneler.
+> * *dependencies* → bir script'in veya projenin çalışabilmesi için dışarıdan ihtiyaç duyduğu paket ve library'ler.
 > * *sandbox* → dış dünyayı etkilemeyen ve dışarıdan etkilenmeyen, güvenli ve izole edilmiş çalışma alanı.
 
 ---
