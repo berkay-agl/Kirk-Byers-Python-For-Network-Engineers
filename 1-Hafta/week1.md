@@ -85,9 +85,9 @@ Bu sayede hem ders için temiz bir ortamınız olur hem de diğer projeleriniz b
 
 ---
 
-### 2.3 Linux Ortamında Sanal Ortam Kurulumu
+### 2.3 Linux Ortamında Virtual Environment Kurulumu
 
-Linux üzerinde sanal ortam oluşturma ve çalıştırma adımları şu şekildedir:
+Linux üzerinde virtual environment oluşturma ve çalıştırma adımları şu şekildedir:
 
 **1) Python sürümünü ve yolunu kontrol etme:**
 
@@ -96,16 +96,15 @@ berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ which py
 /usr/bin/python3.13
 ```
 
-**2) `venv` modülü ile sanal ortam oluşturma:**
+**2) `venv` modülü ile virtual environment oluşturma:**
 
 Burada Python'un built-in olan `venv` modülü çağrılır ve ortama bir isim verilir:
 
 ```bash
 berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ python3.13 -m venv py313_venv
-
 ```
 
-**3) Sanal ortamı aktifleştirme:**
+**3) Virtual environment'i aktifleştirme:**
 
 Ortamı devreye almak için `bin` klasöründeki `activate` script'i çalıştırılır:
 
@@ -114,14 +113,14 @@ berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ source p
 (py313_venv) berkay@berkay:~/Desktop/Python-All/Python-For-Network-Engineers/Week-1$ 
 ```
 
-Komut çalıştıktan sonra komut satırının başında `[py313_venv]` ibaresi görünür; bu da sanal ortamın başarıyla aktif olduğunu gösterir.
+Komut çalıştıktan sonra komut satırının başında `[py313_venv]` ibaresi görünür; bu da virtual environment'in başarıyla aktif olduğunu gösterir.
 
 ---
 
-### 2.4 Windows Ortamında Sanal Ortam Kurulumu
+### 2.4 Windows Ortamında Virtual Environment Kurulumu
 
-Windows tarafında süreç çok benzer olsa da komutlarda ufak farklar bulunur. (Bu kısım videodan.)
-Windows üzerinde çalışırken Python komutlarını yönetmek için Windows'a özgü **`py` launcher** aracı kullanılır.
+Windows tarafında süreç çok benzer olsa da komutlarda ufak farklar bulunur. 
+Windows üzerinde çalışırken Python komutlarını yönetmek için Windows'a özgü **`py` launcher** aracı kullanılır. (Bu kısmı videodan direkt aldım.)
 
 **1) Python sürümünü kontrol etme:**
 
@@ -139,7 +138,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 ---
 
-**2) Sanal ortam oluşturma:**
+**2) Virtual environment oluşturma:**
 
 Windows için `py` wrapper'ı üzerinden `venv` modülü çalıştırılır:
 
@@ -147,9 +146,9 @@ Windows için `py` wrapper'ı üzerinden `venv` modülü çalıştırılır:
 C:\Users\Administrator\VENV>py -m venv py311_venv
 ```
 
-**3) Sanal ortamı aktifleştirme:**
+**3) Virtual environment'i aktifleştirme:**
 
-Windows dosya yapısında sanal ortam script'leri `Scripts` klasörü altındadır:
+Windows dosya yapısında virtual environment script'leri `Scripts` klasörü altındadır:
 
 ```cmd
 C:\Users\Administrator\VENV>py311_venv\Scripts\activate
@@ -163,6 +162,7 @@ Python 3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
 >>> quit()
 ```
+
 ---
 
 ## 3. PIP ve Dependencies Kurulumu
