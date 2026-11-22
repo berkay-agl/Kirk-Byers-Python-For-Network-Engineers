@@ -882,3 +882,46 @@ rtr1#
 
 ---
 
+## 12. Property Deleters (`@attr.deleter`)
+
+Properties mekanizmasının son bileşeni **deleter** yapısıdır. 
+Bir attribute üzerinde `del` anahtar kelimesi ile silme işlemi gerçekleştirildiğinde, bu silme işlemini bir method davranışına dönüştürmek için `@attr.deleter` decorator'ı kullanılır.
+
+```python
+@property
+def host(self):
+    return self._host
+
+@host.setter
+def host(self, value):
+    if value != self._host:
+        ip_addr = gethostbyname(value)
+        self._host = value
+        del self.telnet_conn
+        self._open()
+
+@host.deleter
+def host(self):
+    print("Delete host attribute")
+    del self._host
+```
+
+### 12.1 `@attr.deleter` Syntax ve Çalışma Kuralları
+
+* **`@attr.deleter` Decorator'ı:** Daha önce `@property` ile tanımlanan attribute adını kullanarak `@host.deleter` (`@attr.deleter` formatında) decorator'ı eklenir.
+
+* **Aynı Method İsmi ve `self` Parametresi:** Method adı yine orijinal attribute ile birebir aynı olmalıdır (`def host(self):`). Dışarıdan yeni bir değer almadığı için setter'daki gibi bir `value` parametresi almaz; yalnızca `self` parametresini alır.
+
+* **Tetiklenme Anı (`del obj.attr`):** Dışarıdan `del tc.host` komutu çalıştırıldığında Python otomatik olarak bu deleter method'unu yürütür; örnekte olduğu gibi önce ekrana `"Delete host attribute"` mesajını yazdırır ve ardından arka plandaki private `self._host` attribute'ünü bellekten siler (`del self._host`).
+
+`pdbr` debugger üzerinde deleter testi:
+
+```text
+(Pdbr) tc.host
+'rtr2.lasthop.io'
+(Pdbr) del tc.host
+Delete host attribute
+```
+
+> * **`@attr.deleter`** → Bir property üzerinde `del obj.attr` komutu çalıştırıldığında otomatik tetiklenen ve silme işleminin arka plan davranışını yöneten built-in decorator.
+> * **Pythonic Encapsulation (`@property` / `.setter` / `.deleter`)** → Diğer programlama dillerindeki klasik getter/setter kalıplarının Python'daki karşılığı olup, dış arayüzü (`obj.attr`) bozmadan okuma, yazma ve silme işlemlerini kontrol altına alan bütüncül yapı.
