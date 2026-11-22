@@ -738,3 +738,74 @@ Hello world
 > * **read-only property** → Yalnızca `@property` getter'ı tanımlanmış, setter'ı bulunmayan ve dışarıdan üzerine değer yazılmasına izin vermeyen attribute.
 
 ---
+
+## 10. Property Setters (`@attr.setter`)
+
+Yalnızca `@property` tanımlandığında attribute **read-only** olur. 
+Bu attribute'e dışarıdan dot notation ile (`tc.host = ...`) ile yeni bir değer atayabilmek ve atama sırasında arka planda özel işlemler çalıştırabilmek için bir **setter** method'u tanımlamamız gerekir.
+
+```python
+@property
+def host(self):
+    print("Hello world")
+    return self._host
+
+@host.setter
+def host(self, value):
+    print(f"Setting host to: {value}")
+    self._host = value
+```
+
+### 10.1 `@attr.setter` Syntax ve Çalışma Kuralları
+
+Bir property'ye setter eklerken izlenen kurallar şunlardır:
+
+* **`@attr.setter` Decorator'ı:** Daha önce `@property` ile tanımladığımız method'un adını kullanarak `@host.setter` (`@attr.setter` formatında) decorator'ını yazarız.
+
+* **Aynı Method İsmi:** Setter method'unun adı da getter method'u ve orijinal attribute ile birebir aynı olmalıdır (`def host(self, value):`).
+
+* **Ek `value` Parametresi:** Getter yalnızca `self` alırken, setter method'u `self` referansının yanına dışarıdan atanacak yeni veriyi yakalayan ikinci bir parametre (`value`) alır.
+
+* **Internal Private Attribute Güncellemesi:** Setter gövdesi içerisinde istenen işlemler yapıldıktan sonra, arka planda veriyi tutan private attribute yeni değerle güncellenir (`self._host = value`).
+
+`pdbr` debugger üzerinde setter davranışı:
+
+```text
+(Pdbr) tc.host = "rtr1.lasthop.io"
+Setting host to: rtr1.lasthop.io
+```
+
+### 10.2 Gerçek Dünya Kullanımı: Setter İçinde Veri Doğrulama (Sanity Check)
+
+Property setter'larının en yaygın ve gerçekçi kullanım alanlarından biri, attribute'e yeni bir değer atanmadan önce o değerin geçerli olup olmadığını doğrulamaktır buna **sanity check** deniliyor.
+
+Örneğin, `host` attribute'üne atanan değerin geçerli bir DNS adına sahip olup olmadığını `socket` modülündeki `gethostbyname()` fonksiyonu ile kontrol edebiliriz:
+
+```python
+@host.setter
+def host(self, value):
+    ip_addr = gethostbyname(value)
+    print(f"Setting host to: {value}")
+    self._host = value
+```
+
+* **Doğrulama Başarısız Olduğunda:** Dışarıdan geçersiz bir isim (`"foo"`) atanmaya çalışıldığında `gethostbyname(value)` DNS çözümlemesini yapamaz ve `socket.gaierror` exception'ı fırlatır; böylece `self._host = value` satırına hiç ulaşılmaz ve bozuk verinin object'e yazılması engellenir.
+
+* **Doğrulama Başarılı Olduğunda:** Geçerli bir adres (`"rtr1.lasthop.io"`) verildiğinde doğrulama sorunsuz geçer, bilgilendirme mesajı yazdırılır ve `self._host` güncellenir.
+
+`pdbr` debugger üzerinde doğrulama testi:
+
+```text
+(Pdbr) tc.host = "foo"
+*** socket.gaierror: [Errno -2] Name or service not known
+(Pdbr) tc.host = "rtr1.lasthop.io"
+Setting host to: rtr1.lasthop.io
+(Pdbr) tc.host
+Hello world
+'rtr1.lasthop.io'
+```
+
+> * **`@attr.setter`** → Daha önce `@property` ile tanımlanmış bir attribute'e dışarıdan `obj.attr = value` şeklinde değer atanabilmesini ve atama anında özel kod çalıştırılmasını sağlayan decorator.
+> * **sanity check** → Bir setter method'u içerisinde dışarıdan gelen veriyi iç state'e (`self._attr`) kaydetmeden önce geçerlilik kontrolünden geçirme işlemi.
+
+---
