@@ -51,7 +51,7 @@ Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklay
   - Nesne Yönelimli Programlamaya (OOP) giriş, `__init__` metodu, Attributes ve Metotlar.
 - [ ] [**Hafta 8:  Bölüm 2 Classes and Objects**](/8-Hafta)
   - Data Class'lar, Kalıtım (Inheritance) ve Kompozisyon.
-- [ ] **Hafta 9: Kütüphaneler, Virtual Environments ve pip**
+- [ ] **Hafta 9: Libraries, Virtual Environments ve pip**
   - `sys.path`, paket yönetimi (`pip`) ve izole Python ortamları yaratma.
 - [ ] **Hafta 10: Modules and Packages**
   - `__name__` variable'ı, `main()` fonksiyonu ve kendi Python paketlerimizi oluşturma.
