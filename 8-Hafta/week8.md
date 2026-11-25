@@ -144,3 +144,207 @@ class NetDevice:
 > * **`default_factory`** → Data class içerisinde liste veya dictionary gibi mutable varsayılan değerlerin her yeni object için bağımsız olarak üretilmesini sağlayan `field()` parametresi.
 
 ---
+
+## 3. Class Attributes
+
+Şimdiye kadar ele aldığımız attribute'lerin tamamı `__init__` içerisinde `self` referansıyla belirli bir object'e bağlanan **instance attributes** idi. 
+Python'da bunun yanında, belirli bir class'tan türetilen **tüm instance'lar (object'ler) tarafından ortaklaşa paylaşılan** **Class Attributes** yapısı bulunur.
+
+```python
+class TelnetConn:
+    # Class attribute to track all of the Telnet connections
+    conns = 0
+
+    def __init__(self, host, username, password):
+        self._host = host
+        self.username = username
+        self.password = password
+
+        # Create telnet connection
+        self.open()
+
+    def open(self):
+        """Create telnet connection."""
+        self.telnet_conn = Telnet(self._host)
+        self.login()
+        TelnetConn.conns += 1
+        print(f"Number of telnet connections: {self.conns}")
+```
+
+### 3.1 Class Attribute Tanımlama, Okuma ve Güncelleme Kuralları
+
+* **Tanımlama Yeri:** Class attribute'leri `__init__` method'unun içinde veya `self` referansıyla değil, doğrudan `class` bloğunun hemen altında tanımlanır (`conns = 0`).
+
+* **Okuma Sırasında Arama Hiyerarşisi (`self.conns`):** Bir class attribute'ünü yalnızca okumak (`print(f"... {self.conns}")`) için `self` üzerinden erişim yapılabilir. Python bu durumda:
+
+1. Önce **instance seviyesinde** (`self` üzerinde) `conns` adında bir attribute olup olmadığına bakar.
+2. Instance seviyesinde bulamazsa bir üst katmana çıkarak **class seviyesinde** (`TelnetConn` üzerinde) `conns` attribute'ünü arar ve değeri oradan getirir.
+
+* **Atama ve Güncelleme Tuzağı (`TelnetConn.conns += 1` vs `self.conns += 1`):** Class attribute'ünü değiştirirken veya artırırken kesinlikle `self.conns += 1` kullanılmamalıdır. Çünkü `self.conns += 1` ifadesi arka planda `self.conns = self.conns + 1` şeklinde bir **assignment** işlemi yapar ve class attribute'ünü güncellemek yerine o instance üzerinde `conns` adında yepyeni ve bağımsız bir instance attribute yaratır. Bu nedenle class attribute'ünü güncellemek için doğrudan class adı üzerinden `TelnetConn.conns += 1` yazılır.
+
+### 3.2 Eşzamanlı Bağlantı Takibi Örneği (`attribs1.py`)
+
+Aşağıdaki döngüde iki farklı router'a ikişer adet olmak üzere toplam 4 eşzamanlı `TelnetConn` object'i oluşturulmakta ve tüm object'lerin ortak `TelnetConn.conns` sayacını paylaştığı görülmektedir:
+
+```python
+# Two connections to each
+for host in (
+    "rtr1.lasthop.io",
+    "rtr1.lasthop.io",
+    "rtr2.lasthop.io",
+    "rtr2.lasthop.io",
+):
+    tc = TelnetConn(
+        host=host,
+        username=username,
+        password=password
+    )
+    tc.write("\n")
+    data = tc.read()
+    print(data)
+```
+
+Terminal çıktısı (`$ python attribs1.py`):
+
+```text
+$ python attribs1.py
+Enter router password:
+Number of telnet connections: 1
+
+cisco1#
+Number of telnet connections: 2
+
+cisco1#
+Number of telnet connections: 3
+
+cisco2#
+Number of telnet connections: 4
+
+cisco2#
+```
+
+### 3.3 Instance Attribute ve Class Attribute Çakışma Kuralları
+
+Aynı isimde hem bir **class attribute** hem de bir **instance attribute** tanımlandığında, Python'ın attribute çözümleme sırası nedeniyle **instance attribute her zaman kazanır**.
+
+#### Senaryo 1: Hem Class hem Instance Attribute Mevcutsa (Instance Attribute Kazanır)
+
+```python
+class A:
+    my_attr = 100
+
+    def __init__(self):
+        self.my_attr = 10
+
+obj = A()
+print(obj.my_attr)
+```
+
+`pdbr` debugger çıktısı:
+
+```text
+(Pdbr) obj.my_attr
+10
+```
+
+#### Senaryo 2: Instance Attribute Yoksa (Python Class Attribute'e Bakar)
+
+Instance seviyesinde `my_attr` tanımlanmadığında Python önce instance'a bakar, bulamayınca class seviyesine çıkar ve `100` değerini döndürür:
+
+```python
+class A:
+    my_attr = 100
+
+    def __init__(self):
+        pass
+
+obj = A()
+print(obj.my_attr)
+```
+
+`pdbr` debugger çıktısı:
+
+```text
+(Pdbr) obj.my_attr
+100
+```
+
+#### Senaryo 3: Doğrudan Class Adı Üzerinden Erişim (`A.my_attr`)
+
+Hiçbir instance oluşturmadan doğrudan class adı üzerinden (`A.my_attr`) erişim yapıldığında Python doğrudan class attribute'ünü getirir:
+
+```python
+class A:
+    my_attr = 100
+
+    def __init__(self):
+        my_attr = 10
+
+print(A.my_attr)
+```
+
+`pdbr` debugger çıktısı:
+
+```text
+(Pdbr) print(A.my_attr)
+100
+```
+
+### 3.4 Gerçek Dünya Örneği: Veri Merkezi Adres Tablosu (`attribs6.py`)
+
+Class attribute'ler, bir class'a ait tüm instance'ların ortak kullanacağı sabit arama tablolarını class yapısı içinde düzenli tutmak için de kullanılır. Böylece hem class içinden hem de class dışından (`NetDevice.addresses`) bu verilere erişilebilir.
+
+```python
+class NetDevice:
+    addresses = {
+        "sf1": "365 Main Street, San Francisco, CA 94105",
+        "sf2": "200 Paul Avenue, San Francisco, CA 94124",
+        "la1": "600 West 7th Street, Los Angeles, CA 90017",
+    }
+
+    def __init__(
+        self,
+        device_type,
+        host,
+        username,
+        password,
+        data_center,
+    ):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+        self.data_center = data_center
+        self.address = NetDevice.addresses[data_center]
+```
+
+Class'ın kullanımı ve terminal çıktısı (`$ python attribs6.py`):
+
+```python
+rtr1 = NetDevice(
+    device_type="juniper_junos",
+    host="rtr1.domain.com",
+    username="admin",
+    password="jnpr123",
+    data_center="la1",
+)
+
+print()
+print(f"RTR1 DC: {rtr1.data_center}")
+print(f"RTR1 Address: {rtr1.address}")
+print()
+```
+
+```text
+$ python attribs6.py
+
+RTR1 DC: la1
+RTR1 Address: 600 West 7th Street, Los Angeles, CA 90017
+```
+
+> * **instance attribute** → `__init__` veya method'lar içinde `self.attr` şeklinde tanımlanan ve yalnızca o tekil object'e ait olan değişken.
+> * **class attribute** → Doğrudan `class` bloğu altında tanımlanan ve o class'tan üretilen tüm object'ler tarafından ortaklaşa paylaşılan değişken.
+> * **attribute lookup precedence** → `obj.attr` okunurken Python'ın önce instance seviyesine bakması, bulamazsa class seviyesine çıkması; aynı isimde ikisi de varsa instance attribute'ün kazanması kuralı. 
+
+---
