@@ -539,3 +539,124 @@ class SSHConnection(ConnectionClass):
 > * **DRY (Don't Repeat Yourself)** → Aynı veya benzer kod bloklarını farklı yerlerde kopyalamaktan kaçınarak kod kaymasını (**code drift**) önlemeyi amaçlayan temel programlama prensibi.
 
 ---
+
+### 4.5 Mevcut Bir Method'u Genişletme (`super()`)
+
+Parent class'ta tanımlı olan bir method'u (`__init__` gibi) tamamen silip sıfırdan yazmak yani **override** etmek yerine, mevcut davranışını koruyup üzerine yeni özellikler eklemek istediğimizde Python'ın built-in **`super()`** yapısını kullanırız. `super()` (parantezlerle çağrılır), parent class'taki method'u MRO sırasına göre bulup doğrudan çalıştırmamızı sağlar.
+
+```python
+class ConnectionClass(object):
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+class TelnetConnection(ConnectionClass):
+    pass
+
+class SSHConnection(ConnectionClass):
+    def __init__(self, device_type, host, username, password, key_file=None):
+        if key_file is not None:
+            self.key_file = key_file
+        return super().__init__(device_type, host, username, password)
+```
+
+Object oluşturulurken `key_file` argümanının gönderilmesi:
+
+```python
+ssh_conn = SSHConnection(
+    device_type="cisco_ios",
+    host="rtr1.domain.com",
+    username="admin",
+    password="cisco123",
+    key_file="~/.ssh/my_ssh_key"
+)
+```
+
+* **Neden `ConnectionClass` Değiştirilmedi?** Base class olan `ConnectionClass` hem `TelnetConnection` hem de `SSHConnection` class'larına hizmet verir; Telnet bağlantılarında SSH key dosyası kullanılmadığı için `key_file` parametresi yalnızca `SSHConnection` içerisine eklenmiştir.
+
+* **`super().__init__(...)` İşleyişi:** `SSHConnection.__init__()` önce `key_file` değerinin `None` olup olmadığını kontrol eder; eğer gönderilmişse `self.key_file = key_file` olarak object'e bağlar. Ardından `device_type`, `host`, `username` ve `password` atamalarını tekrar yazıp, code duplication yaratmak yerine `super().__init__(device_type, host, username, password)` çağrısıyla parent class'ın `__init__` method'unu çalıştırarak kalan attribute'lerin object'e bağlanmasını sağlar.
+
+### 4.6 Parent Class Değişikliklerine Karşı `*args` ve `**kwargs` Kullanımı
+
+Yukarıdaki açık argüman listesi yaklaşımında, eğer parent class (`ConnectionClass` veya üçüncü parti bir library'den miras alınan bir class) ileride güncellenir ve `__init__` parametrelerine yeni argümanlar eklenirse, child class'taki `__init__` imzasını da sürekli güncellemek zorunda kalırız. Bunu önlemek ve kodu parent class değişikliklerine karşı dayanıklı hale getirmek için `*args` ve `**kwargs` kullanılır:
+
+```python
+# Eski (Açık Argümanlı) Yöntem:
+class SSHConnection(ConnectionClass):
+    def __init__(self, device_type, host, username, password, key_file=None):
+        if key_file is not None:
+            self.key_file = key_file
+        return super().__init__(device_type, host, username, password)
+
+# Yeni (*args ve **kwargs ile Esnek) Yöntem:
+class SSHConnection(ConnectionClass):
+    def __init__(self, *args, **kwargs):
+        if kwargs.get("key_file"):
+            self.key_file = kwargs.pop("key_file")
+        return super().__init__(*args, **kwargs)
+```
+
+* **Tüm Positional ve Keyword Argümanları Kabul Etme:** `*args` herhangi bir sayıda positional argümanı, `**kwargs` ise herhangi bir sayıda keyword argümanı kabul etmemizi sağlar.
+
+* **`kwargs.pop("key_file")` Zorunluluğu:** `kwargs` dictionary'si içinde `"key_file"` key'inin varlığı kontrol edilir; varsa `kwargs.pop("key_file")` ile dictionary'den çıkarılarak `self.key_file` olarak object'e bağlanır. Parent class (`ConnectionClass`) `key_file` argümanını tanımadığı için `super().__init__(*args, **kwargs)` çağrısından önce bu key'in `kwargs` içinden mutlaka çıkarılması gerekir.
+
+* **Tasarım Kısıtı:** Bu yöntem kullanıldığında `key_file` parametresi positional argüman olarak değil, **yalnızca keyword argüman** (`key_file="..."`) olarak gönderilebilir.
+
+### 4.7 İkinci `super()` Örneği: `__repr__` Method'unu Genişletme
+
+`super()` yalnızca state değiştiren (`self` üzerine attribute bağlayan) method'larda değil, bir değer döndüren method'ların çıktısını yakalayıp değiştirmek için de kullanılır.
+
+```python
+class ConnectionClass(object):
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+class TelnetConnection(ConnectionClass):
+    pass
+
+class SSHConnection(ConnectionClass):
+    def __init__(self, device_type, host, username, password, key_file=None):
+        if key_file is not None:
+            self.key_file = key_file
+        return super().__init__(device_type, host, username, password)
+
+    def __repr__(self):
+        orig = super().__repr__()
+        return f"{orig} --> Hello"
+```
+
+Direkt `SSHConnection` kodu ve `pdbr` debugger çıktısı:
+
+```python
+class SSHConnection(ConnectionClass):
+    def __init__(self, device_type, host, username, password, key_file=None):
+        if key_file is not None:
+            self.key_file = key_file
+        return super().__init__(device_type, host, username, password)
+
+    def __repr__(self):
+        orig = super().__repr__()
+        return f"{orig} --> Hello"
+```
+
+```text
+(Pdbr) ssh_conn
+<__main__.SSHConnection object at 0x7f2734939d10> --> Hello
+```
+
+* **MRO Üzerinden `__repr__` Çözümlemesi:** `super().__repr__()` çağrıldığında Python MRO sırasını takip ederek önce `ConnectionClass`'a bakar; orada `__repr__` bulamayınca bir üstteki `object` base class'ına çıkar, varsayılan `__repr__` çıktısını string olarak alır ve `orig` değişkenine kaydeder. Ardından bu string'in sonuna `" --> Hello"` eklenerek yeni string döndürülür.
+
+* **Önce vs Sonra `super()` Çağırma Farkı:**
+* `__init__` örneğinde **önce** object'in state'i değiştirilmiş (`self.key_file = key_file`), **sonra** `super().__init__(...)` çağrılarak kalan attribute'ler bağlanmıştır.
+
+* `__repr__` örneğinde ise **önce** `orig = super().__repr__()` çağrılarak parent'ın döndürdüğü değer yakalanmış, **sonra** bu dönüş değeri değiştirilerek `return` edilmiştir.
+
+> * **`super()`** → Child class içerisinden MRO sırasını kullanarak parent class'taki method'ları doğrudan çağırmamızı ve mevcut davranışı genişletmemizi sağlayan built-in fonksiyon.
+> * **`*args` ve `**kwargs` ile `super()**` → Child class'ın sabit argüman listesine bağımlı kalmadan tüm positional ve keyword argümanları yakalayıp kendi özel argümanını `kwargs.pop()` ile ayıkladıktan sonra kalanları parent class'a iletmesi.
+
+---
