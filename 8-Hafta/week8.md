@@ -348,3 +348,194 @@ RTR1 Address: 600 West 7th Street, Los Angeles, CA 90017
 > * **attribute lookup precedence** → `obj.attr` okunurken Python'ın önce instance seviyesine bakması, bulamazsa class seviyesine çıkması; aynı isimde ikisi de varsa instance attribute'ün kazanması kuralı. 
 
 ---
+
+## 4. Class Hierarchy ve Inheritance
+
+Python'da class'lar arasında hiyerarşik bir yapı kurarak birbirinden özellik ve davranış miras alan parent/child class ilişkileri oluşturabiliriz. 
+Python'daki tüm class hiyerarşisinin en tepesinde built-in base class olan **`object`** yer alır.
+
+### 4.1 Base Class `object` ve Inheritance Syntax'ı
+
+Bir class tanımlarken parantez içinde hangi parent class'tan inheritance yani inheritance alacağını belirtiriz. 
+Eğer parantez içinde hiçbir şey belirtmezsek, Python o class'ı varsayılan olarak otomatik şekilde **`object`** base class'ından türetir. 
+Dolayısıyla aşağıdaki iki tanım birbiriyle tamamen aynıdır:
+
+```python
+class ConnectionClass:
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+# Yukarıdaki tanım ile birebir eşdeğerdir:
+class ConnectionClass(object):
+    pass
+```
+
+Python'daki en temel base class olan `object` class'ının dahili olarak (CPython için muhtemelen C dilinde implemente edilmiş olsa da) Python karşılığı olarak nasıl davrandığını gösteren kaba örnek yapı şudur:
+
+```python
+class object:
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return f"<{self.__class__} object at {hex(id(self))}>"
+```
+
+* **CPython ve Built-in Method'lar:** `object` class'ı yukarıdaki `__init__` ve `__repr__` dışında başka built-in method'lar da barındırır.
+
+Kendi class'ımızı tanımladığımızda ve içine kendi `__init__` method'umuzu yazdığımızda, otomatik olarak miras alınan `object` class'ının varsayılan `__init__` method'unu **override** yani ezmiş oluruz:
+
+```python
+class object:
+    def __init__(self):
+        pass
+
+    def __repr__(self):
+        return f"<{self.__class__} object at {hex(id(self))}>"
+
+class ConnectionClass:
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+```
+
+* **Override Davranışı:** `ConnectionClass` içerisinde kendi `__init__()` method'umuzu tanımladığımız anda, base class (`object`) içindeki varsayılan boş `__init__()` devre dışı kalır ve bizim yazdığımız `__init__()` çalışır. Ancak `__repr__()` method'unu kendi class'ımızda yeniden yazmadığımız için `object` class'ındaki varsayılan `__repr__()` kullanılmaya devam eder.
+
+### 4.2 Parent / Child Class Hiyerarşisi Oluşturma
+
+Varsayılan `object` hiyerarşisini kendi parent ve child class'larımızı ekleyerek genişletebiliriz. 
+Aşağıdaki yapıda `TelnetConnection` ve `SSHConnection` birer child class olarak `ConnectionClass` parent class'ından inheritance almakta, `ConnectionClass` ise `object` base class'ından inheritance almaktadır:
+
+```python
+class ConnectionClass(object):
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+class TelnetConnection(ConnectionClass):
+    pass
+
+class SSHConnection(ConnectionClass):
+    pass
+```
+
+* **Ortak `__init__` Mirası:** Bu yapıda ne `TelnetConnection` ne de `SSHConnection` kendi içinde bir `__init__` tanımlamadığı için, her ikisi de `ConnectionClass` içerisinde tanımlı olan ortak `__init__` method'unu miras alır ve kullanır.
+
+### 4.3 Method Resolution Order (MRO) - Single Inheritance
+
+**Method Resolution Order (MRO)**, bir object üzerinde belirli bir method veya attribute çağrıldığında Python'ın class hiyerarşisi içerisinde bu method'u hangi sırayla arayacağını belirleyen mekanizmadır. Python'da multiple inheritance mümkün olsa da bu Kirk Byers karmaşıklığı önlemek adına yalnızca her class'ın tek bir parent class'a sahip olduğu **Single Inheritance** ele alınmaktadır.
+
+```python
+class ConnectionClass(object):
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+class TelnetConnection(ConnectionClass):
+    pass
+
+class SSHConnection(ConnectionClass):
+    pass
+```
+
+Single inheritance yapısında MRO arama sırası aşağıdan yukarıya doğrudur:
+
+1. Python önce çağrının yapıldığı **mevcut class'ın kendisine** bakar (`SSHConnection`).
+2. Orada bulamazsa bir üstteki **parent class'a** bakar (`ConnectionClass`).
+3. Orada da bulamazsa hiyerarşinin en tepesindeki **`object`** base class'ına kadar çıkar.
+
+#### Senaryo 1: `__init__` Araması (Parent Class'ta Bulunma)
+
+`ssh_conn = SSHConnection(...)` çalıştırıldığında Python önce `SSHConnection` içinde `__init__` arar; bulamayınca parent class olan `ConnectionClass` içine bakar ve oradaki `__init__` method'unu çalıştırır:
+
+```python
+class ConnectionClass(object):
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+class TelnetConnection(ConnectionClass):
+    pass
+
+class SSHConnection(ConnectionClass):
+    pass
+
+ssh_conn = SSHConnection(
+    device_type="cisco_ios",
+    host="rtr1.domain.com",
+    username="admin",
+    password="cisco123"
+)
+```
+
+* **`__repr__` Araması:** Benzer şekilde `ssh_conn` object'i doğrudan incelendiğinde veya yazdırıldığında Python önce `SSHConnection`'a, sonra `ConnectionClass`'a bakar; ikisinde de `__repr__` bulamayınca en üstteki `object` class'ının `__repr__` method'unu kullanır.
+
+#### Senaryo 2: `print_host()` Araması (Child Class'ın Kendisinde Bulunma)
+
+Her iki child class kendi özel `print_host()` method'unu tanımladığında, `ssh_conn.print_host()` çağrısı yapıldığında Python daha ilk adımda `SSHConnection` içinde bu method'u bulur ve doğrudan kendi method'unu çalıştırır:
+
+```python
+class ConnectionClass(object):
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+class TelnetConnection(ConnectionClass):
+    def print_host(self):
+        print(f"Telnet Connection to: {self.host}")
+
+class SSHConnection(ConnectionClass):
+    def print_host(self):
+        print(f"SSH Connection to: {self.host}")
+
+ssh_conn = SSHConnection(
+    device_type="cisco_ios",
+    host="rtr1.domain.com",
+    username="admin",
+    password="cisco123"
+)
+ssh_conn.print_host()
+```
+
+### 4.4 Inheritance Kullanma Amacı: DRY Prensibi ve Code Drift Önleme
+
+Class hiyerarşisi ve inheritance kullanmamızın temel nedeni yazılım mühendisliğindeki **DRY (Don't Repeat Yourself)** prensibini uygulamaktır.
+
+```python
+class ConnectionClass(object):
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+class TelnetConnection(ConnectionClass):
+    def print_host(self):
+        print(f"Telnet Connection to: {self.host}")
+
+class SSHConnection(ConnectionClass):
+    def print_host(self):
+        print(f"SSH Connection to: {self.host}")
+```
+
+* **Code Duplication ve Code Drift:** Hem `TelnetConnection` hem de `SSHConnection` için tamamen aynı olan `__init__` kodunu iki ayrı class'ta tekrar tekrar kopyalamak (**code duplication**), ileride bir değişiklik gerektiğinde tüm kopyaların eşzamanlı güncellenmesini zorlaştırır ve kopyalar arasında uyumsuzluk oluşmasına (**code drift**) yol açar. Ortak kodları parent class (`ConnectionClass`) altında tek bir merkezde toplayarak kod tekrarını ortadan kaldırırız.
+
+> * **`object`** → Python'daki tüm class'ların varsayılan olarak en tepede inheritance aldığı built-in base class.
+> * **method overriding** → Child class içerisinde, parent class'ta zaten var olan bir method ile aynı isimde yeni bir method tanımlayarak parent'taki davranışın yerine kendi davranışımızı koymak.
+> * **Method Resolution Order (MRO)** → Bir method veya attribute çağrıldığında Python'ın önce mevcut class'a, ardından sırayla parent class'lara ve en son `object` class'ına bakarak arama yapma sırası.
+> * **DRY (Don't Repeat Yourself)** → Aynı veya benzer kod bloklarını farklı yerlerde kopyalamaktan kaçınarak kod kaymasını (**code drift**) önlemeyi amaçlayan temel programlama prensibi.
+
+---
