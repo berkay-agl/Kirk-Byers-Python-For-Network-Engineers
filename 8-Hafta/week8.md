@@ -719,3 +719,261 @@ class SSHConnection(ConnectionClass):
 > * **method signature consistency** → Büyük class hiyerarşilerinde parent ve child class'lardaki method'ların kabul ettiği parametre yapılarının birbiriyle uyumlu tutulması gerekliliği.
 
 ---
+
+## 5. Composition
+
+Python'da object'ler arasında yalnızca **inheritance** temelli değil, farklı türde ilişkiler de kurabiliriz. 
+Bir class'tan üretilen object'in, kendi attribute'leri üzerinden başka class'lara ait object'lere referans vermesi ve o object'leri kullanması mimarisine **Composition** denir.
+
+### 5.1 Composition Temel Yapısı: Başka Bir Class'ın Object'ini Oluşturma
+
+Bir `NetworkDevice` object'i oluşturulurken, gönderilen `conn_type` argümanına bağlı olarak `self.connection` attribute'ünün doğrudan başka bir class'ın (`SSHConn` veya `TelnetConn`) instance'ına işaret etmesi sağlanabilir:
+
+```python
+class NetworkDevice:
+    def __init__(
+        self,
+        device_type,
+        host,
+        username,
+        password,
+        conn_type="ssh"
+    ):
+        self.device_type = device_type
+        self.host = host
+
+        if conn_type == "ssh":
+            self.connection = SSHConn(device_type, host, username, password)
+        elif conn_type == "telnet":
+            self.connection = TelnetConn(device_type, host, username, password)
+```
+
+* **Farklı Object'lere Referans:** `NetworkDevice` object'lerinin `self.connection` attribute'üne baktığımızda, bu attribute'ün bambaşka bir class'a (`SSHConn` veya `TelnetConn`) ait bir object'e işaret ettiğini görürüz. Bu örnekte tek bir harici object'e referans verilmiş olsa da, bir object aynı anda çok sayıda farklı object'e de referans verebilir.
+
+### 5.2 `__init__` Üzerinden Hazır Object Geçirme
+
+Composition kurmanın bir diğer yolu, harici object'i `__init__` içinde üretmek yerine, dışarıda oluşturulmuş hazır bir object'i (`SSHConn` object'i gibi) doğrudan `__init__` argümanı olarak içeri göndermektir:
+
+```python
+class NetworkDevice:
+    def __init__(
+        self,
+        connection,
+    ):
+        self.device_type = connection.device_type
+        self.connection = connection
+
+    def __repr__(self):
+        return f"NetworkDevice Object: {self.device_type}/{self.connection.host}"
+
+class SSHConn:
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+    def __repr__(self):
+        return "SSHConn Object"
+```
+
+* **Harici Connection Kullanımı:** Bu yapıda `connection` parametresi `SSHConn` veya farklı bir bağlantı class'ından türetilmiş bir object'i temsil eder; `NetworkDevice` object'i bu `connection` object'ini saklar (`self.connection = connection`) ve uzak network cihazıyla etkileşim kurmak için bu object'i kullanır.
+
+### 5.3 Neden Composition Kullanırız?
+
+Network automation senaryosunda elimizde birbirinden bağımsız iki farklı boyut (iki ayrı hiyerarşi) bulunur:
+
+1. **Network Device Types:** `NetworkDevice` base class'ından türeyen `CiscoXE`, `Junos`, `Arista`, `EOS` gibi platforma özgü child class'lar. Örneğin Cisco XE üzerinde config mode'a nasıl girilir, config mode'dan nasıl çıkılır, enable mode'a nasıl girilir/çıkılır veya output paging nasıl değiştirilir gibi davranışlar bu platform class'larının sorumluluğundadır.
+   
+2. **İletişim Protokolleri:** Uzak cihaza bağlanıp veri göndermek ve veri okumak için kullanılan `SSH`, `Telnet`, `Serial` gibi bağlantı protokolleri.
+
+```python
+class NetworkDevice:
+    def __init__(
+        self,
+        connection,
+    ):
+        self.device_type = connection.device_type
+        self.connection = connection
+
+    def __repr__(self):
+        return f"NetworkDevice Object: {self.device_type}/{self.connection.host}"
+
+
+class SSHConn:
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+    def __repr__(self):
+        return "SSHConn Object"
+```
+
+* **Class Çarpımını Önleme:** Eğer her platformu her bağlantı protokolüyle inheritance üzerinden birleştirmeye kalksaydık; `CiscoXESSH`, `CiscoXETelnet`, `CiscoXESerial`, `JunosSSH`, `JunosTelnet`, `JunosSerial`, `AristaSSH` vb. şeklinde class'ları birbiriyle çarpmamız gerekirdi. Bu durum aşırı karmaşık bir class hierarchy'ye ve yönetilemez bir class patlamasına yol açar. Composition kullanarak bu iki hiyerarşiyi birbirinden ayırıp birbiriyle entegre ederiz.
+
+### 5.4 İki Hiyerarşinin Entegrasyonu ve Abstraction
+
+`NetworkDevice` class'ı ve onun child class'ları (`CiscoXE`, `Junos`, `EOS`), alttaki bağlantının SSH, Telnet veya Serial olmasına bakmaksızın ortak bir arayüz üzerinden `write()` ve `read()` method'larını kullanır:
+
+```python
+class NetworkDevice:
+    def __init__(
+        self,
+        connection,
+    ):
+        self.connection = connection
+
+    def write(self, data):
+        self.connection.write(data)
+
+    def read(self):
+        return self.connection.read()
+
+class CiscoXE(NetworkDevice):
+    """Cisco XE Specific Behaviors"""
+    pass
+
+class Junos(NetworkDevice):
+    """Junos Specific Behaviors"""
+    pass
+
+class EOS(NetworkDevice):
+    """EOS Specific Behaviors"""
+    pass
+```
+
+Alttaki bağlantı katmanında yer alan `SSHConn` class'ı (örneğin arka planda `paramiko` library'sini kullanarak) SSH'a özgü low-level bağlantı kurma (`open`), veri gönderme (`write`) ve veri okuma (`read`) detaylarını kendi içinde **abstraction** yani soyutlar ve gizler:
+
+```python
+class SSHConn:
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+        self.channel = self.open()
+
+    def open(self):
+        """Establish SSH connection."""
+        pass
+
+    def write(self, data):
+        self.channel.send(data.encode())
+
+    def read(self):
+        """Quite a few things missing here from a real read() implementation."""
+        time.sleep(1.5)
+        buffer_size = 65535
+        data = self.channel.recv(buffer_size).decode()
+        return data
+```
+
+* **Protokol Bağımsızlığı:** `SSHConn` içerisindeki `open()`, `write()` ve `read()` implementasyonları Telnet veya Serial bağlantılarından tamamen farklı olsa da, dışarıya aynı `write(data)` ve `read()` arayüzünü sunar. Böylece `NetworkDevice` ve altındaki platform class'ları, `self.connection` object'inin SSH mı yoksa Telnet mi olduğunu bilmek zorunda kalmadan doğrudan `self.connection.write(data)` ve `self.connection.read()` çağrılarını yapabilir.
+
+* **İki Ayrı Class Hierarchy'nin Birlikte Kullanımı:** Bu mimaride hem `NetworkDevice` (`CiscoXE`, `Junos`, `EOS`) tarafında kendi inheritance hiyerarşimiz, hem de `ConnectionClass` (`SSHConn`, `TelnetConn`, `SerialConn`) tarafında kendi ayrı inheritance hiyerarşimiz bulunabilir; iki hiyerarşi birbiriyle çarpılmadan composition ile birbirine bağlanır.
+
+### 5.5 Composition vs Inheritance
+
+Composition ve inheritance arasında seçim yaparken her iki yaklaşımın kendine özgü mimari trade-off'ları bulunur:
+
+* **Sıkı Bağlılık:** Inheritance yapısında parent ve child class'lar arasında sıkı bir bağlılık vardır ve bu durum esnekliği azaltır. Parent class'taki her method (child class içinde override edilmediği sürece) otomatik olarak child class'ta da mevcuttur; ayrıca davranış değiştirmek için `super()` kullanmak gerekir.
+
+* **Kod Tekrarını Azaltma:** Inheritance, ortak kodların parent class altında toplanması sayesinde yüksek düzeyde kod yeniden kullanımı sağlar.
+  
+* **Kod Akışının Belirsizliği:** Inheritance yapısında çalışan kodun gerçekte mevcut class'ta mı, parent class'ta mı yoksa parent'ın parent'ında mı yer aldığını anlamak için MRO zincirini takip etmek gerekir; bu da troubleshooting'i zorlaştırabilir.
+  
+* **Daha Yüksek Esneklik:** Composition genel olarak çok daha esnektir; tek bir inheritance ağacına bağlı kalmadan object'ler arasında farklı türde ilişkiler tanımlamanıza olanak tanır.
+
+* **Açık İlişki Tanımı:** Composition, class'lar arasındaki ilişkileri gizli MRO zincirleri yerine attribute atamaları üzerinden çok daha açık ve okunabilir biçimde kurmanızı sağlar.
+
+> **Hibrit Kullanım:** Composition ve inheritance birbirini dışlayan seçenekler değildir; aynı yazılım mimarisi içerisinde ihtiyaca göre her ikisini bir arada karıştırarak kullanabilirsiniz.
+
+### 5.6 Gerçek Dünya Örneği: Nornir Library Mimarisi
+
+Popüler network automation framework'ü olan **Nornir** library'sinin source kodunda hem **composition** hem de **inheritance** yapılarının gerçek dünyada nasıl bir arada kullanıldığı açıkça görülmektedir.
+
+#### Nornir İçerisinde Composition Kullanımı
+
+`Nornir` ana class'ı başlatılırken (`__init__`), içerisinde `data`, `inventory`, `config`, `processors` ve `runner` gibi farklı class'lardan üretilmiş bağımsız object'lere referans tutar:
+
+```python
+from nornir.core.configuration import Config
+from nornir.core.inventory import Inventory
+from nornir.core.plugins.runners import RunnerPlugin
+from nornir.core.processor import Processor, Processors
+from nornir.core.state import GlobalState
+
+class Nornir(object):
+    def __init__(
+        self,
+        inventory,
+        config = None,
+        data = None,
+        processors = None,
+        runner = None,
+    ):
+        self.data = data if data is not None else GlobalState()
+        self.inventory = inventory
+        self.config = config or Config()
+        self.processors = processors or Processors()
+        self.runner = runner
+```
+
+`pdbr` debugger üzerinde `nr` (`Nornir`) object'inin barındırdığı alt object'lerin incelenmesi:
+
+```text
+(Pdbr) nr
+<nornir.core.Nornir object at 0x7fe4cae9d760>
+(Pdbr) nr.data
+<nornir.core.state.GlobalState object at 0x7fe4cae1a8b0>
+(Pdbr) nr.inventory
+<nornir.core.inventory.Inventory object at 0x7fe4cae0c5c0>
+(Pdbr) nr.config
+<nornir.core.configuration.Config object at 0x7fe4cadeb680>
+```
+
+* **Global State, Inventory ve Config Object'leri:** Çıktıda görüldüğü üzere `nr` object'i; global durumu tutan `GlobalState` object'ini (`nr.data`), envanteri yöneten `Inventory` object'ini (`nr.inventory`) ve yapılandırmayı tutan `Config` object'ini (`nr.config`) composition yoluyla bünyesinde barındırır.
+
+#### Nornir İçerisinde Inheritance Kullanımı
+
+Nornir'in `inventory.py` dosyasında ise envanter elemanları için çok katmanlı bir **inheritance** hiyerarşisi kurulmuştur (`Group` → `Host` → `InventoryElement` → `BaseAttributes` → `object`):
+
+```python
+class BaseAttributes(object):
+    pass
+
+class InventoryElement(BaseAttributes):
+    pass
+
+class Host(InventoryElement):
+    pass
+
+class Group(Host):
+    pass
+```
+
+`pdbr` debugger üzerinde bir `Host` object'i (`cisco3`) için class tipinin ve `.mro()` zincirinin incelenmesi:
+
+```text
+(Pdbr) cisco3
+Host: cisco3
+(Pdbr) type(cisco3)
+<class 'nornir.core.inventory.Host'>
+(Pdbr) cisco3.__class__.mro()
+[
+    <class 'nornir.core.inventory.Host'>,
+    <class 'nornir.core.inventory.InventoryElement'>,
+    <class 'nornir.core.inventory.BaseAttributes'>,
+    <class 'object'>
+]
+```
+
+* **Mimari Sonuç:** Inheritance tek çözüm değildir ve her durumda en iyi seçenek olmak zorunda değildir; birçok senaryoda **composition** kullanmak çok daha esnek ve temiz çözümler üretir.
+
+> * **composition** → Bir class'tan üretilen object'in, inheritance almak yerine başka class'lara ait object'lere attribute'leri üzerinden referans vererek işlevselliği birleştirmesi mimarisi.
+> * **tight coupling** → Inheritance hiyerarşisinde child class'ların parent class'taki method ve yapılara sıkı sıkıya bağımlı olması durumu.
+> * **abstraction** → `SSHConn` veya `TelnetConn` gibi protokol class'larının arka plandaki karmaşık bağlantı detaylarını gizleyip dışarıya yalnızca ortak `write()` ve `read()` arayüzü sunması.
+> * **`.mro()`** → Bir class'ın Method Resolution Order zincirini liste halinde döndüren built-in class method'u.
