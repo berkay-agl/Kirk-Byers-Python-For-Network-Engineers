@@ -49,7 +49,7 @@ Kurs 10 haftalık bir süreci kapsıyor. Tamamlanan haftaların üzerine tıklay
   - Fonksiyon tanımlama ve Lambda ifadeleri.
 - [X] [**Hafta 7: Bölüm 1 Classes and Objects**](/7-Hafta)
   - Nesne Yönelimli Programlamaya (OOP) giriş, `__init__` metodu, Attributes ve Metotlar.
-- [ ] [**Hafta 8:  Bölüm 2 Classes and Objects**](/8-Hafta)
+- [X] [**Hafta 8:  Bölüm 2 Classes and Objects**](/8-Hafta)
   - Data Class'lar, Kalıtım (Inheritance) ve Kompozisyon.
 - [ ] **Hafta 9: Libraries, Virtual Environments ve pip**
   - `sys.path`, paket yönetimi (`pip`) ve izole Python ortamları yaratma.
