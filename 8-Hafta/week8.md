@@ -660,3 +660,62 @@ class SSHConnection(ConnectionClass):
 > * **`*args` ve `**kwargs` ile `super()**` → Child class'ın sabit argüman listesine bağımlı kalmadan tüm positional ve keyword argümanları yakalayıp kendi özel argümanını `kwargs.pop()` ile ayıkladıktan sonra kalanları parent class'a iletmesi.
 
 ---
+
+### 4.8 Inheritance Özeti ve Mimari Değerlendirme 
+
+Class hierarchy ve inheritance mekanizmasının temel işleyişini ve sunduğu avantajlar ile beraberinde getirdiği dezavantajları bir arada değerlendirmek gerekir.
+
+#### Inheritance Temel Özeti
+
+1. **Kod Tekrarını Önleme:** Parent class'larda tanımlanan kodları tekrar yazmadan (**code duplication** yapmadan, **DRY** prensibiyle) child class'larda kullanmamızı sağlayan bir class hiyerarşisi oluşturabiliriz.
+
+2. **`super()` ile Davranış Genişletme:** Child class içerisinde kendi özel işlemlerimizi yapıp ardından parent class'taki method'u çalıştırmak (davranışı genişletmek) için `super()` kullanabiliriz.
+
+3. **Single Inheritance ve MRO:** Single inheritance yapısında Python, çağrılan bir method'u bulmak için önce mevcut class'a, ardından sırayla parent class'lara bakarak **Method Resolution Order (MRO)** kuralını uygular.
+
+4. **Multiple Inheritance:** Python'da birden fazla parent class'tan inheritance alma (**multiple inheritance**) da mümkündür; ancak multiple inheritance durumunda MRO kuralları oldukça karmaşık hale gelir.
+
+#### Inheritance — Avantajlar
+
+* **Code Duplication:** Inheritance kullanmanın en büyük artısı, ortak kodları parent class altında toplayarak gereksiz kod tekrarını ortadan kaldırmasıdır.
+
+#### Inheritance — Dezavantajlar ve Zorluklar 
+
+* **Örtülü Kod Akışı:** MRO mekanizması parent class'lar üzerinden otomatik arama yaptığı için kodun gerçekte nereden çalıştığını anlamak her zaman açık ve net değildir. Örneğin `SSHConnection` object'i üzerinde `str()` (`__str__`) gibi bir method çağrıldığında, bu method'un hangi parent class içerisinde tanımlı olduğunu bulmak için hiyerarşiyi geriye doğru tek tek taramak gerekebilir; `super()` çağrıları eklendiğinde bu takip daha da karmaşıklaşır.
+
+* **Parent Class Değişikliklerinin Child Class'ı Bozması:** Child class doğrudan parent class'taki koda bağımlı olduğu için, parent kodda yapılan kırıcı değişiklikler child class'ı da bozar. Özellikle parent class sizin kontrolünüzde olmayan harici bir library'de yer alıyorsa, davranışı garanti altına almak için library'i belirli bir sürüme sabitlemeniz ve yalnızca test edip kırıcı değişiklikleri düzeltecek vaktiniz olduğunda sürüm güncellemesi yapmanız gerekir.
+
+* **Method Tanımlarında Tutarlılığı Koruma Zorluğu:** Class hiyerarşisi büyüyüp onlarca dosyaya ve yüzlerce dunder / non-dunder method'a yayıldığında, parent ve child class'lardaki method tanımlarının (method'ların kabul ettiği argüman imzalarının) tüm hiyerarşi boyunca tutarlı kalmasını sağlamak zorlaşır.
+
+Method tanımlarındaki tutarlılık varsayımını ve hiyerarşi yapısını gösteren örnek kod:
+
+```python
+class ConnectionClass(object):
+    def __init__(self, device_type, host, username, password):
+        self.device_type = device_type
+        self.host = host
+        self.username = username
+        self.password = password
+
+class TelnetConnection(ConnectionClass):
+    pass
+
+class SSHConnection(ConnectionClass):
+    def __init__(self, device_type, host, username, password, key_file=None):
+        if key_file is not None:
+            self.key_file = key_file
+        return super().__init__(device_type, host, username, password)
+
+    def __repr__(self):
+        orig = super().__repr__()
+        return f"{orig} --> Hello"
+
+# Önemli bir not bu mimari için:
+# Buradaki varsayım, method tanımlamanın (yani method'ların kabul ettiği argümanların) class hierarchy'nizdeki class'lar arasında genellikle tutarlı olacağıdır.
+```
+
+> * **implied code** → MRO ve `super()` mekanizmaları nedeniyle bir method çağrıldığında çalıştırılan kodun mevcut class içinde açıkça görünmeyip parent class hiyerarşisinden örtülü olarak gelmesi durumu.
+> * **version pinning** → Kontrolümüz dışındaki harici bir parent class veya library'de yapılacak kırıcı değişikliklerin kodumuzu bozmasını engellemek için "dependencies"ı belirli bir sürüme sabitleme pratiği.
+> * **method signature consistency** → Büyük class hiyerarşilerinde parent ve child class'lardaki method'ların kabul ettiği parametre yapılarının birbiriyle uyumlu tutulması gerekliliği.
+
+---
